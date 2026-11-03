@@ -4,41 +4,347 @@
   "title": "Design System: Wypad we dwoje",
   "extensions": {
     "colorMeta": {
-      "trip-orange": { "role": "primary", "displayName": "Trip Orange", "canonical": "#e8590c", "tonalRamp": ["#4a1a02", "#7a2c05", "#a83e08", "#e8590c", "#f57c3a", "#fa9e6b", "#fdc4a1", "#ffe8d9"] },
-      "fits-green": { "role": "secondary", "displayName": "Fits Green", "canonical": "#2b8a3e", "tonalRamp": ["#0b2a12", "#14461e", "#1f6a2e", "#2b8a3e", "#40c057", "#69db7c", "#a9e9b4", "#e3f8e7"] },
-      "over-red": { "role": "secondary", "displayName": "Over-Budget Red", "canonical": "#c92a2a", "tonalRamp": ["#3d0b0b", "#661414", "#961e1e", "#c92a2a", "#fa5252", "#ff8787", "#ffc0c0", "#fff0f0"] },
-      "price-peach": { "role": "tertiary", "displayName": "Price Peach", "canonical": "#ffd8a8" },
-      "cat-sight": { "role": "tertiary", "displayName": "Sight Blue", "canonical": "#1971c2" },
-      "cat-stay": { "role": "tertiary", "displayName": "Stay Violet", "canonical": "#7048e8" },
-      "cat-other": { "role": "tertiary", "displayName": "Other Olive", "canonical": "#5c940d" },
-      "paper": { "role": "neutral", "displayName": "Paper", "canonical": "#faf7f2", "tonalRamp": ["#16130f", "#221e19", "#3a332b", "#7a7268", "#a39a8e", "#e9e2d8", "#f3ede4", "#faf7f2"] },
-      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#1f1b16" },
-      "muted": { "role": "neutral", "displayName": "Muted", "canonical": "#7a7268" },
-      "line": { "role": "neutral", "displayName": "Hairline", "canonical": "#e9e2d8" }
+      "shell-pink": {
+        "role": "primary",
+        "displayName": "Camera Pink",
+        "canonical": "#e98aa6",
+        "tonalRamp": [
+          "#3a1622",
+          "#5e2638",
+          "#8a3a55",
+          "#b85d7a",
+          "#e98aa6",
+          "#f3b8c9",
+          "#f8d6e0",
+          "#fcedf2"
+        ]
+      },
+      "shell-ink": {
+        "role": "primary",
+        "displayName": "Shell Ink",
+        "canonical": "#1d1a22"
+      },
+      "marker-navy": {
+        "role": "secondary",
+        "displayName": "Navy Marker",
+        "canonical": "#24318f",
+        "tonalRamp": [
+          "#0e1440",
+          "#18215f",
+          "#24318f",
+          "#3b4bb8",
+          "#6576d6",
+          "#9fb0ff",
+          "#cbd4ff",
+          "#eaeeff"
+        ]
+      },
+      "marker-green": {
+        "role": "secondary",
+        "displayName": "Marker Green",
+        "canonical": "#1f8a4c",
+        "tonalRamp": [
+          "#0a2b17",
+          "#124526",
+          "#1a6a3a",
+          "#1f8a4c",
+          "#4cc27a",
+          "#82d9a3",
+          "#bdeccd",
+          "#e8f8ee"
+        ]
+      },
+      "marker-red": {
+        "role": "secondary",
+        "displayName": "Marker Red",
+        "canonical": "#d6332b",
+        "tonalRamp": [
+          "#3f0d0a",
+          "#661713",
+          "#9a221c",
+          "#d6332b",
+          "#ff6b5e",
+          "#ff9b91",
+          "#ffc9c3",
+          "#fff0ee"
+        ]
+      },
+      "tape-pink": {
+        "role": "tertiary",
+        "displayName": "Tape Pink",
+        "canonical": "#f3b8c9"
+      },
+      "cat-food": {
+        "role": "tertiary",
+        "displayName": "Food Rust",
+        "canonical": "#c2410c"
+      },
+      "cat-sight": {
+        "role": "tertiary",
+        "displayName": "Sight Navy",
+        "canonical": "#24318f"
+      },
+      "cat-stay": {
+        "role": "tertiary",
+        "displayName": "Stay Raspberry",
+        "canonical": "#b4376a"
+      },
+      "cat-other": {
+        "role": "tertiary",
+        "displayName": "Other Olive",
+        "canonical": "#5c6b2e"
+      },
+      "table-lilac": {
+        "role": "neutral",
+        "displayName": "Lilac Table",
+        "canonical": "#efe9ee",
+        "tonalRamp": [
+          "#17131a",
+          "#221c25",
+          "#3a3139",
+          "#6a6270",
+          "#a99fa8",
+          "#cbc1c9",
+          "#e6dee4",
+          "#efe9ee"
+        ]
+      },
+      "print-white": {
+        "role": "neutral",
+        "displayName": "Print White",
+        "canonical": "#ffffff"
+      },
+      "sheet": {
+        "role": "neutral",
+        "displayName": "Sheet",
+        "canonical": "#ffffff"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Plum Ink",
+        "canonical": "#1d1a22"
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "canonical": "#4f4854"
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted Plum Grey",
+        "canonical": "#6a6270"
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "canonical": "#e6dee4"
+      },
+      "print-rule": {
+        "role": "neutral",
+        "displayName": "Print Rule",
+        "canonical": "#ece5ea"
+      },
+      "field": {
+        "role": "neutral",
+        "displayName": "Field",
+        "canonical": "#f7f4f6"
+      },
+      "field-line": {
+        "role": "neutral",
+        "displayName": "Field Line",
+        "canonical": "#cbc1c9"
+      },
+      "photo-blank": {
+        "role": "neutral",
+        "displayName": "Photo Blank",
+        "canonical": "#d9d0d7"
+      },
+      "plate-ink": {
+        "role": "neutral",
+        "displayName": "Plate Ink",
+        "canonical": "#1d1a22"
+      },
+      "dark-table": {
+        "role": "neutral",
+        "displayName": "Dark Table",
+        "canonical": "#17131a"
+      },
+      "dark-sheet": {
+        "role": "neutral",
+        "displayName": "Dark Sheet",
+        "canonical": "#221c25"
+      },
+      "dark-print": {
+        "role": "neutral",
+        "displayName": "Dark-Mode Print",
+        "canonical": "#f6f2f4"
+      },
+      "dark-ink": {
+        "role": "neutral",
+        "displayName": "Dark Ink",
+        "canonical": "#f3edf2"
+      },
+      "dark-muted": {
+        "role": "neutral",
+        "displayName": "Dark Muted",
+        "canonical": "#a99fa8"
+      },
+      "dark-rule": {
+        "role": "neutral",
+        "displayName": "Dark Rule",
+        "canonical": "#3a3139"
+      },
+      "dark-field": {
+        "role": "neutral",
+        "displayName": "Dark Field",
+        "canonical": "#2b2430"
+      },
+      "dark-marker": {
+        "role": "secondary",
+        "displayName": "Dark Marker",
+        "canonical": "#9fb0ff"
+      },
+      "dark-yes": {
+        "role": "secondary",
+        "displayName": "Dark Yes",
+        "canonical": "#4cc27a"
+      },
+      "dark-no": {
+        "role": "secondary",
+        "displayName": "Dark No",
+        "canonical": "#ff6b5e"
+      },
+      "dark-tape": {
+        "role": "tertiary",
+        "displayName": "Dark Tape",
+        "canonical": "#b85d7a"
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "Display", "purpose": "City name on the swipe card and detail hero, white on a photo gradient." },
-      "headline": { "displayName": "Headline", "purpose": "Destination total on comparison cards." },
-      "title": { "displayName": "Title", "purpose": "Wordmark in the header." },
-      "body": { "displayName": "Body", "purpose": "Base text and descriptions." },
-      "data": { "displayName": "Data", "purpose": "Flight and cost rows, table cells; tabular figures, bold prices." },
-      "label": { "displayName": "Label", "purpose": "Form labels, help text, chips, small buttons." },
-      "micro": { "displayName": "Micro", "purpose": "Badges, vote markers, header pills, tab labels." }
+      "display-hand": {
+        "displayName": "Display, hand",
+        "purpose": "City names on prints, sheet and table, and the empty-state heading, in navy marker."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "\"Wypad\" in the camera bar; the \"we dwoje\" tail is Shantell 700 19px navy."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Panel headings in Więcej."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Detail sheet section heads and plan day heads."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Totals: the plate figure, contact print totals, the cost sum."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Base text with tabular figures; descriptions capped at 62ch."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Flight rows, facts, cost rows and table cells."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Form labels, chips, sub-lines and tab labels."
+      },
+      "hand-note": {
+        "displayName": "Hand note",
+        "purpose": "Notes on prints and sheets, the eat list, empty plan days."
+      },
+      "vote-tag": {
+        "displayName": "Vote tag",
+        "purpose": "K and Z vote tags on a print's photo."
+      },
+      "mono-entry": {
+        "displayName": "Mono entry",
+        "purpose": "Flight-entry textareas and the code sample of the line format; diagnostics log at 11px."
+      }
     },
     "shadows": [
-      { "name": "swipe-lift", "value": "0 8px 24px rgba(0,0,0,.25)", "purpose": "Top card in the swipe deck." },
-      { "name": "button-press", "value": "0 2px 8px rgba(0,0,0,.12)", "purpose": "Round vote buttons." },
-      { "name": "pin", "value": "0 1px 4px rgba(0,0,0,.4)", "purpose": "Map pins." },
-      { "name": "best-fit-ring", "value": "0 0 0 2px color-mix(in srgb, #2b8a3e 25%, transparent)", "purpose": "State ring on the best destination card." }
+      {
+        "name": "print-lift",
+        "value": "0 10px 22px rgba(45,20,40,.20), 0 1px 2px rgba(0,0,0,.18)",
+        "purpose": "Top swipe print, hovered contact print, dialogs. Dark: 0 12px 26px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.5)."
+      },
+      {
+        "name": "print-rest",
+        "value": "0 2px 6px rgba(45,20,40,.14), 0 0 1px rgba(0,0,0,.2)",
+        "purpose": "Contact prints, plan slots, weather tiles, map frame, selected chip. Dark: 0 2px 8px rgba(0,0,0,.45)."
+      },
+      {
+        "name": "tag",
+        "value": "0 1px 2px rgba(0,0,0,.25)",
+        "purpose": "Vote tags and gallery captions stuck on a photo."
+      },
+      {
+        "name": "pin",
+        "value": "0 2px 5px rgba(0,0,0,.35)",
+        "purpose": "Map pins."
+      },
+      {
+        "name": "focus-tape",
+        "value": "0 0 0 3px var(--tape)",
+        "purpose": "Focus ring on inputs, selects and textareas."
+      }
     ],
     "motion": [
-      { "name": "toast-fade", "value": "opacity .2s", "purpose": "Toast appear and disappear." }
+      {
+        "name": "press",
+        "value": "background .12s, transform .12s; translateY(1px) on :active",
+        "purpose": "Buttons and vote buttons."
+      },
+      {
+        "name": "print-lift",
+        "value": "transform .15s, box-shadow .15s; rotate(0) translateY(-2px)",
+        "purpose": "Contact print straightens and lifts on hover or focus."
+      },
+      {
+        "name": "voter-toggle",
+        "value": "background .15s, color .15s",
+        "purpose": "K/Z voter chips."
+      },
+      {
+        "name": "toast",
+        "value": "opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1)",
+        "purpose": "Toast fades in and rises 8px."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "transition:none; animation:none",
+        "purpose": "All motion off under prefers-reduced-motion."
+      }
     ],
     "breakpoints": [
-      { "name": "narrow", "value": "400px" },
-      { "name": "sheet-cols", "value": "480px" },
-      { "name": "desktop", "value": "760px" },
-      { "name": "short-phone", "value": "max-height: 760px" }
+      {
+        "name": "tiny-phone",
+        "value": "max-width: 380px"
+      },
+      {
+        "name": "no-swipe-help",
+        "value": "max-width: 440px"
+      },
+      {
+        "name": "sheet-one-column",
+        "value": "max-width: 480px"
+      },
+      {
+        "name": "phone",
+        "value": "max-width: 759px"
+      },
+      {
+        "name": "desktop",
+        "value": "min-width: 760px"
+      },
+      {
+        "name": "short-phone",
+        "value": "max-width: 759px and max-height: 760px"
+      }
     ]
   },
   "components": [
@@ -46,90 +352,136 @@
       "name": "Button",
       "kind": "button",
       "refersTo": "button",
-      "description": "Default soft button with a hairline border.",
-      "html": "<button class=\"ds-btn\">📍 Dodaj miejsce</button>",
-      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line,#e9e2d8);background:var(--card,#fff);color:var(--ink,#1f1b16);border-radius:10px;padding:10px 12px;font:15px/1.4 system-ui,sans-serif;min-height:42px;cursor:pointer}.ds-btn:focus-visible{outline:2px solid #e8590c;outline-offset:2px}"
+      "description": "Square outlined button with a drawn icon; the default action.",
+      "html": "<button class=\"ds-btn\"><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"M12 5v14M5 12h14\"/></svg>Dodaj kierunek</button>",
+      "css": ".ds-ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}.ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:2px solid #1d1a22;background:#fff;color:#1d1a22;border-radius:0;padding:8px 14px;min-height:44px;font-family:Archivo,system-ui,sans-serif;font-weight:700;font-size:15px;line-height:1;font-stretch:88%;cursor:pointer;transition:background .12s,transform .12s}.ds-btn:hover{background:#f7f4f6}.ds-btn:active{transform:translateY(1px)}.ds-btn:focus-visible{outline:2px solid #1d1a22;outline-offset:2px}"
     },
     {
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Main action in a view, trip orange.",
-      "html": "<button class=\"ds-btn-primary\">+ Dodaj kierunek</button>",
-      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #e8590c;background:#e8590c;color:#fff;border-radius:10px;padding:10px 12px;font:15px/1.4 system-ui,sans-serif;min-height:42px;cursor:pointer}.ds-btn-primary:focus-visible{outline:2px solid #1f1b16;outline-offset:2px}"
+      "description": "Ink-filled button for Zapisz and the sheet's Jedziemy.",
+      "html": "<button class=\"ds-btn ds-primary\"><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"m5 12.5 4.5 4.5L19 7.5\"/></svg>Jedziemy</button>",
+      "css": ".ds-ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}.ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:2px solid #1d1a22;background:#fff;color:#1d1a22;border-radius:0;padding:8px 14px;min-height:44px;font-family:Archivo,system-ui,sans-serif;font-weight:700;font-size:15px;line-height:1;font-stretch:88%;cursor:pointer;transition:background .12s,transform .12s}.ds-btn:hover{background:#f7f4f6}.ds-btn:active{transform:translateY(1px)}.ds-btn:focus-visible{outline:2px solid #1d1a22;outline-offset:2px}.ds-primary{background:#1d1a22;color:#fff}.ds-primary:hover{background:#4f4854}"
     },
     {
       "name": "Vote Buttons",
       "kind": "custom",
-      "refersTo": "vote-round",
-      "description": "Round no / undo / info / yes buttons under the swipe deck.",
-      "html": "<div class=\"ds-votes\"><button class=\"ds-round ds-no\">✕</button><button class=\"ds-round ds-sm\">↺</button><button class=\"ds-round ds-sm\">ℹ</button><button class=\"ds-round ds-yes\">❤</button></div>",
-      "css": ".ds-votes{display:flex;gap:22px;align-items:center;justify-content:center}.ds-round{width:62px;height:62px;border-radius:50%;border:1px solid #e9e2d8;background:#fff;font-size:26px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)}.ds-round:active{transform:scale(.95)}.ds-no{color:#fa5252}.ds-yes{color:#40c057}.ds-sm{width:46px;height:46px;font-size:20px;color:#7a7268}"
+      "refersTo": "vote-yes",
+      "description": "Swipe-screen Nie / Cofnij / Szczegóły / Jedziemy; Jedziemy is camera pink so the plate stays the only ink slab.",
+      "html": "<div class=\"ds-vb\"><button class=\"ds-v\"><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"m6 6 12 12M18 6 6 18\"/></svg>Nie</button><button class=\"ds-v ds-sq\" aria-label=\"Cofnij\"><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"M9 7.5 4.5 12 9 16.5\"/><path d=\"M4.5 12H15a4.5 4.5 0 0 1 0 9h-2\"/></svg></button><button class=\"ds-v ds-yes\"><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"m5 12.5 4.5 4.5L19 7.5\"/></svg>Jedziemy</button></div>",
+      "css": ".ds-ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}.ds-vb{display:flex;gap:10px;align-items:center;justify-content:center}.ds-v{height:54px;min-width:54px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 20px;border:2px solid #1d1a22;background:#fff;color:#1d1a22;border-radius:0;font-family:Archivo,system-ui,sans-serif;font-weight:800;font-size:16px;font-stretch:85%;cursor:pointer;transition:transform .1s,background .12s}.ds-v .ds-ic{stroke-width:2.2}.ds-v:active{transform:translateY(1px)}.ds-v:focus-visible{outline:2px solid #1d1a22;outline-offset:2px}.ds-sq{padding:0;width:46px;min-width:46px;height:46px;border-width:1.5px;color:#6a6270;border-color:#cbc1c9}.ds-yes{background:#e98aa6}.ds-yes .ds-ic{stroke-width:2.6}"
     },
     {
       "name": "Input",
       "kind": "input",
       "refersTo": "input",
-      "description": "Recessed paper field with a muted label above.",
-      "html": "<label class=\"ds-label\">Budżet na dwoje (zł)<input class=\"ds-input\" value=\"2400\"></label>",
-      "css": ".ds-label{display:block;font:13px/1.4 system-ui,sans-serif;color:#7a7268}.ds-input{display:block;margin-top:3px;width:100%;box-sizing:border-box;font:15px/1.4 system-ui,sans-serif;color:#1f1b16;background:#faf7f2;border:1px solid #e9e2d8;border-radius:10px;padding:9px 10px}.ds-input:focus-visible{outline:2px solid #e8590c;outline-offset:1px}"
+      "description": "Square 2px ink field with a muted label; focus is a tape-pink ring.",
+      "html": "<label class=\"ds-label\">Budżet na dwoje (zł)<input class=\"ds-input\" value=\"2400\" inputmode=\"numeric\"></label>",
+      "css": ".ds-label{display:block;font-family:Archivo,system-ui,sans-serif;font-size:13px;color:#6a6270}.ds-input{display:block;width:100%;box-sizing:border-box;margin-top:4px;font-family:Archivo,system-ui,sans-serif;font-size:15px;font-variant-numeric:tabular-nums;color:#1d1a22;background:#fff;border:2px solid #1d1a22;border-radius:0;padding:9px 10px;min-height:42px}.ds-input:focus{outline:none;box-shadow:0 0 0 3px #f3b8c9}"
     },
     {
       "name": "Category Chips",
       "kind": "chip",
       "refersTo": "chip",
-      "description": "Pill filters; the selected one inverts to ink.",
-      "html": "<div class=\"ds-chips\"><button class=\"ds-chip ds-on\">🍝 Jedzenie</button><button class=\"ds-chip\">🏛 Zwiedzanie</button></div>",
-      "css": ".ds-chips{display:flex;gap:6px}.ds-chip{border:1px solid #e9e2d8;background:#fff;color:#1f1b16;border-radius:99px;padding:5px 11px;font:13px system-ui,sans-serif;cursor:pointer}.ds-chip.ds-on{background:#1f1b16;color:#faf7f2}"
+      "description": "Dashed square chips; the selected one becomes solid paper with its icon in category ink.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip ds-on\" style=\"--c:#c2410c\"><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"M7 3v18M4.5 3v5a2.5 2.5 0 0 0 5 0V3M17 21V3c-2.5 1-3.5 4-3.5 8h3.5\"/></svg>Jedzenie</button><button class=\"ds-chip\" style=\"--c:#24318f\"><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"M3.5 9 12 4l8.5 5zM5 20h14M3.5 9h17M6.5 9v9M10 9v9M14 9v9M17.5 9v9\"/></svg>Zwiedzanie</button></div>",
+      "css": ".ds-ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}.ds-chips{display:flex;gap:6px}.ds-chip{display:inline-flex;align-items:center;gap:6px;border:1.5px dashed #cbc1c9;background:transparent;color:#6a6270;border-radius:0;padding:6px 10px;min-height:38px;font-family:Archivo,system-ui,sans-serif;font-weight:600;font-size:13px;font-stretch:90%;cursor:pointer}.ds-chip .ds-ic{width:17px;height:17px}.ds-chip:focus-visible{outline:2px solid #1d1a22;outline-offset:2px}.ds-on{background:#fff;color:#1d1a22;border:1.5px solid #1d1a22;box-shadow:0 2px 6px rgba(45,20,40,.14),0 0 1px rgba(0,0,0,.2)}.ds-on .ds-ic{color:var(--c)}"
     },
     {
-      "name": "Destination Card",
+      "name": "Swipe Print",
       "kind": "card",
-      "refersTo": "card",
-      "description": "Flat comparison card: name, muted meta, bold total, flight rows.",
-      "html": "<div class=\"ds-card\"><div class=\"ds-head\"><div><b class=\"ds-name\">Sofia</b><span class=\"ds-badge\">❤ match</span><div class=\"ds-meta\">Bułgaria · ~10°C · 3 noce</div></div><div class=\"ds-total\">376 zł<small>+ nocleg</small></div></div><div class=\"ds-fl\">pt 20.11 10:15–13:05 · <b>66 zł</b></div></div>",
-      "css": ".ds-card{background:#fff;border:1px solid #e9e2d8;border-radius:14px;padding:14px;font:15px/1.4 system-ui,sans-serif;color:#1f1b16;max-width:340px}.ds-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.ds-name{font-size:20px}.ds-meta,.ds-fl{font-size:13px;color:#7a7268}.ds-fl b{color:#1f1b16}.ds-total{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}.ds-total small{display:block;font-size:11px;font-weight:500;color:#7a7268;text-align:right}.ds-badge{font-size:11px;padding:2px 7px;border-radius:99px;background:#2b8a3e;color:#fff;margin-left:6px;vertical-align:middle}"
+      "refersTo": "print-swipe",
+      "description": "The signature print: photo with vote tags top-right, chin with city in marker, flight rows and the reversed total plate.",
+      "html": "<div class=\"ds-table\"><article class=\"ds-print\"><div class=\"ds-photo\"><span class=\"ds-blank\">brak zdjęcia</span><div class=\"ds-votes\"><span class=\"ds-vt ds-y\">K<svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"m5 12.5 4.5 4.5L19 7.5\"/></svg></span><span class=\"ds-vt\">Z ?</span></div></div><div class=\"ds-chin\"><div class=\"ds-h\"><h2>Sofia</h2><small>Bułgaria · ~10°C</small></div><table class=\"ds-fl\"><tr><td><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"M3 19.5h18\"/><path d=\"m4.5 13.5 3 2.5 12.2-4.2c1.1-.4 1.6-1.5 1.2-2.4-.4-.8-1.4-1.1-2.3-.8l-3.8 1.3-5.4-4.6-2 .7 3 5.4-3.6 1.2-2-1.3-1.6.6z\"/></svg></td><td>pt 20.11 · 10:15 → 13:05</td><td class=\"ds-pr\">66 zł</td></tr></table><div class=\"ds-plate\"><span>loty dla dwojga</span><b>264 zł</b></div></div></article></div>",
+      "css": ".ds-ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}.ds-table{background:#efe9ee;padding:20px}.ds-print{max-width:340px;background:#fff;color:#1d1a22;padding:10px 10px 0;box-shadow:0 10px 22px rgba(45,20,40,.20),0 1px 2px rgba(0,0,0,.18);font-family:Archivo,system-ui,sans-serif;font-variant-numeric:tabular-nums}.ds-photo{position:relative;height:200px;background:#d9d0d7;display:grid;place-items:center}.ds-blank{font-family:'Shantell Sans',Archivo,system-ui,sans-serif;font-weight:700;font-size:15px;color:#8b818a}.ds-votes{position:absolute;top:8px;right:8px;display:flex;gap:4px}.ds-vt{font-family:'Shantell Sans',Archivo,system-ui,sans-serif;font-weight:700;font-size:14px;line-height:1;background:#fff;color:#6a6270;padding:4px 7px 5px;box-shadow:0 1px 2px rgba(0,0,0,.25)}.ds-vt .ds-ic{width:14px;height:14px;stroke-width:2.6;vertical-align:-2px;margin-left:2px}.ds-y{color:#1f8a4c}.ds-chin{padding:10px 2px 12px}.ds-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.ds-h h2{margin:0;font-family:'Shantell Sans',Archivo,system-ui,sans-serif;font-weight:700;font-size:30px;line-height:1.05;color:#24318f}.ds-h small{font-size:13px;color:#6a6270}.ds-fl{width:100%;border-collapse:collapse;margin-top:6px;font-size:14px;font-stretch:90%}.ds-fl td{padding:5px 0;border-top:1px solid #ece5ea}.ds-fl td:first-child{width:24px;color:#6a6270}.ds-fl .ds-ic{width:18px;height:18px}.ds-pr{text-align:right;font-weight:800}.ds-plate{margin-top:8px;background:#1d1a22;color:#fff;display:flex;justify-content:space-between;align-items:baseline;padding:7px 10px}.ds-plate span{font-size:13px;color:#d9d1d8;font-stretch:90%}.ds-plate b{font-size:24px;font-weight:800;font-stretch:80%}"
     },
     {
-      "name": "Bottom Tab Bar",
+      "name": "Contact Print",
+      "kind": "card",
+      "refersTo": "print-contact",
+      "description": "Small tilted print in the Porównaj contact sheet; a match is taped with a pink strip.",
+      "html": "<div class=\"ds-sheet\"><article class=\"ds-cp ds-best\" tabindex=\"0\"><div class=\"ds-th\"><div class=\"ds-votes\"><span class=\"ds-vt ds-y\">K<svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"m5 12.5 4.5 4.5L19 7.5\"/></svg></span><span class=\"ds-vt ds-y\">Z<svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"m5 12.5 4.5 4.5L19 7.5\"/></svg></span></div></div><div class=\"ds-dc\"><div class=\"ds-hd\"><h3>Sofia</h3><div class=\"ds-tot\">376 zł<small>+ nocleg</small></div></div><div class=\"ds-sub\">Bułgaria · 3 noce · 62 h</div><div class=\"ds-bar\"><i style=\"width:40%\"></i></div></div></article><article class=\"ds-cp ds-t2\" tabindex=\"0\"><div class=\"ds-th\"><div class=\"ds-votes\"><span class=\"ds-vt ds-n\">K<svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"m6 6 12 12M18 6 6 18\"/></svg></span></div></div><div class=\"ds-dc\"><div class=\"ds-hd\"><h3>Porto</h3><div class=\"ds-tot ds-over\">2 980 zł</div></div><div class=\"ds-sub\">Portugalia · 4 noce · 80 h</div></div></article></div>",
+      "css": ".ds-ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}.ds-sheet{background:#efe9ee;padding:20px;display:grid;grid-template-columns:repeat(2,minmax(0,170px));gap:16px 12px}.ds-cp{position:relative;background:#fff;color:#1d1a22;padding:6px 6px 0;box-shadow:0 2px 6px rgba(45,20,40,.14),0 0 1px rgba(0,0,0,.2);transform:rotate(-.8deg);cursor:pointer;transition:transform .15s,box-shadow .15s;font-family:Archivo,system-ui,sans-serif;font-variant-numeric:tabular-nums}.ds-t2{transform:rotate(.6deg)}.ds-cp:hover,.ds-cp:focus-visible{transform:rotate(0) translateY(-2px);box-shadow:0 10px 22px rgba(45,20,40,.20),0 1px 2px rgba(0,0,0,.18);outline:2px solid #1d1a22;outline-offset:2px}.ds-best::before{content:'';position:absolute;top:-9px;left:50%;width:70px;height:18px;margin-left:-35px;background:#f3b8c9;opacity:.9;transform:rotate(-4deg);z-index:2}.ds-th{position:relative;aspect-ratio:1/1;background:#d9d0d7}.ds-votes{position:absolute;top:6px;right:6px;display:flex;gap:4px}.ds-vt{font-family:'Shantell Sans',Archivo,system-ui,sans-serif;font-weight:700;font-size:12px;line-height:1;background:#fff;color:#6a6270;padding:3px 5px 4px;box-shadow:0 1px 2px rgba(0,0,0,.25)}.ds-vt .ds-ic{width:12px;height:12px;stroke-width:2.6;vertical-align:-2px;margin-left:2px}.ds-y{color:#1f8a4c}.ds-n{color:#d6332b}.ds-dc{padding:8px 2px 10px}.ds-hd{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 6px}.ds-hd h3{margin:0;font-family:'Shantell Sans',Archivo,system-ui,sans-serif;font-weight:700;font-size:19px;line-height:1.05;color:#24318f}.ds-tot{font-size:18px;font-weight:800;font-stretch:78%;text-align:right;line-height:1.05}.ds-tot small{display:block;font-size:10.5px;font-weight:600;color:#6a6270}.ds-over{color:#d6332b}.ds-sub{font-size:12px;color:#6a6270;margin-top:3px;font-stretch:90%}.ds-bar{height:4px;background:#ece5ea;margin-top:7px}.ds-bar i{display:block;height:100%;background:#1f8a4c}"
+    },
+    {
+      "name": "Camera Bar",
+      "kind": "nav",
+      "refersTo": "camera-bar",
+      "description": "Pink top bar: condensed wordmark with a navy hand-written tail, K/Z voter chips.",
+      "html": "<header class=\"ds-top\"><h1 class=\"ds-wm\">Wypad <span>we dwoje</span></h1><button class=\"ds-who\" aria-label=\"Kto głosuje\"><b class=\"ds-on\">K</b><b>Z</b></button></header>",
+      "css": ".ds-top{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#e98aa6;color:#1d1a22}.ds-wm{margin:0;font-family:Archivo,system-ui,sans-serif;font-size:24px;font-stretch:78%;font-weight:800;letter-spacing:-.015em}.ds-wm span{font-family:'Shantell Sans',Archivo,system-ui,sans-serif;font-stretch:normal;font-weight:700;font-size:19px;color:#24318f;letter-spacing:0}.ds-who{display:flex;gap:4px;border:0;background:none;padding:0;cursor:pointer}.ds-who:focus-visible{outline:2px solid #1d1a22;outline-offset:2px}.ds-who b{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-family:Archivo,system-ui,sans-serif;font-size:14px;font-weight:800;border:2px solid #1d1a22;color:#1d1a22;transition:background .15s,color .15s}.ds-who b.ds-on{background:#1d1a22;color:#fff}"
+    },
+    {
+      "name": "Tab Bar",
       "kind": "nav",
       "refersTo": "tab-bar",
-      "description": "Mobile navigation: emoji over label, active tab in orange.",
-      "html": "<nav class=\"ds-tabs\"><button class=\"ds-on\"><b>🔥</b>Wybierz</button><button><b>⚖</b>Porównaj</button><button><b>🗺</b>Mapa</button><button><b>🗓</b>Plan</button></nav>",
-      "css": ".ds-tabs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:#fff;border-top:1px solid #e9e2d8}.ds-tabs button{height:56px;border:0;background:none;color:#7a7268;font:12px system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}.ds-tabs b{font-size:20px;font-weight:400}.ds-tabs .ds-on{color:#e8590c}"
+      "description": "Phone bottom bar: drawn icons over condensed labels, active tab in ink with a pink bar on top.",
+      "html": "<nav class=\"ds-tabs\"><button class=\"ds-act\"><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><rect x=\"5\" y=\"3\" width=\"14\" height=\"18\"/><path d=\"M5 15h14\"/></svg>Wybierz</button><button><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"M4 6h16M4 12h16M4 18h10\"/></svg>Porównaj</button><button><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"M3.5 6.5 9 4.5l6 2 5.5-2v13l-5.5 2-6-2-5.5 2z\"/><path d=\"M9 4.5v13M15 6.5v13\"/></svg>Mapa</button><button><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><rect x=\"4\" y=\"5.5\" width=\"16\" height=\"14.5\"/><path d=\"M4 10h16M8.5 3.5v4M15.5 3.5v4\"/></svg>Plan</button></nav>",
+      "css": ".ds-ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}.ds-tabs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:#fff;border-top:1px solid #e6dee4}.ds-tabs button{position:relative;height:64px;border:0;background:none;color:#6a6270;font-family:Archivo,system-ui,sans-serif;font-weight:600;font-size:11.5px;font-stretch:90%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer}.ds-tabs .ds-ic{width:23px;height:23px}.ds-tabs button:hover{color:#1d1a22}.ds-tabs button:focus-visible{outline:2px solid #1d1a22;outline-offset:-2px}.ds-tabs .ds-act{color:#1d1a22;font-weight:800}.ds-tabs .ds-act::after{content:'';position:absolute;top:0;left:28%;right:28%;height:3px;background:#e98aa6}"
     }
   ],
   "narrative": {
-    "northStar": "Bilet i mapa (Ticket and Map)",
-    "overview": "Wypad reads like a well-filled-in boarding pass lying on a map: the facts that decide the trip come first and are easy to scan. Those facts are flight times, price per person, the total for two, hours in the city and the distance from the airport. The city photo is the reward for looking, not the argument. Even on the swipe card, where the photo fills the frame, the lower third is a dense data panel of flight rows with tabular figures and prices.\n\nThe surface is warm and quiet. Off-white paper (light) or a deep brown-black (dark) with white or brown cards, hairline beige borders and almost no shadow. There is one brand colour, a trip orange, which marks \"us\": the wordmark, the active tab, primary actions and links. Green and red are reserved for whether something fits: a match, within budget, over budget, yes or no. The type is the system font throughout, and hierarchy comes from weight and size rather than a second typeface.\n\nDensity is compact and phone-first. It's used one-handed, often next to the other person, and later outdoors. On desktop, the same parts spread into a centred column up to 1200px with a top tab bar and a cost table.",
+    "northStar": "Odbitki (instant-film prints)",
+    "overview": "Every destination is a print you hold. A photo sits inside a white paper frame, and its wider chin carries the honest numbers in a clean, condensed face: the two flights, hours there, nights, and one reversed ink plate with the flight total for two. Anything a person would write by hand goes on in marker: the city name, short notes, and the K and Z votes. The app is a camera body (a pink top bar with the wordmark and the two voter chips) and a table (a cool lilac-grey ground) where prints lie, are swiped away, or are spread out as a contact sheet.\n\nDensity is compact and phone-first. On a phone the whole screen is one column and the swipe print fills whatever height is left between the camera bar and the tab bar. On desktop (760px and up) the same parts sit in a column up to 1200px wide, the tab bar moves under the camera bar, and the contact sheet becomes a wider grid of 4:3 prints. The tone is playful through material (paper, tape, marker, a slight tilt) rather than through decoration. Every icon is a drawn 1.8px stroke symbol from one inline sprite, and there are no emoji.\n\nThe redesign explicitly replaced glassy photo cards with emoji chips on cream and orange. Nothing from that look (trip orange, system-font-only type, pill chips, rounded cards) carries forward.",
     "keyCharacteristics": [
-      "Numbers lead: prices, times and totals are bold and use tabular figures, and the label next to them is muted.",
-      "A single brand accent (trip orange); green and red only for fit or no fit.",
-      "Flat paper and cards with 1px beige hairlines. Depth is reserved for the photo-led swipe deck and the round vote buttons.",
-      "Soft, friendly geometry: rounded 10–20px corners, pill-shaped chips, badges and toasts.",
-      "Emoji serve as icons (tabs, categories, flight rows). There is no icon font.",
-      "Light and dark mode follow `prefers-color-scheme`; only the neutrals change."
+      "The print is the unit: white paper frame, photo, chin with numbers, paper shadow.",
+      "Two faces with strict jobs: Archivo (condensed widths, tabular figures) for every number and UI word, Shantell Sans only for handwriting.",
+      "Navy marker is handwriting only; green and red markers are state only; pink is the camera body and the tape.",
+      "Square corners on prints, buttons, fields and chips; circles only for person chips and controls floating over photos.",
+      "Prints stay light paper in dark mode; only the table, sheets and chrome go dark.",
+      "Drawn 1.8px stroke icons from the inline sprite; no emoji, no icon font."
     ],
     "rules": [
-      { "name": "The Us-Or-Fit Rule", "body": "Orange means \"this is us / this is active\". Green and red mean \"this fits / this doesn't\". Never use green or red for decoration, and never use orange to say something is good or bad.", "section": "colors" },
-      { "name": "The Muted Label Rule", "body": "Every number has a muted label beside it and the number itself is in ink. Don't colour a number unless it is over budget (red) or a price on a dark photo (peach).", "section": "colors" },
-      { "name": "The Tabular Rule", "body": "Anything that is compared in a column (prices, times, totals) uses `font-variant-numeric: tabular-nums` and aligns right.", "section": "typography" },
-      { "name": "The Paper-Flat Rule", "body": "If it isn't something you physically hold, press or drop on a map, it gets a hairline border and no shadow.", "section": "elevation" }
+      {
+        "name": "The Marker Rule",
+        "body": "Navy appears only where a person would write: names, notes, initials, links. Green and red mean yes, no, fits and doesn't fit, and nothing else.",
+        "section": "colors"
+      },
+      {
+        "name": "The Paper Stays Paper Rule",
+        "body": "Prints keep light paper and their fixed print inks (`ink`, `muted`, `print-rule`, `marker-navy`) in dark mode. Only the table, sheets and chrome go dark.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Plate Rule",
+        "body": "Each screen has one reversed ink slab. On the swipe screen it is the flight total for two on the print's chin, so the Jedziemy button is pink, not ink.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Hands Rule",
+        "body": "Archivo for what the machine prints, Shantell for what a person writes. Never set a number, button or label in Shantell, and never set a city name in Archivo.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Every number uses tabular figures, and compared numbers align right.",
+        "section": "typography"
+      },
+      {
+        "name": "The Held Object Rule",
+        "body": "Only objects you could hold get a shadow, and it is always a soft paper shadow, never a hard offset block. Bars, sheets, fields and buttons stay flat.",
+        "section": "elevation"
+      }
     ],
     "dos": [
-      "**Do** put the decision number (the total for two, the price per person, hours there) in bold ink with tabular figures and a muted label beside it.",
-      "**Do** keep orange for \"us and active\": the wordmark, the active tab, primary buttons and links.",
-      "**Do** use green only for a match, within budget or a pro, and red only for over budget, a no, a con, offline or something destructive.",
-      "**Do** separate surfaces with the 1px `line` border and a change of tone; keep cards flat.",
-      "**Do** use pills for anything small and label-like, and 10px corners for anything you tap or type into.",
-      "**Do** redefine only the neutral tokens for dark mode; the accent and status colours stay the same.",
-      "**Do** test every view at 375 × 812 and on a short phone (≤ 700px tall). Hiding secondary tags is better than shrinking the photo away."
+      "**Do** put every destination on a print: photo in a white frame, numbers on the chin, paper shadow.",
+      "**Do** write city names, notes, initials and votes in Shantell Sans with navy marker, and set everything else in Archivo with tabular figures.",
+      "**Do** keep votes in the top-right corner of the photo as K and Z marker tags, and mark a match only with the pink tape strip.",
+      "**Do** keep one reversed ink plate per screen; on the swipe screen that is the total for two, and Jedziemy is camera pink with ink text.",
+      "**Do** keep prints light paper in dark mode, with the camera bar in the same pink (`#e98aa6`) and ink text in both modes.",
+      "**Do** use drawn 1.8px stroke icons from the inline sprite (20px default, round caps and joins).",
+      "**Do** use square corners and 2px ink borders on controls; save circles for person chips and controls over photos.",
+      "**Do** hide secondary facts on short phones before shrinking the photo."
     ],
     "donts": [
-      "**Don't** add a second brand colour or use the category colours (blue, violet, olive) outside the map pins and place dots.",
-      "**Don't** add shadows to cards, dialogs or bars; depth belongs to the swipe card, vote buttons and pins.",
-      "**Don't** let the photo hide the numbers: on photo surfaces, data sits on a dark gradient in white or peach.",
-      "**Don't** introduce a web font or an icon font; the system stack and emoji are the type and icons."
+      "**Don't** use emoji or an icon font for icons.",
+      "**Don't** use navy marker for anything that isn't handwriting, or green and red for anything that isn't state.",
+      "**Don't** add a second reversed ink slab next to the total plate on the swipe screen.",
+      "**Don't** give bars, sheets, fields or buttons a shadow, and never use a hard offset shadow.",
+      "**Don't** bring back the cream and trip-orange palette, pill chips or rounded cards.",
+      "**Don't** use the category inks outside pins, place dots, active chip icons and plan slot icons.",
+      "**Don't** use the monospace face for anything except the flight-entry line format and diagnostic logs."
     ]
   }
 }

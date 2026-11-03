@@ -9,11 +9,13 @@
   const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
   const TILE_CACHE = "tiles-v1";
   const CATS = {
-    food:  { label: "Jedzenie",  icon: "🍝", color: "var(--food)" },
-    sight: { label: "Zwiedzanie", icon: "🏛", color: "var(--sight)" },
-    stay:  { label: "Nocleg",    icon: "🛏", color: "var(--stay)" },
-    other: { label: "Inne",      icon: "★",  color: "var(--other)" },
+    food:  { label: "Jedzenie",  icon: "food",  color: "var(--food)" },
+    sight: { label: "Zwiedzanie", icon: "sight", color: "var(--sight)" },
+    stay:  { label: "Nocleg",    icon: "bed",   color: "var(--stay)" },
+    other: { label: "Inne",      icon: "star",  color: "var(--other)" },
   };
+  // ikony z zestawu w index.html (rysowane, bez emoji)
+  const ic = (name, cls = "") => `<svg class="ic ${cls}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const $ = (s, el = document) => el.querySelector(s);
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const zl = n => Math.round(n).toLocaleString("pl-PL") + " zł";
@@ -33,8 +35,11 @@
   const liked = d => Object.values(d.votes).includes(1);
   const isMatch = d => d.votes.K === 1 && d.votes.Z === 1;
   const rejected = d => !liked(d) && Object.values(d.votes).includes(-1);
-  const voteBadge = d => isMatch(d) ? '<span class="badge">❤ match</span>'
-    : Object.entries(d.votes).filter(([, v]) => v).map(([p, v]) => `<span class="vote ${v > 0 ? "yes" : "no"}">${PEOPLE[p][0]}${v > 0 ? "❤" : "✕"}</span>`).join("");
+  // głosy dopisane markerem: zawsze K, potem Z, w tym samym miejscu odbitki
+  const voteTags = d => Object.keys(PEOPLE).map(p => {
+    const v = d.votes[p];
+    return `<span class="vt ${v === 1 ? "y" : v === -1 ? "n" : ""}" title="${PEOPLE[p]}: ${v === 1 ? "tak" : v === -1 ? "nie" : "jeszcze nie głosował(a)"}">${p}${v === 1 ? ic("check") : v === -1 ? ic("x") : " ?"}</span>`;
+  }).join("");
   const catOn = new Set(Object.keys(CATS));
 
   function toast(msg, ms = 2200) {
@@ -127,73 +132,47 @@
     $("#summary").textContent = `${items.length} kierunków` + (v.hideRejected && hiddenRej ? ` · ${hiddenRej} odrzuconych ukrytych` : "");
     if (!items.length) { list.innerHTML = `<p class="muted">Nic tu nie ma. Zmień filtry albo dodaj kierunek.</p>`; return; }
     list.innerHTML = items.map(({ d, c }) => {
-      const open = openCards.has(d.id);
-      if (!c) return `<article class="card dest rej" data-id="${d.id}"><div class="head"><div><h3>${esc(d.name)}</h3>
-        <div class="muted">Brak pasującej pary lotów przy powrocie do ${esc(v.maxBack)}.</div></div></div>
-        <div class="actions"><button class="btn small" data-act="edit">Edytuj</button></div></article>`;
-      const over = S.budget > 0 && c.total > S.budget, pct = S.budget > 0 ? Math.min(100, c.total / S.budget * 100) : 0;
-      const ps = pairs(d), missing = !d.stay?.perNight;
-      return `<article class="card dest ${isMatch(d) ? "best" : ""} ${rejected(d) ? "rej" : ""}" data-id="${d.id}">
-        <div class="head" data-act="toggle">
-          <div style="min-width:0"><h3 style="display:inline">${esc(d.name)}</h3>${voteBadge(d)}
-            <div class="muted">${esc(d.country)} · ~${d.temp ?? "?"}°C · ${c.n} ${c.n === 1 ? "noc" : c.n < 5 ? "noce" : "nocy"} · ${hoursThere(c)} h na miejscu</div></div>
-          <div class="total ${over ? "over" : ""}">${zl(c.total)}${missing ? '<small>+ nocleg</small>' : ""}</div>
-        </div>
-        <div class="flights">
-          <span>🛫 ${esc(fmtFlight(c.o))} · ${hm(flightMin(c.o, "out", d.tz || 0))} <b>${c.o.price} zł</b></span>
-          <span>🛬 ${esc(fmtFlight(c.b))} · ${hm(flightMin(c.b, "back", d.tz || 0))} <b>${c.b.price} zł</b></span>
-          ${d.airport ? `<span>🚌 ${esc(d.airport)} · ~${d.apKm} km do centrum</span>` : ""}
-        </div>
-        ${S.budget > 0 ? `<div class="bar"><i class="${over ? "over" : ""}" style="width:${pct}%"></i></div>` : ""}
-        ${open ? `
-        ${ps.length > 1 ? `<label>Wariant lotów (${ps.length})<select data-act="pair">${ps.map(([i, j, n]) =>
-          `<option value="${i},${j}" ${i === c.i && j === c.j ? "selected" : ""}>${esc(d.out[i].day)} ${esc(d.out[i].dep)} → ${esc(d.back[j].day)} ${esc(d.back[j].dep)} · ${n} n. · ${zl(pairCost(d, i, j, n))}</option>`).join("")}</select></label>` : ""}
-        ${[c.o.note && "🛫 " + c.o.note, c.b.note && "🛬 " + c.b.note, d.note && "📝 " + d.note].filter(Boolean).map(n => `<div class="note">${esc(n)}</div>`).join("")}
-        <div class="rows">
-          <span class="k">✈ Loty</span><span class="muted">${S.persons} os. × ${c.o.price + c.b.price} zł</span><span class="v">${zl(c.flight)}</span>
-          <span class="k">🛏 Nocleg</span><span class="muted">${missing ? "uzupełnij (Booking/Airbnb niżej)" : `${esc(d.stay?.name || "")} ${zl(d.stay.perNight)}/noc`}</span><span class="v">${zl(c.stay)}</span>
-          <span class="k">🍝 Na miejscu</span><span class="muted">${d.dailySpend ? zl(d.dailySpend) + "/dzień" : "uzupełnij"}</span><span class="v">${zl(c.spend)}</span>
-          <span class="k">🚌 Dojazdy</span><span class="muted">${d.transferCost ? "lotnisko ↔ miasto" : "uzupełnij"}</span><span class="v">${zl(c.transfer)}</span>
-          ${S.budget > 0 ? `<span class="k">Zostaje</span><span></span><span class="v" style="color:${over ? "var(--warn)" : "var(--ok)"}">${zl(S.budget - c.total)}</span>` : ""}
-        </div>
-        <div class="stars"><span>Krystian <b>${"★".repeat(d.ratingK || 0)}${"☆".repeat(5 - (d.ratingK || 0))}</b></span>
-          <span>Zuzia <b>${"★".repeat(d.ratingZ || 0)}${"☆".repeat(5 - (d.ratingZ || 0))}</b></span>
-          <span>📍 ${d.places?.length || 0} miejsc</span></div>
-        ${d.pros || d.cons ? `<div class="pc"><ul class="p">${(d.pros || "").split(",").filter(s => s.trim()).map(p => `<li>${esc(p.trim())}</li>`).join("")}</ul><ul class="c">${(d.cons || "").split(",").filter(s => s.trim()).map(p => `<li>${esc(p.trim())}</li>`).join("")}</ul></div>` : ""}
-        <div class="actions">
-          <button class="btn small" data-act="info">ℹ Info i pogoda</button>
-          <button class="btn small" data-act="edit">Edytuj / oceń</button>
-          <button class="btn small" data-act="map">Mapa</button>
-          <a class="btn small" href="${stayLink("booking", d, c)}" target="_blank" rel="noopener">Booking ↗</a>
-          <a class="btn small" href="${stayLink("airbnb", d, c)}" target="_blank" rel="noopener">Airbnb ↗</a>
-          ${d.stay?.link ? `<a class="btn small" href="${esc(d.stay.link)}" target="_blank" rel="noopener">Nasz nocleg ↗</a>` : ""}
-        </div>` : ""}
-        <div class="actions quick">
-          <button class="btn small ${d.votes[who] === 1 ? "on" : ""}" data-act="fav">${d.votes[who] === 1 ? "❤" : "♡"} Tak (${PEOPLE[who]})</button>
-          <button class="btn small ${d.votes[who] === -1 ? "on" : ""}" data-act="rej">✕ Nie</button>
-          <button class="btn small" data-act="toggle">${open ? "Zwiń ▲" : "Szczegóły ▼"}</button>
+      const over = c && S.budget > 0 && c.total > S.budget, pct = c && S.budget > 0 ? Math.min(100, c.total / S.budget * 100) : 0;
+      return `<article class="dest ${isMatch(d) ? "best" : ""} ${rejected(d) || !c ? "rej" : ""}" data-id="${d.id}" tabindex="0" role="button" aria-label="${esc(d.name)}: szczegóły i koszty">
+        <div class="thumb"><span class="sw-fallback">${esc(d.name)}</span>${photoImg(d, "")}<div class="votes">${voteTags(d)}</div></div>
+        <div class="dchin">
+          <div class="head"><h3>${esc(d.name)}</h3>${c ? `<div class="total ${over ? "over" : ""}">${zl(c.total)}${!d.stay?.perNight ? "<small>+ nocleg</small>" : ""}</div>` : ""}</div>
+          ${c ? `<div class="sub">${esc(d.country)} · ${nights(c.n)} · ${hoursThere(c)} h</div>
+          <div class="flights">
+            <span>${ic("out")}${esc(fmtFlight(c.o))}<b>${c.o.price} zł</b></span>
+            <span>${ic("in")}${esc(fmtFlight(c.b))}<b>${c.b.price} zł</b></span>
+          </div>
+          ${S.budget > 0 ? `<div class="bar"><i class="${over ? "over" : ""}" style="width:${pct}%"></i></div>` : ""}`
+          : `<div class="sub">Brak pary lotów z powrotem do ${esc(v.maxBack)}.</div>`}
         </div>
       </article>`;
     }).join("");
   }
-  const openCards = new Set();
+  const nights = n => `${n} ${n === 1 ? "noc" : n < 5 ? "noce" : "nocy"}`;
+  const stars = n => `<span class="st">${[1, 2, 3, 4, 5].map(i => ic("star", i <= (n || 0) ? "on" : "")).join("")}</span>`;
+  // koszty i wariant lotów (w karcie szczegółów)
+  function costHTML(d) {
+    const c = cost(d);
+    if (!c) return `<p class="muted">Brak pasującej pary lotów przy powrocie najpóźniej ${esc(S.view.maxBack)} (ustawienie w Porównaj).</p>`;
+    const over = S.budget > 0 && c.total > S.budget, ps = pairs(d), missing = !d.stay?.perNight;
+    return `${ps.length > 1 ? `<label>Wariant lotów (${ps.length})<select data-sh="pair">${ps.map(([i, j, n]) =>
+        `<option value="${i},${j}" ${i === c.i && j === c.j ? "selected" : ""}>${esc(d.out[i].day)} ${esc(d.out[i].dep)} → ${esc(d.back[j].day)} ${esc(d.back[j].dep)} · ${n} n. · ${zl(pairCost(d, i, j, n))}</option>`).join("")}</select></label>` : ""}
+      <div class="rows">
+        <span class="k">${ic("out")}Loty</span><span class="muted">${S.persons} os. × ${c.o.price + c.b.price} zł</span><span class="v">${zl(c.flight)}</span>
+        <span class="k">${ic("bed")}Nocleg</span><span class="muted">${missing ? "uzupełnij (Booking/Airbnb niżej)" : `${esc(d.stay?.name || "")} ${zl(d.stay.perNight)}/noc`}</span><span class="v">${zl(c.stay)}</span>
+        <span class="k">${ic("food")}Na miejscu</span><span class="muted">${d.dailySpend ? zl(d.dailySpend) + "/dzień" : "uzupełnij"}</span><span class="v">${zl(c.spend)}</span>
+        <span class="k">${ic("bus")}Dojazdy</span><span class="muted">${d.transferCost ? "lotnisko ↔ miasto" : "uzupełnij"}</span><span class="v">${zl(c.transfer)}</span>
+        <span class="k sum">Razem</span><span class="muted">${nights(c.n)} · ${hoursThere(c)} h na miejscu</span><span class="v sum ${over ? "over" : ""}">${zl(c.total)}</span>
+        ${S.budget > 0 ? `<span class="k">Zostaje z budżetu</span><span></span><span class="v ${over ? "over" : "ok"}">${zl(S.budget - c.total)}</span>` : ""}
+      </div>
+      <div class="stars"><span>Krystian ${stars(d.ratingK)}</span><span>Zuzia ${stars(d.ratingZ)}</span><span>${ic("pin")} ${d.places?.length || 0} miejsc</span></div>
+      ${d.pros || d.cons ? `<div class="pc"><ul class="p">${(d.pros || "").split(",").filter(s => s.trim()).map(p => `<li>${esc(p.trim())}</li>`).join("")}</ul><ul class="c">${(d.cons || "").split(",").filter(s => s.trim()).map(p => `<li>${esc(p.trim())}</li>`).join("")}</ul></div>` : ""}`;
+  }
   $("#dest-list").addEventListener("click", e => {
-    const b = e.target.closest("[data-act]"); if (!b || b.tagName === "SELECT") return;
-    const id = b.closest(".dest").dataset.id, d = dest(id);
-    const act = b.dataset.act;
-    if (act === "toggle") openCards.has(id) ? openCards.delete(id) : openCards.add(id);
-    if (act === "edit") return editDest(id);
-    if (act === "info") return openInfo(id);
-    if (act === "map") { currentDest = id; return show("map"); }
-    if (act === "fav") { d.votes[who] = d.votes[who] === 1 ? 0 : 1; save(); }
-    if (act === "rej") { d.votes[who] = d.votes[who] === -1 ? 0 : -1; save(); }
-    renderCompare();
+    const el = e.target.closest(".dest"); if (el) openInfo(el.dataset.id);
   });
-  $("#dest-list").addEventListener("change", e => {
-    if (e.target.dataset.act !== "pair") return;
-    const d = dest(e.target.closest(".dest").dataset.id);
-    [d.selOut, d.selBack] = e.target.value.split(",").map(Number);
-    save(); renderCompare();
+  $("#dest-list").addEventListener("keydown", e => {
+    const el = e.target.closest(".dest"); if (el && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openInfo(el.dataset.id); }
   });
   $("#budget").addEventListener("change", e => { S.budget = +e.target.value || 0; save(); renderCompare(); });
   $("#persons").addEventListener("change", e => { S.persons = Math.max(1, +e.target.value || 1); save(); renderCompare(); });
@@ -219,7 +198,7 @@
   }
   const f = (name, label, val = "", type = "text", extra = "") =>
     `<label>${label}<input name="${name}" type="${type}" value="${esc(val)}" ${type === "number" ? 'inputmode="decimal" step="any"' : ""} ${extra}></label>`;
-  const rate = (name, label, v) => `<label>${label}<select name="${name}">${[0,1,2,3,4,5].map(i => `<option ${i == v ? "selected" : ""} value="${i}">${i ? "★".repeat(i) : "—"}</option>`).join("")}</select></label>`;
+  const rate = (name, label, v) => `<label>${label}<select name="${name}">${[0,1,2,3,4,5].map(i => `<option ${i == v ? "selected" : ""} value="${i}">${i ? i + " / 5" : "—"}</option>`).join("")}</select></label>`;
 
   function editDest(id) {
     const d = id ? dest(id) : { out: [], back: [], stay: {}, places: [] };
@@ -229,17 +208,17 @@
       return m ? { day: m[1].toLowerCase(), dep: m[2].replace(".", ":"), arr: m[3].replace(".", ":"), price: +m[4], note: m[5] } : null;
     });
     openDialog(`<h2>${id ? esc(d.name) : "Nowy kierunek"}</h2>
-      <fieldset><legend>🛏 Nocleg</legend>
+      <fieldset><legend>Nocleg</legend>
         <div class="grid2">${f("sname", "Nazwa", d.stay.name)}${f("snight", "Cena za noc za dwoje (zł)", d.stay.perNight || "", "number")}</div>
         ${f("slink", "Link do oferty", d.stay.link, "url")}</fieldset>
       <div class="grid2">${f("daily", "Wydatki na miejscu / dzień (dla dwojga)", d.dailySpend || "", "number")}${f("transfer", "Dojazdy lotnisko ↔ miasto (razem)", d.transferCost || "", "number")}</div>
       <div class="grid2">${rate("rk", "Ocena Krystiana", d.ratingK)}${rate("rz", "Ocena Zuzi", d.ratingZ)}</div>
       ${f("pros", "Plusy (po przecinku)", d.pros)}${f("cons", "Minusy (po przecinku)", d.cons)}
-      <fieldset><legend>✈ Loty (cena za osobę, jedna linia = jeden lot, godziny lokalne)</legend>
+      <fieldset><legend>Loty (cena za osobę, jedna linia = jeden lot, godziny lokalne)</legend>
         <p class="muted">Format: <code>czw 07:20-09:30 68 uwaga</code>. Dni: czw 19.11, pt, sob, ndz, pon 23.11, wt.</p>
         <div class="grid2"><label>Wyloty z Krakowa<textarea name="out" rows="4">${esc(lines(d.out))}</textarea></label>
         <label>Powroty<textarea name="back" rows="4">${esc(lines(d.back))}</textarea></label></div></fieldset>
-      <fieldset><legend>📍 Miejsce</legend>
+      <fieldset><legend>Miejsce</legend>
         <div class="grid2">${f("name", "Miasto", d.name, "text", "required")}${f("country", "Kraj", d.country)}
         ${f("airport", "Lotnisko", d.airport)}${f("apKm", "Km lotnisko → centrum", d.apKm ?? "", "number")}
         ${f("temp", "Temp. w dzień (°C)", d.temp ?? "", "number")}${f("tz", "Różnica czasu vs Polska (h)", d.tz ?? 0, "number")}</div>
@@ -274,7 +253,7 @@
     const c = cost(d), days = c ? c.n + 1 : 3;
     openDialog(`<h2>${isNew ? "Nowe miejsce" : "Edytuj miejsce"}</h2>
       ${f("name", "Nazwa", p.name, "text", "required")}
-      <label>Kategoria<select name="cat">${Object.entries(CATS).map(([k, c]) => `<option value="${k}" ${k === p.cat ? "selected" : ""}>${c.icon} ${c.label}</option>`).join("")}</select></label>
+      <label>Kategoria<select name="cat">${Object.entries(CATS).map(([k, c]) => `<option value="${k}" ${k === p.cat ? "selected" : ""}>${c.label}</option>`).join("")}</select></label>
       ${f("note", "Notatka", p.note)}
       <div class="grid2">${f("price", "Szac. koszt (zł)", p.price, "number")}${f("link", "Link", p.link, "url")}</div>
       <div class="grid2"><label>Dzień<select name="day"><option value="">—</option>${Array.from({ length: days }, (_, i) => `<option ${p.day == i + 1 ? "selected" : ""} value="${i + 1}">Dzień ${i + 1}</option>`).join("")}</select></label>
@@ -312,7 +291,7 @@
   }
   function setAdding(on) {
     adding = on; document.body.classList.toggle("adding", on);
-    $("#add-place").textContent = on ? "✕ Anuluj" : "📍 Dodaj miejsce";
+    $("#add-place").innerHTML = on ? `${ic("x")}<span>Anuluj</span>` : `${ic("pin")}<span>Dodaj miejsce</span>`;
     if (on) toast("Stuknij w mapę, gdzie jest to miejsce");
   }
   $("#add-place").addEventListener("click", () => setAdding(!adding));
@@ -320,35 +299,35 @@
     if (!navigator.geolocation) return toast("Brak GPS");
     navigator.geolocation.getCurrentPosition(pos => {
       const ll = [pos.coords.latitude, pos.coords.longitude];
-      meMarker ? meMarker.setLatLng(ll) : (meMarker = L.circleMarker(ll, { radius: 8, color: "#fff", weight: 3, fillColor: "#1971c2", fillOpacity: 1 }).addTo(map));
+      meMarker ? meMarker.setLatLng(ll) : (meMarker = L.circleMarker(ll, { radius: 8, color: "#fff", weight: 3, fillColor: "#24318f", fillOpacity: 1 }).addTo(map));
       map.setView(ll, 16);
     }, () => toast("Nie udało się pobrać lokalizacji"), { enableHighAccuracy: true, timeout: 10000 });
   });
 
   function pinIcon(cat, done) {
     const c = CATS[cat] || CATS.other;
-    return L.divIcon({ className: "", iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -26],
-      html: `<div class="pin" style="background:${c.color};opacity:${done ? .5 : 1}"><span>${c.icon}</span></div>` });
+    return L.divIcon({ className: "", iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -28],
+      html: `<div class="pin" style="background:${c.color};opacity:${done ? .5 : 1}"><svg><use href="#i-${c.icon}"/></svg></div>` });
   }
   function renderMap() {
     const sel = $("#map-dest");
     sel.innerHTML = S.destinations.map(d => `<option value="${d.id}" ${d.id === currentDest ? "selected" : ""}>${esc(d.name)}</option>`).join("");
-    $("#cat-filter").innerHTML = Object.entries(CATS).map(([k, c]) => `<button class="chip ${catOn.has(k) ? "on" : ""}" data-cat="${k}">${c.icon} ${c.label}</button>`).join("");
+    $("#cat-filter").innerHTML = Object.entries(CATS).map(([k, c]) => `<button class="chip ${catOn.has(k) ? "on" : ""}" data-cat="${k}" style="--c:${c.color}" aria-pressed="${catOn.has(k)}">${ic(c.icon)}${c.label}</button>`).join("");
     if (!map) return;
     layer.clearLayers();
     const d = dest(currentDest); if (!d) return;
     const places = (d.places || []).filter(p => catOn.has(p.cat));
     places.forEach(p => {
       const m = L.marker([p.lat, p.lng], { icon: pinIcon(p.cat, p.done) }).addTo(layer);
-      m.bindPopup(`<b>${esc(p.name)}</b><br>${esc(p.note || "")}${p.link ? `<br><a href="${esc(p.link)}" target="_blank">link ↗</a>` : ""}
-        <br><a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank">Nawiguj ↗</a>`);
+      m.bindPopup(`<b>${esc(p.name)}</b><br>${esc(p.note || "")}${p.link ? `<br><a href="${esc(p.link)}" target="_blank">Link</a>` : ""}
+        <br><a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank">Nawiguj</a>`);
       p._m = m;
     });
     $("#place-list").innerHTML = places.length ? places.map(p => `
       <div class="place ${p.done ? "done" : ""}" data-pid="${p.id}">
-        <span class="dot" style="background:${(CATS[p.cat] || CATS.other).color}"></span>
+        <span class="dot" style="background:${(CATS[p.cat] || CATS.other).color}">${ic((CATS[p.cat] || CATS.other).icon)}</span>
         <div class="body"><div class="name">${esc(p.name)}</div><div class="muted">${p.day ? `Dzień ${p.day} ${esc(p.time || "")} · ` : ""}${esc(p.note || "")}${p.price ? ` · ${zl(p.price)}` : ""}</div></div>
-        <button class="btn small" data-act="edit">✎</button>
+        <button class="btn small" data-act="edit" aria-label="Edytuj">${ic("edit")}</button>
       </div>`).join("") : `<p class="muted">Brak miejsc. Kliknij „Dodaj miejsce” i stuknij w mapę.</p>`;
   }
   function focusDest() {
@@ -398,12 +377,12 @@
         const u = urls.shift();
         try { if (!(await cache.match(u))) { const r = await fetch(u, { mode: "cors" }); if (r.ok) await cache.put(u, r); else fail++; } }
         catch { fail++; }
-        done++; if (done % 10 === 0) btn.textContent = `⬇ ${done}…`;
+        done++; if (done % 10 === 0) btn.innerHTML = `${ic("down")}<span>${done}…</span>`;
       }
     };
     await Promise.all(Array.from({ length: 4 }, worker));
-    btn.textContent = "⬇ Mapa offline";
-    toast(fail ? `Zapisano, ${fail} kafelków się nie udało` : "Mapa zapisana, działa offline ✓", 3000);
+    btn.innerHTML = `${ic("down")}<span>Mapa offline</span>`;
+    toast(fail ? `Zapisano, ${fail} kafelków się nie udało` : "Mapa zapisana, działa offline", 3000);
     updateCacheInfo();
   });
   async function updateCacheInfo() {
@@ -428,12 +407,12 @@
     sel.innerHTML = S.destinations.map(d => `<option value="${d.id}" ${d.id === currentDest ? "selected" : ""}>${esc(d.name)}</option>`).join("");
     const d = dest(currentDest); if (!d) return ($("#plan").innerHTML = "");
     const c = cost(d), days = c ? c.n + 1 : 3, d0 = c ? dayIdx(c.o.day) : 0;
-    const fmt = p => `<div class="slot"><span class="t">${esc(p.time || "")}</span><span>${(CATS[p.cat] || CATS.other).icon}</span><span class="n">${esc(p.name)}</span>${p.price ? `<span class="muted">${zl(p.price)}</span>` : ""}</div>`;
+    const fmt = p => `<div class="slot"><span class="t">${esc(p.time || "")}</span><span style="color:${(CATS[p.cat] || CATS.other).color}">${ic((CATS[p.cat] || CATS.other).icon)}</span><span class="n">${esc(p.name)}</span>${p.price ? `<span class="muted">${zl(p.price)}</span>` : "<span></span>"}</div>`;
     const by = n => d.places.filter(p => p.day === n).sort((a, b) => (a.time || "99").localeCompare(b.time || "99"));
     const unplanned = d.places.filter(p => !p.day);
     const spend = d.places.reduce((s, p) => s + (+p.price || 0), 0);
     $("#plan").innerHTML = `<p class="muted">Przypisz dzień i godzinę w edycji miejsca (zakładka Mapa). Zaplanowane wydatki: <b>${zl(spend)}</b></p>` +
-      Array.from({ length: days }, (_, i) => `<div class="day"><h3>Dzień ${i + 1} · ${DAYS[d0 + i] || ""} ${DATES[d0 + i] || ""}${c && i === 0 ? " · przylot " + c.o.arr : c && i === days - 1 ? " · wylot " + c.b.dep : ""}</h3>${by(i + 1).map(fmt).join("") || '<p class="muted">Nic jeszcze.</p>'}</div>`).join("") +
+      Array.from({ length: days }, (_, i) => `<div class="day"><h3>Dzień ${i + 1}<span>${DAYS[d0 + i] || ""} ${DATES[d0 + i] || ""}${c && i === 0 ? " · przylot " + c.o.arr : c && i === days - 1 ? " · wylot " + c.b.dep : ""}</span></h3>${by(i + 1).map(fmt).join("") || '<p class="empty">nic jeszcze</p>'}</div>`).join("") +
       (unplanned.length ? `<div class="day"><h3>Bez terminu</h3>${unplanned.map(fmt).join("")}</div>` : "");
   }
   $("#plan-dest").addEventListener("change", e => { currentDest = e.target.value; renderPlan(); });
@@ -455,7 +434,7 @@
     try {
       const j = JSON.parse(await file.text());
       if (!Array.isArray(j.destinations)) throw 0;
-      S = j; currentDest = S.destinations[0]?.id; save(); renderAll(); toast("Zaimportowano ✓");
+      S = j; currentDest = S.destinations[0]?.id; save(); renderAll(); toast("Zaimportowano");
     } catch { toast("To nie jest plik z tej apki"); }
     e.target.value = "";
   });
@@ -545,7 +524,7 @@
   }, true);
   document.addEventListener("load", e => {
     const img = e.target;
-    if (img instanceof HTMLImageElement && img.dataset.photo) img.closest(".sw-photo,.sh-hero")?.classList.add("has-img");
+    if (img instanceof HTMLImageElement && img.dataset.photo) img.closest(".sw-photo,.sh-hero,.dest")?.classList.add("has-img");
   }, true);
   const photoImg = (d, cls) => `<img class="${cls}" data-photo="${d.id}" alt="" draggable="false" ${photoOf(d) && !imgFail.has(d.id) ? `src="${esc(photoOf(d))}"` : ""}>`;
   function updatePhotoInfo() {
@@ -571,7 +550,7 @@
   }
 
   // ---------- pogoda (Open-Meteo, bez klucza) ----------
-  const WMO = c => c === 0 ? "☀️" : c <= 2 ? "🌤" : c === 3 ? "☁️" : c <= 48 ? "🌫" : c <= 67 ? "🌧" : c <= 77 ? "🌨" : c <= 82 ? "🌦" : "⛈";
+  const WMO = c => ic(c === 0 ? "sun" : c <= 2 ? "partly" : c === 3 ? "cloud" : c <= 48 ? "fog" : c <= 67 ? "rain" : c <= 77 ? "snow" : c <= 82 ? "rain" : "storm");
   async function loadWeather(d, c) {
     const from = isoDate(c.o.day), to = isoDate(c.b.day);
     const key = `${from}_${to}`;
@@ -603,7 +582,7 @@
     if (!w) return `<p class="muted">Pogoda pobierze się, gdy będzie internet. Średnio w listopadzie ok. ${"${t}"}°C w dzień.</p>`;
     const dn = t => { t = t.replace(/^2025/, "2026"); const dt = new Date(t + "T12:00"); return `${["ndz", "pon", "wt", "śr", "czw", "pt", "sob"][dt.getDay()]} ${t.slice(8, 10)}.${t.slice(5, 7)}`; };
     return `${w.kind === "archive" ? `<p class="muted">Prawdziwa prognoza pojawi się ok. 16 dni przed wyjazdem, czyli lada dzień. Na razie: <b>jak było w tych dniach rok temu</b>.</p>` : `<p class="muted">Prognoza na Wasze dni (aktualizuje się przy otwarciu).</p>`}
-      <div class="wx">${w.days.map(x => `<div class="wx-d"><span>${dn(x.t)}</span><span class="wx-i">${WMO(x.code)}</span><b>${Math.round(x.max)}°</b><span class="muted">${Math.round(x.min)}°</span><span class="muted">${w.kind === "archive" ? `${(x.mm ?? 0).toFixed(1)} mm` : `${x.rain ?? 0}% 💧`}</span></div>`).join("")}</div>`;
+      <div class="wx">${w.days.map(x => `<div class="wx-d"><span>${dn(x.t)}</span>${WMO(x.code)}<b>${Math.round(x.max)}°</b><span class="muted">${Math.round(x.min)}°</span><span class="muted">${w.kind === "archive" ? `${(x.mm ?? 0).toFixed(1)} mm` : `deszcz ${x.rain ?? 0}%`}</span></div>`).join("")}</div>`;
   }
 
   // ---------- zdjęcia atrakcji (wyszukiwanie w polskiej Wikipedii, zapas: Openverse) ----------
@@ -635,7 +614,7 @@
     let el = $("#lightbox");
     if (!el) {
       el = document.createElement("div"); el.id = "lightbox";
-      el.innerHTML = `<img alt=""><div class="lb-cap"></div><button class="lb-x" aria-label="Zamknij">✕</button><button class="lb-p" aria-label="Poprzednie">‹</button><button class="lb-n" aria-label="Następne">›</button>`;
+      el.innerHTML = `<img alt=""><div class="lb-cap"></div><button class="lb-x" aria-label="Zamknij">${ic("x")}</button><button class="lb-p" aria-label="Poprzednie">${ic("left")}</button><button class="lb-n" aria-label="Następne">${ic("right")}</button>`;
       document.body.appendChild(el);
       el.addEventListener("click", e => {
         if (e.target.closest(".lb-p")) return lbGo(-1);
@@ -664,32 +643,35 @@
     sheet.innerHTML = `<div class="sh">
       <div class="sh-hero"><div class="gal" id="gal"><div class="gal-s" data-gi="0">${photoImg(d, "sh-img")}</div>
         ${(inf.see || []).map((x, k) => `<div class="gal-s" data-gi="${k + 1}"><img class="sh-img" alt="" data-att="${k}"><span class="gal-cap">${esc(x)}</span></div>`).join("")}</div>
-        <button class="sh-x" data-sh="close" aria-label="Zamknij">✕</button>
-        <div class="gal-dots">${[0, ...(inf.see || [])].map((_, k) => `<i class="${k ? "" : "on"}"></i>`).join("")}</div>
-        <div class="sh-title"><h2>${esc(d.name)}</h2><span>${esc(d.country)} · przesuń, żeby zobaczyć atrakcje</span></div></div>
+        <button class="sh-x" data-sh="close" aria-label="Zamknij">${ic("x")}</button>
+        <div class="gal-dots">${[0, ...(inf.see || [])].map((_, k) => `<i class="${k ? "" : "on"}"></i>`).join("")}</div></div>
+      <div class="sh-title"><h2>${esc(d.name)}</h2><span>${esc(d.country)} · ~${d.temp ?? "?"}°C</span></div>
       <div class="sh-body">
         ${inf.about ? `<p class="sh-about">${esc(inf.about)}</p>` : ""}
-        <h3>🌤 Pogoda ${c ? `${esc(c.o.day)} ${DATES[dayIdx(c.o.day)]} – ${esc(c.b.day)} ${DATES[dayIdx(c.b.day)]}` : ""}</h3>
+        <h3>${ic("partly")}Pogoda ${c ? `${esc(c.o.day)} ${DATES[dayIdx(c.o.day)]} – ${esc(c.b.day)} ${DATES[dayIdx(c.b.day)]}` : ""}</h3>
         <div id="sh-wx"><p class="muted">Ładuję pogodę…</p></div>
-        <h3>✈ Loty z Krakowa <span class="muted">(cena za osobę)</span></h3>
+        <h3>${ic("out")}Loty z Krakowa <span class="muted">cena za osobę</span></h3>
         <div class="sh-cols"><div><div class="muted">Tam</div><ul>${d.out.map(f => fl(f, "out")).join("")}</ul></div>
           <div><div class="muted">Powrót</div><ul>${d.back.map(f => fl(f, "back")).join("")}</ul></div></div>
-        ${c ? `<p>Najtańsza para: <b>${zl(c.flight)}</b> dla ${S.persons} os. · ${hoursThere(c)} h na miejscu</p>` : ""}
-        ${d.airport ? `<p>🚌 <b>${esc(d.airport)}</b> · ok. ${d.apKm} km do centrum${d.apMin ? `, ok. ${d.apMin} min` : ""}</p>` : ""}
-        ${inf.see ? `<h3>🏛 Co zobaczyć</h3><div class="att">${inf.see.map((x, k) => `<div class="att-i"><button class="att-ph" data-sh="lb" data-k="${k + 1}"><img alt="" data-att="${k}"></button>
-          <div><b>${esc(x)}</b><br><a href="${gm(x)}" target="_blank" rel="noopener">Pokaż na mapie ↗</a></div></div>`).join("")}</div>` : ""}
-        ${inf.eat ? `<h3>🍝 Czego spróbować</h3><ul class="sh-list">${inf.eat.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
-        ${d.note ? `<p class="note">📝 ${esc(d.note)}</p>` : ""}
+        <h3>${ic("list")}Koszty dla ${S.persons === 2 ? "dwojga" : S.persons + " os."}</h3>
+        <div class="sh-cost">${costHTML(d)}</div>
+        ${c ? `<p class="sh-fact">${ic("clock")}<span>Najtańsza para: <b>${zl(c.flight)}</b> dla ${S.persons} os. · ${hoursThere(c)} h na miejscu</span></p>` : ""}
+        ${d.airport ? `<p class="sh-fact">${ic("bus")}<span><b>${esc(d.airport)}</b> · ok. ${d.apKm} km do centrum${d.apMin ? `, ok. ${d.apMin} min` : ""}</span></p>` : ""}
+        ${inf.see ? `<h3>${ic("sight")}Co zobaczyć</h3><div class="att">${inf.see.map((x, k) => `<div class="att-i"><button class="att-ph" data-sh="lb" data-k="${k + 1}"><img alt="" data-att="${k}"></button>
+          <div><b>${esc(x)}</b><br><a href="${gm(x)}" target="_blank" rel="noopener">Pokaż na mapie ${ic("ext")}</a></div></div>`).join("")}</div>` : ""}
+        ${inf.eat ? `<h3>${ic("food")}Czego spróbować</h3><ul class="sh-list">${inf.eat.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
+        ${d.note ? `<p class="note">${esc(d.note)}</p>` : ""}
         <div class="actions">
-          ${c ? `<a class="btn small" href="${stayLink("booking", d, c)}" target="_blank" rel="noopener">Booking ↗</a><a class="btn small" href="${stayLink("airbnb", d, c)}" target="_blank" rel="noopener">Airbnb ↗</a>` : ""}
-          <a class="btn small" href="https://pl.wikipedia.org/wiki/${encodeURIComponent(d.name)}" target="_blank" rel="noopener">Wikipedia ↗</a>
-          <button class="btn small" data-sh="photo">📷 Własne zdjęcie</button>
-          <button class="btn small" data-sh="edit">✎ Edytuj</button>
+          ${c ? `<a class="btn small" href="${stayLink("booking", d, c)}" target="_blank" rel="noopener">Booking ${ic("ext")}</a><a class="btn small" href="${stayLink("airbnb", d, c)}" target="_blank" rel="noopener">Airbnb ${ic("ext")}</a>` : ""}
+          <a class="btn small" href="https://pl.wikipedia.org/wiki/${encodeURIComponent(d.name)}" target="_blank" rel="noopener">Wikipedia ${ic("ext")}</a>
+          <button class="btn small" data-sh="photo">${ic("camera")}Własne zdjęcie</button>
+          <button class="btn small" data-sh="edit">${ic("edit")}Edytuj</button>
+          <button class="btn small" data-sh="map">${ic("map")}Mapa</button>
         </div>
       </div>
       <div class="sh-vote">
-        <button class="btn ${d.votes[who] === -1 ? "on" : ""}" data-sh="no">✕ Nie</button>
-        <button class="btn primary" data-sh="yes">❤ Tak, jedziemy</button>
+        <button class="btn ${d.votes[who] === -1 ? "on" : ""}" data-sh="no">${ic("x")}Nie</button>
+        <button class="btn primary" data-sh="yes">${ic("check")}Jedziemy</button>
       </div></div>`;
     sheet.dataset.id = id;
     sheet.showModal();
@@ -704,7 +686,7 @@
       const src = await attractionPhoto(d, x);
       sheet.querySelectorAll(`img[data-att="${k}"]`).forEach(img => {
         if (sheet.dataset.id !== id) return;
-        if (src) img.src = src; else img.closest(".gal-s")?.remove();
+        if (src) img.src = src; else (img.closest(".gal-s") || img.closest(".att-ph"))?.remove();
       });
     });
     const w = c ? await loadWeather(d, c) : null;
@@ -716,6 +698,12 @@
     if (!ok.length) return;
     lightbox(ok, Math.max(0, ok.findIndex(x => x.k === start)));
   }
+  sheet.addEventListener("change", e => {
+    if (e.target.dataset.sh !== "pair") return;
+    const d = dest(sheet.dataset.id);
+    [d.selOut, d.selBack] = e.target.value.split(",").map(Number);
+    save(); sheet.querySelector(".sh-cost").innerHTML = costHTML(d); renderCompare();
+  });
   sheet.addEventListener("click", e => {
     if (e.target === sheet) return sheet.close();
     const lbb = e.target.closest("[data-sh=lb]");
@@ -725,11 +713,13 @@
     if (a === "close") return sheet.close();
     if (a === "edit") { sheet.close(); return editDest(id); }
     if (a === "photo") return pickPhoto(id);
+    if (a === "map") { sheet.close(); currentDest = id; return show("map"); }
+    if (a === "pair") return;
     sheet.close();
     const v = a === "yes" ? 1 : -1;
     if (deck[0]?.id === id && $("#view-swipe").classList.contains("active")) return fling(v);
     d.votes[who] = v; deck = deck.filter(x => x.id !== id); save();
-    if (v === 1 && isMatch(d)) toast(`❤ Match! Oboje chcecie: ${d.name}`, 3000);
+    if (v === 1 && isMatch(d)) toast(`Match! Oboje chcecie: ${d.name}`, 3000);
     renderAll();
   });
 
@@ -748,41 +738,38 @@
   const hash = s => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
   function cardHTML(d) {
     const c = pairAny(d);
-    const fl = (f, dir, label) => `<div class="sw-row"><span>${label}</span><b>${esc(f.day)} ${DATES[dayIdx(f.day)] || ""} ${esc(f.dep)}–${esc(f.arr)}</b><span>${hm(flightMin(f, dir, d.tz || 0)).replace(" min", "").replace(" h ", "h")}</span><b class="pr">${f.price} zł</b></div>`;
+    const fl = (f, dir, icon) => `<tr><td>${ic(icon)}</td><td>${esc(f.day)} ${DATES[dayIdx(f.day)] || ""} · ${esc(f.dep)} → ${esc(f.arr)}</td><td class="dur">${hm(flightMin(f, dir, d.tz || 0)).replace(" min", "").replace(" h ", " h ")}</td><td class="pr">${f.price} zł</td></tr>`;
     const notes = c ? [c.o.note, c.b.note, d.note].filter(Boolean) : [d.note].filter(Boolean);
+    const late = c && dayIdx(c.b.day) > dayIdx(S.view.maxBack);
     return `<div class="sw-card" data-id="${d.id}">
-      <div class="sw-photo"><span class="sw-fallback">✈</span>${photoImg(d, "sw-img")}<button class="sw-i" data-info="${d.id}" aria-label="Szczegóły">i</button></div>
-      <div class="stamp yes">TAK</div><div class="stamp no">NIE</div>
-      <div class="sw-info">
-        <h2>${esc(d.name)} <small>${esc(d.country)} · ~${d.temp ?? "?"}°C</small></h2>
-        ${c ? `${fl(c.o, "out", "🛫")}${fl(c.b, "back", "🛬")}
-        <div class="sw-tags">
-          <span>✈ Loty dla ${S.persons}: <b>${zl(c.flight)}</b></span>
-          <span>⏱ ${hoursThere(c)} h na miejscu · ${c.n} ${c.n === 1 ? "noc" : c.n < 5 ? "noce" : "nocy"}</span>
-          ${d.airport ? `<span>🚌 ${esc(d.airport)} · ~${d.apKm} km do centrum${d.apMin ? ` (~${d.apMin} min)` : ""}</span>` : ""}
-          ${pairs(d).length > 1 ? `<span>🔀 ${pairs(d).length} warianty lotów</span>` : ""}
-          <span class="tap">👆 stuknij po szczegóły</span>
-          ${dayIdx(c.b.day) > dayIdx(S.view.maxBack) ? `<span class="warn">powrót dopiero ${esc(c.b.day)} ${DATES[dayIdx(c.b.day)]}</span>` : ""}
-        </div>
-        ${notes.map(n => `<div class="sw-note">📝 ${esc(n)}</div>`).join("")}` : `<p>Brak pasującej pary lotów.</p>`}
+      <div class="sw-photo"><span class="sw-fallback">brak zdjęcia</span>${photoImg(d, "sw-img")}
+        <div class="votes">${voteTags(d)}</div>
+        <button class="sw-i" data-info="${d.id}" aria-label="Szczegóły">${ic("info")}</button>
+        <div class="stamp yes">jedziemy!</div><div class="stamp no">nie</div></div>
+      <div class="chin">
+        <div class="chin-h"><h2>${esc(d.name)}</h2><small>${esc(d.country)} · ~${d.temp ?? "?"}°C</small></div>
+        ${c ? `<table class="fl">${fl(c.o, "out", "out")}${fl(c.b, "back", "in")}</table>
+        <div class="facts">${hoursThere(c)} h na miejscu · ${c.n} ${c.n === 1 ? "noc" : c.n < 5 ? "noce" : "nocy"}${d.airport ? `<span class="opt"> · ${esc((d.airport.match(/\(([A-Z]{3})/) || [, "lotnisko"])[1])} ~${d.apKm} km do centrum</span>` : ""}${pairs(d).length > 1 ? `<span class="opt"> · ${pairs(d).length} warianty</span>` : ""}${late ? ` · <span class="warn">powrót dopiero ${esc(c.b.day)} ${DATES[dayIdx(c.b.day)]}</span>` : ""}</div>
+        ${notes.map(n => `<div class="sw-note">${esc(n)}</div>`).join("")}
+        <div class="plate"><span>loty dla ${S.persons === 2 ? "dwojga" : S.persons + " os."}</span><b>${zl(c.flight)}</b></div>` : `<p class="facts">Brak pasującej pary lotów.</p>`}
       </div>
     </div>`;
   }
   function renderSwipe() {
-    $("#who-label").textContent = PEOPLE[who];
     const box = $("#deck");
     const matches = S.destinations.filter(isMatch);
-    $("#swipe-status").innerHTML = `Zostało ${deck.length} z ${S.destinations.length} · ` +
-      (matches.length ? `❤ Wspólne: <b>${matches.map(d => esc(d.name)).join(", ")}</b>` : "Brak wspólnych typów (jeszcze!)");
+    const n = S.destinations.length;
+    $("#sw-count").textContent = deck.length ? `Odbitka ${n - deck.length + 1} z ${n}` : `Wszystkie ${n} przejrzane`;
+    $("#swipe-status").innerHTML = matches.length ? `Wspólne: <b>${matches.map(d => esc(d.name)).join(", ")}</b>` : "Jeszcze nic wspólnego.";
     $("#sw-undo").disabled = !history.length;
     if (!deck.length) {
       $("#sw-info").disabled = true;
       const mine = S.destinations.filter(d => d.votes[who] === 1);
-      box.innerHTML = `<div class="sw-empty card">
-        <h2>Przejrzane! 🎉</h2>
+      box.innerHTML = `<div class="sw-empty">
+        <h2>Przejrzane!</h2>
         <p>${esc(PEOPLE[who])} na tak: <b>${mine.map(d => esc(d.name)).join(", ") || "nic"}</b></p>
         <p>Wspólne: <b>${matches.map(d => esc(d.name)).join(", ") || "jeszcze nic. Niech druga osoba też przejrzy (przełącz u góry)."}</b></p>
-        <button class="btn primary wide" data-go="fav">Porównaj ulubione</button>
+        <button class="btn primary wide" data-go="fav">Porównaj te na tak</button>
         <button class="btn wide" data-go="reset">Przejrzyj jeszcze raz (${esc(PEOPLE[who])})</button>
       </div>`;
       return;
@@ -794,7 +781,7 @@
   function vote(v) {
     const d = deck.shift(); if (!d) return;
     d.votes[who] = v; history.push(d); save();
-    if (v === 1 && isMatch(d)) toast(`❤ Match! Oboje chcecie: ${d.name}`, 3000);
+    if (v === 1 && isMatch(d)) toast(`Match! Oboje chcecie: ${d.name}`, 3000);
     renderSwipe();
   }
   function fling(v) {
@@ -846,7 +833,7 @@
   });
   function setWho(p) {
     who = p; try { localStorage.setItem(WHO_KEY, p); } catch {}
-    history = []; buildDeck(); renderSwipe(); renderCompare();
+    history = []; buildDeck(); renderWho(); renderSwipe(); renderCompare();
     toast(`Teraz wybiera: ${PEOPLE[p]}`);
   }
   $("#who").addEventListener("click", () => setWho(who === "K" ? "Z" : "K"));
@@ -861,8 +848,8 @@
         const c = cost(d), ps = pairs(d);
         const inp = (k, v) => `<input class="cell" data-k="${k}" type="number" inputmode="decimal" min="0" step="10" value="${v || ""}" placeholder="—">`;
         return `<tr data-id="${d.id}" class="${rejected(d) ? "rej" : ""} ${isMatch(d) ? "match" : ""}">
-          <td><b>${esc(d.name)}</b><div class="muted">${esc(d.country)} · ~${d.temp ?? "?"}°C</div></td>
-          <td>${voteBadge(d) || '<span class="muted">—</span>'}</td>
+          <td><span class="city">${esc(d.name)}</span><div class="muted">${esc(d.country)} · ~${d.temp ?? "?"}°C</div></td>
+          <td>${voteTags(d)}</td>
           <td>${c ? `<select class="cell" data-k="pair">${ps.map(([i, j, n]) => `<option value="${i},${j}" ${i === c.i && j === c.j ? "selected" : ""}>${esc(d.out[i].day)} ${esc(d.out[i].dep)} → ${esc(d.back[j].day)} ${esc(d.back[j].dep)} (${n} n.)</option>`).join("")}</select>` : '<span class="muted">brak pary do ' + esc(S.view.maxBack) + "</span>"}</td>
           <td class="num">${c ? zl(c.flight) : "—"}</td>
           <td class="num">${inp("perNight", d.stay?.perNight)}</td>
@@ -870,7 +857,7 @@
           <td class="num">${inp("transferCost", d.transferCost)}</td>
           <td class="num"><b>${c ? zl(c.total) : "—"}</b></td>
           <td>${c ? `<a href="${stayLink("booking", d, c)}" target="_blank" rel="noopener">Booking</a> · <a href="${stayLink("airbnb", d, c)}" target="_blank" rel="noopener">Airbnb</a>` : ""}</td>
-          <td><button class="btn small" data-act="edit">✎</button></td></tr>`;
+          <td><button class="btn small" data-act="edit" aria-label="Edytuj">${ic("edit")}</button></td></tr>`;
       }).join("")}</tbody></table>`;
   }
   $("#table").addEventListener("change", e => {
@@ -899,13 +886,18 @@
     setAdding(false);
   }
   document.querySelector(".tabs").addEventListener("click", e => { const b = e.target.closest("button"); if (b) show(b.dataset.view); });
+  function renderWho() {
+    $("#who-label").textContent = `Głosuje: ${PEOPLE[who]}`;
+    document.querySelectorAll("#who b").forEach(b => b.classList.toggle("on", b.dataset.p === who));
+  }
   function renderAll() {
+    renderWho();
     renderCompare(); renderMap(); renderPlan();
     if ($("#view-table").classList.contains("active")) renderTable();
     if ($("#view-swipe").classList.contains("active")) renderSwipe();
   }
 
-  function net() { const n = $("#net"); n.textContent = navigator.onLine ? "online" : "offline"; n.classList.toggle("off", !navigator.onLine); }
+  function net() { const n = $("#net"); n.textContent = navigator.onLine ? "" : "offline"; n.classList.toggle("off", !navigator.onLine); }
   addEventListener("online", net); addEventListener("offline", net); net();
 
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});

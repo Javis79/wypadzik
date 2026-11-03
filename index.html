@@ -3,48 +3,94 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#e8590c">
+<meta name="theme-color" content="#e98aa6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#e98aa6" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Wypad">
 <title>Wypad we dwoje</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preload" href="fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/shantell-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-print" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18"/><path d="M5 15h14"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 4.5v15"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M3.5 6.5 9 4.5l6 2 5.5-2v13l-5.5 2-6-2-5.5 2z"/><path d="M9 4.5v13M15 6.5v13"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><path d="M3 19.5h18"/><path d="m4.5 13.5 3 2.5 12.2-4.2c1.1-.4 1.6-1.5 1.2-2.4-.4-.8-1.4-1.1-2.3-.8l-3.8 1.3-5.4-4.6-2 .7 3 5.4-3.6 1.2-2-1.3-1.6.6z"/></symbol>
+    <symbol id="i-in" viewBox="0 0 24 24"><path d="M3 19.5h18"/><path d="m3.6 7.6 1.6-.8 2 1.6 3.3 1.3-1.3-6 2-.5 3.8 6.4 3.6 1.4c.9.3 1.4 1.3 1 2.1-.4.9-1.5 1.3-2.5.9L4.8 9.9z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-bus" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="14"/><path d="M5 11h14M8 17.5v2.5M16 17.5v2.5"/><circle cx="8.5" cy="14.3" r=".6"/><circle cx="15.5" cy="14.3" r=".6"/></symbol>
+    <symbol id="i-bed" viewBox="0 0 24 24"><path d="M3 19V6M3 15h18v4M21 15v-3a3 3 0 0 0-3-3h-8v6"/><circle cx="6.5" cy="11.5" r="1.8"/></symbol>
+    <symbol id="i-food" viewBox="0 0 24 24"><path d="M7 3v18M4.5 3v5a2.5 2.5 0 0 0 5 0V3M17 21V3c-2.5 1-3.5 4-3.5 8h3.5"/></symbol>
+    <symbol id="i-sight" viewBox="0 0 24 24"><path d="M3.5 9 12 4l8.5 5zM5 20h14M3.5 9h17M6.5 9v9M10 9v9M14 9v9M17.5 9v9"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3.8 2.5 5.1 5.6.8-4 4 .9 5.5-5-2.6-5 2.6.9-5.5-4-4 5.6-.8z"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+    <symbol id="i-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.6"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 7.5 4.5 12 9 16.5"/><path d="M4.5 12H15a4.5 4.5 0 0 1 0 9h-2"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".5"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4.5 19.5 5.3 15 15.6 4.7a2 2 0 0 1 2.8 0l.9.9a2 2 0 0 1 0 2.8L9 18.7z"/><path d="m13.5 6.8 3.7 3.7"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3.5 8.5h3.5l1.8-2.5h6.4L17 8.5h3.5v10.5h-17z"/><circle cx="12" cy="13.5" r="3.2"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24"><path d="M10 5H5v14h14v-5M13 4h7v7M20 4l-9 9"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6.5 9.5 5.5 5.5 5.5-5.5"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="M9.5 5.5 16 12l-6.5 6.5"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h14l-3.5-3.5M20 16H6l3.5 3.5"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24"><path d="M5 4h14v11l-5 5H5z"/><path d="M14 20v-5h5M8.5 9h7M8.5 12.5h4"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></symbol>
+    <symbol id="i-partly" viewBox="0 0 24 24"><path d="M8 4.5v1.5M3.5 9H5M4.8 5.8l1 1M12.2 5.8l-1 1"/><path d="M5.7 11.3A3.5 3.5 0 1 1 11.6 8"/><path d="M8.5 19.5h9a3.5 3.5 0 0 0 .3-7 5 5 0 0 0-9.4 1.3A2.9 2.9 0 0 0 8.5 19.5z"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18.5h10a4 4 0 0 0 .4-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 18.5z"/></symbol>
+    <symbol id="i-fog" viewBox="0 0 24 24"><path d="M4 9h16M6 13h12M4 17h16"/></symbol>
+    <symbol id="i-rain" viewBox="0 0 24 24"><path d="M7 14.5h10a4 4 0 0 0 .4-8A5.5 5.5 0 0 0 6.8 8a3.3 3.3 0 0 0 .2 6.5z"/><path d="m8.5 17.5-1 2.5M12.5 17.5l-1 2.5M16.5 17.5l-1 2.5"/></symbol>
+    <symbol id="i-snow" viewBox="0 0 24 24"><path d="M7 14.5h10a4 4 0 0 0 .4-8A5.5 5.5 0 0 0 6.8 8a3.3 3.3 0 0 0 .2 6.5z"/><path d="M8.5 18.5h.01M12 20h.01M15.5 18.5h.01"/></symbol>
+    <symbol id="i-storm" viewBox="0 0 24 24"><path d="M7 14.5h10a4 4 0 0 0 .4-8A5.5 5.5 0 0 0 6.8 8a3.3 3.3 0 0 0 .2 6.5z"/><path d="m12.5 15-2 3.5h3L11.5 22"/></symbol>
+    <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3.5s-5.5 6.3-5.5 10a5.5 5.5 0 0 0 11 0c0-3.7-5.5-10-5.5-10z"/></symbol>
+  </defs>
+</svg>
+
 <header class="top">
-  <h1>Wypad <span>we dwoje</span></h1>
+  <h1 class="wordmark">Wypad <span>we dwoje</span></h1>
   <div class="top-r">
-    <button id="who" class="net who" title="Przełącz osobę">👤 <span id="who-label"></span></button>
     <span id="net" class="net"></span>
+    <button id="who" class="who" title="Przełącz, kto głosuje" aria-label="Kto głosuje"><b data-p="K">K</b><b data-p="Z">Z</b><span id="who-label" class="sr"></span></button>
   </div>
 </header>
 
 <main>
   <!-- WYBIERANIE -->
   <section id="view-swipe" class="view">
-    <p class="muted sw-help">→ jedziemy · ← nie · stuknij kartę: pogoda i atrakcje · na komputerze strzałki ← → ↑</p>
+    <div class="sw-head"><span id="sw-count"></span><span class="sw-help">w prawo: jedziemy · w lewo: nie · stuknij: szczegóły</span></div>
     <div id="deck"></div>
     <div class="sw-btns">
-      <button class="round no" id="sw-no" aria-label="Nie">✕</button>
-      <button class="round undo" id="sw-undo" aria-label="Cofnij">↺</button>
-      <button class="round undo" id="sw-info" aria-label="Szczegóły">ℹ</button>
-      <button class="round yes" id="sw-yes" aria-label="Tak">❤</button>
+      <button class="vbtn no" id="sw-no"><svg class="ic"><use href="#i-x"/></svg>Nie</button>
+      <button class="vbtn sq" id="sw-undo" aria-label="Cofnij"><svg class="ic"><use href="#i-undo"/></svg></button>
+      <button class="vbtn sq" id="sw-info" aria-label="Szczegóły"><svg class="ic"><use href="#i-info"/></svg></button>
+      <button class="vbtn yes" id="sw-yes"><svg class="ic"><use href="#i-check"/></svg>Jedziemy</button>
     </div>
     <p class="muted center" id="swipe-status"></p>
   </section>
 
   <!-- TABELA -->
   <section id="view-table" class="view">
-    <p class="muted">Wpisuj ceny prosto w tabeli. Zapisuje się samo. Kwoty za nocleg i dojazdy dla dwojga.</p>
+    <p class="muted lede">Wpisujcie ceny prosto w tabeli, zapisuje się samo. Nocleg i dojazdy liczone dla dwojga.</p>
     <div id="table" class="tbl-wrap"></div>
   </section>
 
   <!-- PORÓWNANIE -->
   <section id="view-compare" class="view">
-    <div class="budget card">
+    <div class="filters">
       <label>Budżet na dwoje (zł)
         <input id="budget" type="number" inputmode="numeric" min="0" step="50">
       </label>
@@ -56,11 +102,11 @@
         <select id="maxBack"><option value="ndz">ndz 22.11</option><option value="pon">pon 23.11</option><option value="wt">wt 24.11</option></select>
       </label>
       <label class="check"><input type="checkbox" id="hideRej"> Ukryj odrzucone</label>
-      <label class="check"><input type="checkbox" id="onlyFav"> Tylko ulubione ❤</label>
+      <label class="check"><input type="checkbox" id="onlyFav"> Tylko te na tak</label>
     </div>
     <p class="muted" id="summary"></p>
     <div id="dest-list"></div>
-    <button class="btn primary wide" id="add-dest">+ Dodaj kierunek</button>
+    <button class="btn wide" id="add-dest"><svg class="ic"><use href="#i-plus"/></svg>Dodaj kierunek</button>
   </section>
 
   <!-- MAPA -->
@@ -71,9 +117,9 @@
     </div>
     <div id="map"></div>
     <div class="map-actions">
-      <button class="btn" id="add-place">📍 Dodaj miejsce</button>
-      <button class="btn" id="locate">◎ Gdzie jestem</button>
-      <button class="btn" id="offline-dl">⬇ Mapa offline</button>
+      <button class="btn" id="add-place"><svg class="ic"><use href="#i-pin"/></svg><span>Dodaj miejsce</span></button>
+      <button class="btn" id="locate"><svg class="ic"><use href="#i-locate"/></svg><span>Gdzie jestem</span></button>
+      <button class="btn" id="offline-dl"><svg class="ic"><use href="#i-down"/></svg><span>Mapa offline</span></button>
     </div>
     <div id="place-list"></div>
   </section>
@@ -86,24 +132,24 @@
 
   <!-- USTAWIENIA -->
   <section id="view-more" class="view">
-    <div class="card">
+    <div class="panel">
       <h2>Dane</h2>
       <p class="muted">Wszystko zapisuje się lokalnie w telefonie. Żeby mieć to samo u Zuzi, wyeksportuj plik i wyślij go jej, a ona go zaimportuje.</p>
-      <button class="btn wide" id="export">Eksportuj (plik .json)</button>
+      <button class="btn wide" id="export"><svg class="ic"><use href="#i-down"/></svg>Eksportuj (plik .json)</button>
       <label class="btn wide filebtn">Importuj z pliku<input type="file" id="import" accept="application/json,.json" hidden></label>
       <button class="btn wide" id="share">Udostępnij…</button>
     </div>
-    <div class="card">
+    <div class="panel">
       <h2>Zdjęcia miast</h2>
       <p class="muted" id="photo-info">…</p>
       <button class="btn wide" id="reload-photos">Pobierz zdjęcia ponownie</button>
     </div>
-    <div class="card">
+    <div class="panel">
       <h2>Mapy offline</h2>
       <p class="muted" id="cache-info">…</p>
       <button class="btn wide danger" id="clear-tiles">Wyczyść zapisane mapy</button>
     </div>
-    <div class="card">
+    <div class="panel">
       <h2>Reset</h2>
       <button class="btn wide danger" id="reset">Przywróć przykładowe dane</button>
     </div>
@@ -111,17 +157,17 @@
 </main>
 
 <nav class="tabs">
-  <button data-view="swipe"><b>🔥</b>Wybierz</button>
-  <button data-view="compare"><b>⚖</b>Porównaj</button>
-  <button data-view="table" class="desk-only"><b>▦</b>Tabela</button>
-  <button data-view="map"><b>🗺</b>Mapa</button>
-  <button data-view="plan"><b>🗓</b>Plan</button>
-  <button data-view="more"><b>⋯</b>Więcej</button>
+  <button data-view="swipe"><svg class="ic"><use href="#i-print"/></svg>Wybierz</button>
+  <button data-view="compare"><svg class="ic"><use href="#i-list"/></svg>Porównaj</button>
+  <button data-view="table" class="desk-only"><svg class="ic"><use href="#i-grid"/></svg>Tabela</button>
+  <button data-view="map"><svg class="ic"><use href="#i-map"/></svg>Mapa</button>
+  <button data-view="plan"><svg class="ic"><use href="#i-cal"/></svg>Plan</button>
+  <button data-view="more"><svg class="ic"><use href="#i-more"/></svg>Więcej</button>
 </nav>
 
 <dialog id="sheet" class="sheet"></dialog>
 <dialog id="dlg"><form method="dialog" id="dlg-form"></form></dialog>
-<div id="toast"></div>
+<div id="toast" role="status"></div>
 
 <script src="vendor/leaflet.js"></script>
 <script src="data.js"></script>

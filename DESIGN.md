@@ -1,308 +1,387 @@
 ---
 name: Wypad we dwoje
-description: A practical trip-picking and planning PWA for two, with numbers first and the city photo as the reward.
+description: A private trip-deciding PWA for two, laid out as instant-film prints with votes written on in marker.
 colors:
-  paper: "#faf7f2"
-  card: "#ffffff"
-  ink: "#1f1b16"
-  muted: "#7a7268"
-  line: "#e9e2d8"
-  paper-dark: "#16130f"
-  card-dark: "#221e19"
-  ink-dark: "#f3ede4"
-  muted-dark: "#a39a8e"
-  line-dark: "#3a332b"
-  trip-orange: "#e8590c"
-  on-accent: "#ffffff"
-  fits-green: "#2b8a3e"
-  over-red: "#c92a2a"
-  vote-yes: "#40c057"
-  vote-no: "#fa5252"
-  price-peach: "#ffd8a8"
-  photo-dark: "#2a241d"
-  cat-food: "#e8590c"
-  cat-sight: "#1971c2"
-  cat-stay: "#7048e8"
-  cat-other: "#5c940d"
+  shell-pink: "#e98aa6"
+  shell-ink: "#1d1a22"
+  table-lilac: "#efe9ee"
+  print-white: "#ffffff"
+  sheet: "#ffffff"
+  ink: "#1d1a22"
+  ink-2: "#4f4854"
+  muted: "#6a6270"
+  rule: "#e6dee4"
+  print-rule: "#ece5ea"
+  field: "#f7f4f6"
+  field-line: "#cbc1c9"
+  photo-blank: "#d9d0d7"
+  marker-navy: "#24318f"
+  marker-green: "#1f8a4c"
+  marker-red: "#d6332b"
+  tape-pink: "#f3b8c9"
+  plate-ink: "#1d1a22"
+  cat-food: "#c2410c"
+  cat-sight: "#24318f"
+  cat-stay: "#b4376a"
+  cat-other: "#5c6b2e"
+  dark-table: "#17131a"
+  dark-sheet: "#221c25"
+  dark-print: "#f6f2f4"
+  dark-ink: "#f3edf2"
+  dark-muted: "#a99fa8"
+  dark-rule: "#3a3139"
+  dark-field: "#2b2430"
+  dark-marker: "#9fb0ff"
+  dark-yes: "#4cc27a"
+  dark-no: "#ff6b5e"
+  dark-tape: "#b85d7a"
 typography:
-  display:
-    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
-    fontSize: "28px"
+  display-hand:
+    fontFamily: "Shantell Sans, Archivo, system-ui, sans-serif"
+    fontSize: "30px"
     fontWeight: 700
-    lineHeight: 1.1
+    lineHeight: 1.05
+    letterSpacing: "-0.01em"
+  wordmark:
+    fontFamily: "Archivo, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "24px"
+    fontWeight: 800
+    letterSpacing: "-0.015em"
+    fontVariation: "'wdth' 78"
   headline:
-    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
-    fontSize: "22px"
-    fontWeight: 700
-    lineHeight: 1.2
+    fontFamily: "Archivo, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "19px"
+    fontWeight: 800
+    lineHeight: 1.15
+    letterSpacing: "-0.01em"
+    fontVariation: "'wdth' 82"
   title:
-    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
-    fontSize: "20px"
-    fontWeight: 700
-    lineHeight: 1.2
-    letterSpacing: "-0.02em"
+    fontFamily: "Archivo, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "17px"
+    fontWeight: 800
+    lineHeight: 1.15
+    fontVariation: "'wdth' 82"
+  figure:
+    fontFamily: "Archivo, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "24px"
+    fontWeight: 800
+    fontFeature: "'tnum'"
+    fontVariation: "'wdth' 80"
   body:
-    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+    fontFamily: "Archivo, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "15px"
     fontWeight: 400
-    lineHeight: 1.4
+    lineHeight: 1.45
+    fontFeature: "'tnum'"
   data:
-    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+    fontFamily: "Archivo, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "14px"
     fontWeight: 400
-    lineHeight: 1.4
-    fontFeature: "tnum"
+    fontFeature: "'tnum'"
+    fontVariation: "'wdth' 90"
   label:
-    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+    fontFamily: "Archivo, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "13px"
-    fontWeight: 400
-    lineHeight: 1.4
-  micro:
-    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
-    fontSize: "11px"
+    fontWeight: 600
+    fontVariation: "'wdth' 90"
+  hand-note:
+    fontFamily: "Shantell Sans, Archivo, system-ui, sans-serif"
+    fontSize: "14px"
     fontWeight: 500
     lineHeight: 1.3
+  vote-tag:
+    fontFamily: "Shantell Sans, Archivo, system-ui, sans-serif"
+    fontSize: "14px"
+    fontWeight: 700
+    lineHeight: 1
+  mono-entry:
+    fontFamily: "ui-monospace, Menlo, monospace"
+    fontSize: "13px"
+    fontWeight: 400
 rounded:
-  xs: "4px"
-  sm: "8px"
-  md: "10px"
-  card: "14px"
-  sheet: "18px"
-  swipe: "20px"
-  pill: "99px"
+  none: "0"
+  round: "50%"
 spacing:
   xs: "4px"
   sm: "6px"
-  md: "8px"
-  lg: "12px"
-  xl: "16px"
-  2xl: "24px"
+  md: "10px"
+  lg: "16px"
+  xl: "24px"
 components:
   button:
-    backgroundColor: "{colors.card}"
+    backgroundColor: "{colors.print-white}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.md}"
-    padding: "10px 12px"
-    height: "42px"
+    rounded: "{rounded.none}"
+    padding: "8px 14px"
+    height: "44px"
+  button-hover:
+    backgroundColor: "{colors.field}"
   button-primary:
-    backgroundColor: "{colors.trip-orange}"
-    textColor: "{colors.on-accent}"
-    rounded: "{rounded.md}"
-    padding: "10px 12px"
-    height: "42px"
-  button-danger:
-    backgroundColor: "{colors.card}"
-    textColor: "{colors.over-red}"
-    rounded: "{rounded.md}"
-    padding: "10px 12px"
-  button-small:
-    rounded: "{rounded.md}"
-    padding: "4px 10px"
-    height: "32px"
-  vote-round:
-    backgroundColor: "{colors.card}"
-    rounded: "{rounded.pill}"
-    size: "62px"
-  vote-round-secondary:
-    backgroundColor: "{colors.card}"
-    textColor: "{colors.muted}"
-    rounded: "{rounded.pill}"
-    size: "46px"
-  card:
-    backgroundColor: "{colors.card}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.card}"
-    padding: "14px"
-  input:
-    backgroundColor: "{colors.paper}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.md}"
-    padding: "9px 10px"
-  chip:
-    backgroundColor: "{colors.card}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.pill}"
-    padding: "5px 11px"
-  chip-on:
     backgroundColor: "{colors.ink}"
-    textColor: "{colors.paper}"
-    rounded: "{rounded.pill}"
-  badge-match:
-    backgroundColor: "{colors.fits-green}"
-    textColor: "{colors.on-accent}"
-    rounded: "{rounded.pill}"
-    padding: "2px 7px"
-  swipe-card:
-    backgroundColor: "{colors.photo-dark}"
-    textColor: "{colors.on-accent}"
-    rounded: "{rounded.swipe}"
+    textColor: "{colors.print-white}"
+    rounded: "{rounded.none}"
+    padding: "8px 14px"
+    height: "44px"
+  button-primary-hover:
+    backgroundColor: "{colors.ink-2}"
+  button-small:
+    rounded: "{rounded.none}"
+    padding: "6px 10px"
+    height: "36px"
+  vote-yes:
+    backgroundColor: "{colors.shell-pink}"
+    textColor: "{colors.shell-ink}"
+    rounded: "{rounded.none}"
+    padding: "0 20px"
+    height: "54px"
+  vote-no:
+    backgroundColor: "{colors.print-white}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.none}"
+    padding: "0 20px"
+    height: "54px"
+  vote-square:
+    textColor: "{colors.muted}"
+    rounded: "{rounded.none}"
+    size: "46px"
+  input:
+    backgroundColor: "{colors.sheet}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.none}"
+    padding: "9px 10px"
+    height: "42px"
+  chip:
+    textColor: "{colors.muted}"
+    typography: "{typography.label}"
+    rounded: "{rounded.none}"
+    padding: "6px 10px"
+    height: "38px"
+  chip-on:
+    backgroundColor: "{colors.print-white}"
+    textColor: "{colors.ink}"
+  print-swipe:
+    backgroundColor: "{colors.print-white}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.none}"
+    padding: "10px 10px 0"
+  print-contact:
+    backgroundColor: "{colors.print-white}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.none}"
+    padding: "6px 6px 0"
+  total-plate:
+    backgroundColor: "{colors.plate-ink}"
+    textColor: "{colors.print-white}"
+    typography: "{typography.figure}"
+    rounded: "{rounded.none}"
+    padding: "7px 10px"
+  vote-tag:
+    backgroundColor: "{colors.print-white}"
+    textColor: "{colors.muted}"
+    typography: "{typography.vote-tag}"
+    rounded: "{rounded.none}"
+    padding: "4px 7px 5px"
+  voter-chip:
+    textColor: "{colors.shell-ink}"
+    rounded: "{rounded.round}"
+    size: "32px"
+  voter-chip-on:
+    backgroundColor: "{colors.shell-ink}"
+    textColor: "{colors.print-white}"
+  camera-bar:
+    backgroundColor: "{colors.shell-pink}"
+    textColor: "{colors.shell-ink}"
+    padding: "10px 16px"
   tab-bar:
-    backgroundColor: "{colors.card}"
+    backgroundColor: "{colors.sheet}"
     textColor: "{colors.muted}"
     height: "64px"
-  tab-active:
-    textColor: "{colors.trip-orange}"
-  toast:
-    backgroundColor: "{colors.ink}"
-    textColor: "{colors.paper}"
-    rounded: "{rounded.pill}"
-    padding: "10px 16px"
+  detail-sheet:
+    backgroundColor: "{colors.sheet}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.none}"
+    width: "640px"
 ---
 
 # Design System: Wypad we dwoje
 
 ## Overview
 
-**Creative North Star: "Bilet i mapa" (Ticket and Map)**
+**Creative North Star: "Odbitki" (instant-film prints)**
 
-Wypad reads like a well-filled-in boarding pass lying on a map: the facts that decide the trip come first and are easy to scan. Those facts are flight times, price per person, the total for two, hours in the city and the distance from the airport. The city photo is the reward for looking, not the argument. Even on the swipe card, where the photo fills the frame, the lower third is a dense data panel of flight rows with tabular figures and prices.
+Every destination is a print you hold. A photo sits inside a white paper frame, and its wider chin carries the honest numbers in a clean, condensed face: the two flights, hours there, nights, and one reversed ink plate with the flight total for two. Anything a person would write by hand goes on in marker: the city name, short notes, and the K and Z votes. The app is a camera body (a pink top bar with the wordmark and the two voter chips) and a table (a cool lilac-grey ground) where prints lie, are swiped away, or are spread out as a contact sheet.
 
-The surface is warm and quiet. Off-white paper (light) or a deep brown-black (dark) with white or brown cards, hairline beige borders and almost no shadow. There is one brand colour, a trip orange, which marks "us": the wordmark, the active tab, primary actions and links. Green and red are reserved for whether something fits: a match, within budget, over budget, yes or no. The type is the system font throughout, and hierarchy comes from weight and size rather than a second typeface.
+Density is compact and phone-first. On a phone the whole screen is one column and the swipe print fills whatever height is left between the camera bar and the tab bar. On desktop (760px and up) the same parts sit in a column up to 1200px wide, the tab bar moves under the camera bar, and the contact sheet becomes a wider grid of 4:3 prints. The tone is playful through material (paper, tape, marker, a slight tilt) rather than through decoration. Every icon is a drawn 1.8px stroke symbol from one inline sprite, and there are no emoji.
 
-Density is compact and phone-first. It's used one-handed, often next to the other person, and later outdoors. On desktop, the same parts spread into a centred column up to 1200px with a top tab bar and a cost table.
+The redesign explicitly replaced glassy photo cards with emoji chips on cream and orange. Nothing from that look (trip orange, system-font-only type, pill chips, rounded cards) carries forward.
 
 **Key Characteristics:**
-- Numbers lead: prices, times and totals are bold and use tabular figures, and the label next to them is muted.
-- A single brand accent (trip orange); green and red only for fit or no fit.
-- Flat paper and cards with 1px beige hairlines. Depth is reserved for the photo-led swipe deck and the round vote buttons.
-- Soft, friendly geometry: rounded 10–20px corners, pill-shaped chips, badges and toasts.
-- Emoji serve as icons (tabs, categories, flight rows). There is no icon font.
-- Light and dark mode follow `prefers-color-scheme`; only the neutrals change.
+- The print is the unit: white paper frame, photo, chin with numbers, paper shadow.
+- Two faces with strict jobs: Archivo (condensed widths, tabular figures) for every number and UI word, Shantell Sans only for handwriting.
+- Navy marker is handwriting only; green and red markers are state only; pink is the camera body and the tape.
+- Square corners on prints, buttons, fields and chips; circles only for person chips and controls floating over photos.
+- Prints stay light paper in dark mode; only the table, sheets and chrome go dark.
+- Drawn 1.8px stroke icons from the inline sprite; no emoji, no icon font.
 
 ## Colors
 
-A warm neutral paper base with one orange voice and a strict green/red pair for "does it fit".
+A pink camera body, a cool lilac table, white paper, and three marker inks, with everything else in a near-black plum ink.
 
 ### Primary
-- **Trip Orange** (`trip-orange`): the brand. The "we dwoje" in the wordmark, the active tab (text on mobile, a 3px underline on desktop), primary buttons, links in place lists, the attractions list and the table, the dashed outline while adding a place on the map, and the app icon and `theme-color`. It also doubles as the Jedzenie category colour.
+- **Camera Pink** (`shell-pink`): the camera bar behind the wordmark and voter chips, the Jedziemy vote button on the swipe screen, the active-tab underline in light mode, and the app icon ground. The same pink is used in both light and dark mode, so the bar reads as the same object in both; the browser theme-color matches it in both schemes.
+- **Shell Ink** (`shell-ink`): text, chip outlines and the reversed offline pill on the pink bar, and the text on the pink Jedziemy button.
 
 ### Secondary
-- **Fits Green** (`fits-green`): good fit. The "❤ match" badge, the outline and glow on the cheapest destination that fits the budget, the budget progress fill, pros, and the left edge marker on matched table rows.
-- **Over-Budget Red** (`over-red`): bad fit or destructive. A total over budget, the over-budget bar, cons, danger buttons (reset, clear maps), the offline network pill and warning tags on the swipe card.
+- **Navy Marker** (`marker-navy`): handwriting only. City names on prints, sheet and table, short notes, the "we dwoje" tail of the wordmark, links, the text caret, and the "you are here" map dot. In dark mode the marker on dark surfaces lightens to `dark-marker`; on prints and on the pink bar it stays navy. Navy on pink is 4.53:1.
+- **Marker Green** (`marker-green`) and **Marker Red** (`marker-red`): state only. Yes and no votes, the "jedziemy!" and "nie" swipe stamps, within or over budget, pros and cons, late-return warnings, destructive buttons. Dark-mode sheet equivalents are `dark-yes` and `dark-no`.
 
 ### Tertiary
-- **Vote Yes / Vote No** (`vote-yes`, `vote-no`): brighter green and red, used only on the dark photo surfaces: the ✕ and ❤ glyphs on the round vote buttons and the rotated "stamp" that appears while dragging a card.
-- **Price Peach** (`price-peach`): flight prices on the swipe card's dark overlay, where orange would not be readable.
-- **Category pins**: Jedzenie (`cat-food`, the same as trip orange), Zwiedzanie (`cat-sight`, blue), Nocleg (`cat-stay`, violet) and Inne (`cat-other`, olive). Used only for map pins and the dots in place lists.
+- **Tape Pink** (`tape-pink`, dark `dark-tape`): the match tape strip on a print, the input focus ring, text selection, and the active-tab underline in dark mode.
+- **Category inks** (`cat-food`, `cat-sight`, `cat-stay`, `cat-other`): map pins, place dots, the icon of an active category chip, and plan slot icons. Nowhere else.
 
 ### Neutral
-- **Paper** (`paper` / `paper-dark`): the page background. It is also the input background, so fields sit slightly recessed inside white cards.
-- **Card** (`card` / `card-dark`): cards, dialogs, the mobile tab bar, the table and the vote buttons.
-- **Ink** (`ink` / `ink-dark`): text. Inverted, it fills the selected chip and the toast.
-- **Muted** (`muted` / `muted-dark`): labels, help text, secondary metadata and inactive tabs.
-- **Line** (`line` / `line-dark`): every border and divider, the empty budget bar and the network pill background.
-- **Photo Dark** (`photo-dark`): what the swipe card shows before its photo loads. If there's no photo, an orange-to-violet gradient (`trip-orange` → `cat-stay`) is shown with an emoji instead.
+- **Lilac Table** (`table-lilac`, dark `dark-table`): the page ground prints lie on.
+- **Print White** (`print-white`, dark `dark-print`): print paper, weather tiles, plan slots, the table wrap and attraction thumbnails.
+- **Sheet** (`sheet`, dark `dark-sheet`): dialogs, the detail sheet, the filters strip, panels and the tab bar.
+- **Ink / Ink 2 / Muted** (`ink`, `ink-2`, `muted`; dark `dark-ink`, `dark-muted`): text, secondary text, labels and inactive tabs.
+- **Rule / Print Rule** (`rule`, `print-rule`; dark `dark-rule`): hairlines on sheets and inside prints.
+- **Field / Field Line** (`field`, `field-line`; dark `dark-field`): hover fill, table input cells, dashed chip borders, scrollbars.
+- **Photo Blank** (`photo-blank`): the placeholder behind a missing photo, with the city name written over it in hand.
+- **Plate Ink** (`plate-ink`): the reversed total plate on a print. In dark mode the toast uses the light ink instead.
 
 ### Named Rules
-**The Us-Or-Fit Rule.** Orange means "this is us / this is active". Green and red mean "this fits / this doesn't". Never use green or red for decoration, and never use orange to say something is good or bad.
+**The Marker Rule.** Navy appears only where a person would write: names, notes, initials, links. Green and red mean yes, no, fits and doesn't fit, and nothing else.
 
-**The Muted Label Rule.** Every number has a muted label beside it and the number itself is in ink. Don't colour a number unless it is over budget (red) or a price on a dark photo (peach).
+**The Paper Stays Paper Rule.** Prints keep light paper and their fixed print inks (`ink`, `muted`, `print-rule`, `marker-navy`) in dark mode. Only the table, sheets and chrome go dark.
+
+**The One Plate Rule.** Each screen has one reversed ink slab. On the swipe screen it is the flight total for two on the print's chin, so the Jedziemy button is pink, not ink.
 
 ## Typography
 
-**Body Font:** the system UI stack (`system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`)
-**Mono:** `ui-monospace, Menlo, monospace`, only in textareas and inline `code`
+**Display Font:** Shantell Sans (with Archivo, system-ui), self-hosted variable 400-700
+**Body Font:** Archivo (with system-ui, -apple-system, Segoe UI), self-hosted variable weight 400-800, width 62-100%
+**Label/Mono Font:** ui-monospace, Menlo, used only for the flight-entry line format
 
-**Character:** native and neutral, so it feels like part of the phone. Hierarchy comes from bold weights and size jumps. There is no second typeface.
+**Character:** Archivo's condensed widths give dense, mechanical numbers and labels, like a camera's printed specs. Shantell Sans is the marker in a person's hand. The contrast between the two carries the whole world.
 
 ### Hierarchy
-- **Display** (700, 28px, 1.1): the city name on the swipe card and in the detail sheet hero. It sits on a photo with a dark gradient, in white. It drops to 24px on phones and 22px on short phones.
-- **Headline** (700, 22px): the destination total on comparison cards (`376 zł`), with a muted 11px "+ nocleg" line beneath it.
-- **Title** (700, 20px, −0.02em): the wordmark in the header (17px under 400px wide). Card and dialog `h2` titles use the browser default bold.
-- **Body** (400, 15px, 1.4): base text, the city description and day headings in the plan.
-- **Data** (14px, tabular figures): flight rows, cost rows and table cells. Prices are bold.
-- **Label** (13px): form labels, `.muted` help text, chips and small buttons.
-- **Micro** (500, 11–12px): badges, vote markers, the network and person pills, and tab labels.
+- **Display, hand** (Shantell 700, 30px swipe print / 32px sheet / 34px empty state / 19-23px contact print / 18px table, 1.05): city names and the empty-state heading, always in marker. Shrinks to 26px on phones shorter than 760px.
+- **Wordmark** (Archivo 800, 24px, width 78%): "Wypad", followed by "we dwoje" in Shantell 700 19px navy. 21px and 16px under 380px.
+- **Headline** (Archivo 800, 19px, width 82%, 1.15): panel headings in Więcej.
+- **Title** (Archivo 800, 17px, width 82%): section heads in the detail sheet and plan day heads, with a drawn icon in muted.
+- **Figure** (Archivo 800, 24px plate / 18-22px contact total / 18px cost sum, width 78-85%): totals. Every number uses tabular figures (set on body).
+- **Body** (Archivo 400, 15px, 1.45): base text; the city description is capped at 62ch.
+- **Data** (Archivo 400-800, 13-14px, width 90-92%): flight rows, facts, cost rows and table cells; the price column is right-aligned and 800.
+- **Label** (Archivo 600, 13px muted; tabs 11.5px phone / 14px desktop, width 90%): form labels, chips, sub-lines.
+- **Hand note** (Shantell 500, 14px, 1.3, marker): notes on prints and sheets, the "eat" list, empty plan days.
+- **Vote tag** (Shantell 700, 14px / 12px on contact prints, 1): K and Z tags.
+- **Mono entry** (ui-monospace 13px; code 12px): the flight textareas and the `code` sample of the line format, because the entry is a fixed-column data format. The photo diagnostics log uses it at 11px.
 
 ### Named Rules
-**The Tabular Rule.** Anything that is compared in a column (prices, times, totals) uses `font-variant-numeric: tabular-nums` and aligns right.
+**The Two Hands Rule.** Archivo for what the machine prints, Shantell for what a person writes. Never set a number, button or label in Shantell, and never set a city name in Archivo.
+
+**The Tabular Rule.** Every number uses tabular figures, and compared numbers align right.
 
 ## Layout
 
-- **Phone (< 760px):** the whole screen is one column fixed to `100dvh`. There's a sticky header with the wordmark and the person and online pills, a scrolling `main` (10–14px padding), and a bottom tab bar (56px tall, six equal columns, emoji over label). The swipe view gives all leftover height to the card deck, with the vote buttons under it. Short screens (≤ 760px tall) hide the help line and extra tags so the photo stays visible.
-- **Desktop (≥ 760px):** the tab bar moves under the header as a horizontal strip with an orange underline. Content is centred at a maximum width of 1200px with 24px gutters. Destination cards go into an auto-fill grid (`minmax(340px, 1fr)`), the budget filters sit in one row, the map grows to 62vh, dialogs widen to 820px and the desktop-only Tabela tab appears.
-- **Rhythm:** a tight 4–16px scale. Stacked cards have 12px between them, cards have 14px padding, and button rows and chips have 6–8px gaps. Two-column form grids (`grid2`, the budget block) are the default pattern for fields.
-- **Safe areas:** the header, tab bar, sheet close button and lightbox all respect `env(safe-area-inset-*)`, because it's installed as a standalone PWA on an iPhone.
+Phones (up to 759px) use a fixed full-height column: the camera bar, a scrolling main area (10px 14px padding), and the tab bar (58px buttons) all in one flex column with the body set to 100dvh. On the swipe view the deck flexes to fill the remaining height, at most 420px wide, and the print sits inset 6px with 8px below. Under 760px of height, help text, optional facts and notes hide rather than shrinking the photo. Under 440px the swipe help line hides; under 380px the wordmark and vote buttons tighten.
+
+Porównaj on phones is a 2-column contact sheet of square prints (16px row gap, 12px column gap). At 760px and up it becomes an auto-fill grid of prints at least 250px wide with 4:3 photos (26px / 20px gaps), and the flight rows appear in each chin. The filters are a full-bleed sheet strip on phones and a 4-column-plus-checkboxes bar on desktop.
+
+At 760px and up, the camera bar and tab bar span the width with content aligned to a 1200px column, main padding becomes 20px 24px 48px, the tab bar sits under the camera bar with horizontal icon-and-label tabs (48px tall), and the desk-only Tabela tab appears. The detail sheet is full-screen on phones (max 640px wide) and a centred dialog up to 90vh on desktop.
+
+Spacing follows a small step set (4, 6, 10, 16, 24px), with 8px and 12px used between controls.
 
 ## Elevation & Depth
 
-The surface is flat. Cards, dialogs, the table and the tab bar separate from the paper with a 1px `line` border and a change in tone, not with shadows. Depth is used in only three places, and all three are physical: the swipe deck (a card you hold and throw), the round vote buttons you press, and map pins that sit above the map.
+Depth is physical paper: things you could pick up off the table (prints, plan slots, weather tiles, attraction thumbnails, the table wrap, desktop panels) cast a soft, plum-tinted paper shadow. Chrome and sheets are flat and separated by hairlines. Contact prints sit slightly tilted (-0.8deg, 0.6deg, 0 in a repeating 3-step pattern) and straighten and lift 2px on hover or focus. The next swipe print lies beneath the top one, rotated -2.6deg with its contents hidden.
 
 ### Shadow Vocabulary
-- **Swipe lift** (`box-shadow: 0 8px 24px rgba(0,0,0,.25)`): the top card in the deck. The card underneath is scaled to 0.96, moved down 10px and darkened to 85% brightness.
-- **Button press** (`box-shadow: 0 2px 8px rgba(0,0,0,.12)`): the round vote buttons.
-- **Pin** (`box-shadow: 0 1px 4px rgba(0,0,0,.4)`): map pins with a 2px white border.
-- **Best-fit ring** (`box-shadow: 0 0 0 2px` fits-green at 25%): marks the best destination card. This is a state ring, not elevation.
+- **Print lift** (`box-shadow: 0 10px 22px rgba(45,20,40,.20), 0 1px 2px rgba(0,0,0,.18)`; dark `0 12px 26px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.5)`): the top swipe print, a hovered contact print, dialogs.
+- **Print rest** (`box-shadow: 0 2px 6px rgba(45,20,40,.14), 0 0 1px rgba(0,0,0,.2)`; dark `0 2px 8px rgba(0,0,0,.45)`): contact prints, slots, tiles, the map frame, the selected chip.
+- **Tag** (`box-shadow: 0 1px 2px rgba(0,0,0,.25)`): vote tags and gallery captions stuck onto a photo.
+- **Pin** (`box-shadow: 0 2px 5px rgba(0,0,0,.35)`): map pins.
 
 ### Named Rules
-**The Paper-Flat Rule.** If it isn't something you physically hold, press or drop on a map, it gets a hairline border and no shadow.
+**The Held Object Rule.** Only objects you could hold get a shadow, and it is always a soft paper shadow, never a hard offset block. Bars, sheets, fields and buttons stay flat.
 
 ## Shapes
 
-Soft and friendly. Corners get rounder as the object gets more tangible: 4px on inline code, 8px on note boxes, 10px on buttons, inputs, plan slots and fieldsets, 12px on weather tiles, 14px on cards, the map and dialogs, 18px on the desktop detail sheet, and 20px on the swipe card. Anything small and label-like (chips, badges, vote markers, pills, the toast, the budget bar) is a full pill. Vote buttons are circles. Map pins are a teardrop: a rotated square with three rounded corners.
+Corners are square (0) on prints, buttons, inputs, selects, chips, plates, tags, dialogs, popups and the tab bar. Circles (50%) are reserved for the K and Z voter chips and for controls that float over a photo (info, close, lightbox arrows, gallery dots). Map pins are teardrops (50% 50% 50% 0, rotated -45deg) with a 2px white edge. Controls carry a 2px ink border (1.5px on small buttons, map action buttons and table tags); inactive chips use a 1.5px dashed field-line border. The tape strip is a 70 by 18px rectangle (54 by 14px in the table) rotated -4deg at 90% opacity. Swipe stamps are 3px bordered labels rotated -10deg and 9deg.
 
 ## Components
 
 ### Buttons
-Soft, low-key and comfortable to tap.
-- **Shape:** gently rounded (10px). Minimum height is 42px; small buttons are 32px.
-- **Default:** card background, ink text and a 1px line border, with an inline icon and label (6px gap).
-- **Primary:** trip orange fill and border with white text. Used for the main action in a view, such as "+ Dodaj kierunek" or saving in a dialog.
-- **Danger:** default button with red text. Used for reset and clearing data.
-- **Toggled (`.on`):** red border and text, for toggles like rejecting.
-- **Wide:** full width with 8px above, used for stacked actions in the settings cards.
-- No hover or focus styles are defined beyond the browser's own.
+Square, outlined and slightly condensed, like keys on a camera body.
+- **Shape:** square corners (0), 2px ink border, minimum height 44px.
+- **Default:** paper fill with ink text, Archivo 700 15px at width 88%, 8px 14px padding, drawn icon left with an 8px gap. Dark mode uses a transparent fill with light ink.
+- **Primary:** ink fill with paper text (dark: light ink fill with table-dark text). Used for Zapisz in dialogs, Jedziemy in the detail sheet, and the first empty-state action.
+- **Hover / Active / Focus:** hover fills with `field` (primary hover goes to `ink-2`); press moves 1px down (.12s); focus is a 2px ink outline offset 2px.
+- **Small:** 36px, 6px 10px, 1.5px border, 14px text, 17px icons; used for sheet actions and row edit buttons.
+- **Danger:** red text and a red border.
 
-### Vote buttons (signature)
-A row of circles under the swipe deck: ✕ (62px, vote-no glyph), ↺ undo and ℹ details (46px, muted), and ❤ (62px, vote-yes glyph). They have a card fill, a line border and the button-press shadow. Disabled ones drop to 35% opacity. They shrink to 56px and 42px on phones.
-
-### Swipe card (signature)
-The main object of the app. A 20px-radius card filling the deck, with the full-bleed city photo (or the orange-to-violet gradient). A gradient running from transparent to 82% black covers the lower part and carries the city name (display size), the country and temperature, two flight rows (day and times, flight duration, price in peach), and translucent pill tags with a slight blur (total for two, hours there, airport, number of flight pairs). Warning tags turn translucent red. While dragging, a rotated "TAK"/"NIE" stamp with a 4px border fades in. An italic serif "i" button in a dark translucent circle sits top right.
-
-### Cards / Containers
-- **Corner Style:** 14px.
-- **Background:** card on paper, with a 1px line border and no shadow.
-- **Internal Padding:** 14px. Stacked cards have 12px between them.
-- **Destination card:** the city name in bold with a muted metadata line, and the headline total top right. Flight rows have bold prices, and a quick action row holds small buttons. The best fit gets a green border and ring, rejected cards drop to 55% opacity, and notes sit in a paper-coloured inset box (8px radius).
-
-### Inputs / Fields
-- **Style:** paper background inside the card, a 1px line border, a 10px radius and 9px × 10px padding. They're full width, with a muted 13px label above.
-- **Checkboxes:** the label sits inline in ink at 14px.
-- **Table cells:** compact right-aligned number inputs (90px wide).
-- No focus style beyond the browser default.
+### Vote Buttons (swipe screen)
+- **Nie:** 54px tall, 2px ink border, paper fill, Archivo 800 16px at width 85%, drawn cross icon.
+- **Jedziemy:** the same shape in camera pink with ink text and an ink border (pink border in dark mode), with the check icon at 2.6 stroke.
+- **Cofnij / Szczegóły:** 46px squares with a 1.5px field-line border and muted icons.
 
 ### Chips
-- **Style:** pill-shaped, with a card background, a 1px line border and 13px text, in a row that scrolls sideways.
-- **Selected:** inverted to an ink fill with paper text. Used for the map category filter.
+- **Style:** square, 1.5px dashed field-line border, transparent, muted Archivo 600 13px, with a category icon, 38px tall.
+- **State:** selected becomes a paper chip with a solid 1.5px ink border, print-rest shadow, and the icon in its category ink.
 
-### Badges and status pills
-- **Match badge:** an 11px white "❤ match" on a fits-green pill.
-- **Vote markers:** outlined pills with the person's initial and ❤ or ✕, the glyph in green or red.
-- **Header pills:** the person switcher (a pill with a 18% orange tint) and the network status (line-coloured, or red with white text when offline).
+### Cards / Containers (the Print)
+- **Corner Style:** square (0).
+- **Background:** print white; contents use fixed print inks in both modes.
+- **Shadow Strategy:** print lift on the top swipe print, print rest on contact prints (see Elevation & Depth).
+- **Border:** none; the paper edge is the shadow.
+- **Internal Padding:** swipe print 10px frame with a 10px 2px 12px chin; contact print 6px frame (9px on desktop) with an 8px 2px 10px chin.
+- **Swipe print chin:** city in hand with country and temperature at right, a two-row flight table (drawn out/in icon, day and times, duration, bold right-aligned price), facts, an optional hand note, and the total plate.
+- **Contact print:** square photo (4:3 on desktop), city in hand with the total at right ("+ nocleg" below when stay is missing), a country, nights and hours line, flight rows on desktop, and a 4px budget bar in green or red. Rejected prints drop to 50% opacity. Tapping or pressing Enter opens the detail sheet.
+
+### Total Plate
+The one reversed slab on a print: an ink bar (7px 10px) with a light 13px label at left ("loty dla dwojga") and the figure (Archivo 800 24px, width 80%) at right.
+
+### Vote Tags
+Paper tags written in Shantell 700 with the initial and a drawn check or cross, always in the top-right of the photo (8px inset, 6px on contact prints). Green for yes, red for no, muted with "?" while unvoted. In the table they lose the shadow and take a 1.5px rule border.
+
+### Match Tape
+When both voted yes, a strip of tape pink is stuck across the top edge of the contact print (centred, rotated -4deg), and across the city name in the table row.
+
+### Inputs / Fields
+- **Style:** 2px ink border, square, sheet fill, 9px 10px padding, 42px minimum; selects use a drawn chevron. Labels are muted 13px above the field.
+- **Focus:** no outline; a 3px tape-pink ring (`box-shadow: 0 0 0 3px var(--tape)`).
+- **Table cells:** 36px, field fill, field-line border, right-aligned numbers, print inks in both modes.
 
 ### Navigation
-- **Mobile:** a fixed bottom bar with a card background and a top hairline. Each of the six equal tabs is an emoji (20px) above a 12px label. Inactive tabs are muted and the active one is orange.
-- **Desktop:** a sticky horizontal strip on the paper background under the header. Tabs are sized to their content, with the emoji beside the label at 14px. The active tab gets orange text and a 3px orange underline.
+- **Camera bar:** sticky pink bar, wordmark left, offline pill and the K/Z voter chips right (32px ink-outlined circles; the active voter is filled ink with white text).
+- **Tab bar:** on phones a bottom bar on sheet with a top hairline, a 23px drawn icon over an 11.5px label, muted when inactive; the active tab is ink at 800 with a 3px pink bar along the top. On desktop it sits under the camera bar as horizontal tabs with the bar along the bottom.
 
-### Detail sheet
-A full-screen dialog on phones (rounded 18px and up to 90vh tall on desktop). At the top, a 260px hero gallery snaps sideways between photos, with dots and a caption pill. Below the hero, the city name in white on a dark gradient. The body scrolls and holds a horizontal strip of weather tiles (paper-coloured, 12px radius), an about paragraph, two columns for sights and food, and attraction rows with 84×64 thumbnails. A fixed vote bar at the bottom splits 1:2. Photos open in a near-black lightbox with translucent round controls.
+### Detail Sheet
+Opens from any print. A 280px photo gallery with scroll-snap, hand-written paper caption tags, dots and a round close button; a title row with the city in marker; then the description, weather tiles (small paper prints with drawn weather icons), flights out and back in two columns, the cost breakdown (icon, label, muted note and right-aligned value per row, with an ink-ruled Razem sum and "zostaje z budżetu" in green or red), facts, attractions as small framed thumbnails, the hand-written eat list and note, and small action buttons. A sticky vote bar at the bottom holds Nie (outline, inks in when chosen) and Jedziemy (primary) in a 1:2 split.
+
+### Map Pins and Places
+Teardrop pins in category ink with a white drawn icon; done places fade to 50%. Place rows have a square category dot, a bold name, muted meta and a small edit button. Plan slots are paper strips (time, category icon, name, price) on the table.
 
 ### Toast
-An ink-coloured pill floating above the tab bar with paper text at 14px. It fades over 0.2s.
+A square plate-ink bar above the tab bar, 14px 600 text, fading in over .2s and rising with `cubic-bezier(.2,.8,.2,1)`.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** put the decision number (the total for two, the price per person, hours there) in bold ink with tabular figures and a muted label beside it.
-- **Do** keep orange for "us and active": the wordmark, the active tab, primary buttons and links.
-- **Do** use green only for a match, within budget or a pro, and red only for over budget, a no, a con, offline or something destructive.
-- **Do** separate surfaces with the 1px `line` border and a change of tone; keep cards flat.
-- **Do** use pills for anything small and label-like, and 10px corners for anything you tap or type into.
-- **Do** redefine only the neutral tokens for dark mode; the accent and status colours stay the same.
-- **Do** test every view at 375 × 812 and on a short phone (≤ 700px tall). Hiding secondary tags is better than shrinking the photo away.
+- **Do** put every destination on a print: photo in a white frame, numbers on the chin, paper shadow.
+- **Do** write city names, notes, initials and votes in Shantell Sans with navy marker, and set everything else in Archivo with tabular figures.
+- **Do** keep votes in the top-right corner of the photo as K and Z marker tags, and mark a match only with the pink tape strip.
+- **Do** keep one reversed ink plate per screen; on the swipe screen that is the total for two, and Jedziemy is camera pink with ink text.
+- **Do** keep prints light paper in dark mode, with the camera bar in the same pink (`#e98aa6`) and ink text in both modes.
+- **Do** use drawn 1.8px stroke icons from the inline sprite (20px default, round caps and joins).
+- **Do** use square corners and 2px ink borders on controls; save circles for person chips and controls over photos.
+- **Do** hide secondary facts on short phones before shrinking the photo.
 
 ### Don't:
-- **Don't** add a second brand colour or use the category colours (blue, violet, olive) outside the map pins and place dots.
-- **Don't** add shadows to cards, dialogs or bars; depth belongs to the swipe card, vote buttons and pins.
-- **Don't** let the photo hide the numbers: on photo surfaces, data sits on a dark gradient in white or peach.
-- **Don't** introduce a web font or an icon font; the system stack and emoji are the type and icons.
+- **Don't** use emoji or an icon font for icons.
+- **Don't** use navy marker for anything that isn't handwriting, or green and red for anything that isn't state.
+- **Don't** add a second reversed ink slab next to the total plate on the swipe screen.
+- **Don't** give bars, sheets, fields or buttons a shadow, and never use a hard offset shadow.
+- **Don't** bring back the cream and trip-orange palette, pill chips or rounded cards.
+- **Don't** use the category inks outside pins, place dots, active chip icons and plan slot icons.
+- **Don't** use the monospace face for anything except the flight-entry line format and diagnostic logs.
