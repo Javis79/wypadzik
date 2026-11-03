@@ -1,7 +1,7 @@
 // Service worker: apka działa offline, mapy z cache
-const APP = "wypad-app-v8";
+const APP = "wypad-app-v9";
 const TILES = "tiles-v1";
-const SHELL = ["./", "index.html", "styles.css", "app.js", "data.js", "info.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png",
+const SHELL = ["./", "index.html", "styles.css", "app.js", "data.js", "info.js", "motion.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png",
   "vendor/leaflet.css", "vendor/leaflet.js",
   "fonts/archivo-latin.woff2", "fonts/archivo-latin-ext.woff2", "fonts/shantell-latin.woff2", "fonts/shantell-latin-ext.woff2"];
 

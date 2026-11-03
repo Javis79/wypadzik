@@ -315,9 +315,39 @@
         "purpose": "Toast fades in and rises 8px."
       },
       {
+        "name": "ease-arrive",
+        "value": "cubic-bezier(.16,1,.3,1)",
+        "purpose": "Default arrival easing for prints, views and dialogs."
+      },
+      {
+        "name": "develop",
+        "value": "1500ms filter sepia/saturate/brightness/blur to none",
+        "purpose": "Instant-film developing of a photo the first time it lies on top."
+      },
+      {
+        "name": "match",
+        "value": "~2.5s sequence: flash, eject, develop, tape, marker write, scraps",
+        "purpose": "The focal match moment."
+      },
+      {
+        "name": "view-transition",
+        "value": "main slides 40px in tab direction, 420ms; shared hero 500ms",
+        "purpose": "Tab changes and print-to-sheet continuity."
+      },
+      {
+        "name": "flip",
+        "value": "520ms transform",
+        "purpose": "Prints move to new places on sort or filter."
+      },
+      {
+        "name": "pin-drop",
+        "value": "700ms drop + squash, 1s ring",
+        "purpose": "A newly added map place."
+      },
+      {
         "name": "reduced-motion",
-        "value": "transition:none; animation:none",
-        "purpose": "All motion off under prefers-reduced-motion."
+        "value": "fades only; no travel, flash, sound or scraps",
+        "purpose": "prefers-reduced-motion path."
       }
     ],
     "breakpoints": [

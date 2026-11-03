@@ -131,7 +131,7 @@
     items.sort((a, b) => key(a) - key(b));
     $("#summary").textContent = `${items.length} kierunków` + (v.hideRejected && hiddenRej ? ` · ${hiddenRej} odrzuconych ukrytych` : "");
     if (!items.length) { list.innerHTML = `<p class="muted">Nic tu nie ma. Zmień filtry albo dodaj kierunek.</p>`; return; }
-    list.innerHTML = items.map(({ d, c }) => {
+    Motion.flip(list, ".dest", "id", () => list.innerHTML = items.map(({ d, c }) => {
       const over = c && S.budget > 0 && c.total > S.budget, pct = c && S.budget > 0 ? Math.min(100, c.total / S.budget * 100) : 0;
       return `<article class="dest ${isMatch(d) ? "best" : ""} ${rejected(d) || !c ? "rej" : ""}" data-id="${d.id}" tabindex="0" role="button" aria-label="${esc(d.name)}: szczegóły i koszty">
         <div class="thumb"><span class="sw-fallback">${esc(d.name)}</span>${photoImg(d, "")}<div class="votes">${voteTags(d)}</div></div>
@@ -146,7 +146,7 @@
           : `<div class="sub">Brak pary lotów z powrotem do ${esc(v.maxBack)}.</div>`}
         </div>
       </article>`;
-    }).join("");
+    }).join(""));
   }
   const nights = n => `${n} ${n === 1 ? "noc" : n < 5 ? "noce" : "nocy"}`;
   const stars = n => `<span class="st">${[1, 2, 3, 4, 5].map(i => ic("star", i <= (n || 0) ? "on" : "")).join("")}</span>`;
@@ -169,10 +169,10 @@
       ${d.pros || d.cons ? `<div class="pc"><ul class="p">${(d.pros || "").split(",").filter(s => s.trim()).map(p => `<li>${esc(p.trim())}</li>`).join("")}</ul><ul class="c">${(d.cons || "").split(",").filter(s => s.trim()).map(p => `<li>${esc(p.trim())}</li>`).join("")}</ul></div>` : ""}`;
   }
   $("#dest-list").addEventListener("click", e => {
-    const el = e.target.closest(".dest"); if (el) openInfo(el.dataset.id);
+    const el = e.target.closest(".dest"); if (el) openInfo(el.dataset.id, el.querySelector(".thumb"));
   });
   $("#dest-list").addEventListener("keydown", e => {
-    const el = e.target.closest(".dest"); if (el && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openInfo(el.dataset.id); }
+    const el = e.target.closest(".dest"); if (el && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openInfo(el.dataset.id, el.querySelector(".thumb")); }
   });
   $("#budget").addEventListener("change", e => { S.budget = +e.target.value || 0; save(); renderCompare(); });
   $("#persons").addEventListener("change", e => { S.persons = Math.max(1, +e.target.value || 1); save(); renderCompare(); });
@@ -261,8 +261,9 @@
       <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="done" ${p.done ? "checked" : ""} style="width:auto"> Zaliczone</label>`,
       v => {
         Object.assign(p, { name: v.name, cat: v.cat, note: v.note, price: +v.price || 0, link: v.link, day: v.day ? +v.day : null, time: v.time, done: !!v.done });
-        if (isNew) { p.id = uid(); d.places.push(p); }
-        save(); renderMap(); renderPlan();
+        if (isNew) { p.id = uid(); d.places.push(p); dropId = p.id; }
+        save(); renderMap(); renderPlan(); dropId = null;
+        if (isNew && map && p.lat) map.panTo([p.lat, p.lng], { animate: !Motion.RM(), duration: .5 });
       },
       isNew ? null : () => { d.places = d.places.filter(x => x !== p); save(); renderMap(); renderPlan(); });
   }
@@ -304,10 +305,11 @@
     }, () => toast("Nie udało się pobrać lokalizacji"), { enableHighAccuracy: true, timeout: 10000 });
   });
 
-  function pinIcon(cat, done) {
+  let dropId = null;
+  function pinIcon(cat, done, drop) {
     const c = CATS[cat] || CATS.other;
     return L.divIcon({ className: "", iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -28],
-      html: `<div class="pin" style="background:${c.color};opacity:${done ? .5 : 1}"><svg><use href="#i-${c.icon}"/></svg></div>` });
+      html: `<div class="pin-wrap ${drop ? "drop" : ""}" style="--c:${c.color}"><span class="pin-ring"></span><div class="pin" style="background:${c.color};opacity:${done ? .5 : 1}"><svg><use href="#i-${c.icon}"/></svg></div><span class="pin-shadow"></span></div>` });
   }
   function renderMap() {
     const sel = $("#map-dest");
@@ -318,13 +320,13 @@
     const d = dest(currentDest); if (!d) return;
     const places = (d.places || []).filter(p => catOn.has(p.cat));
     places.forEach(p => {
-      const m = L.marker([p.lat, p.lng], { icon: pinIcon(p.cat, p.done) }).addTo(layer);
+      const m = L.marker([p.lat, p.lng], { icon: pinIcon(p.cat, p.done, p.id === dropId) }).addTo(layer);
       m.bindPopup(`<b>${esc(p.name)}</b><br>${esc(p.note || "")}${p.link ? `<br><a href="${esc(p.link)}" target="_blank">Link</a>` : ""}
         <br><a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank">Nawiguj</a>`);
       p._m = m;
     });
     $("#place-list").innerHTML = places.length ? places.map(p => `
-      <div class="place ${p.done ? "done" : ""}" data-pid="${p.id}">
+      <div class="place ${p.done ? "done" : ""} ${p.id === dropId ? "fresh" : ""}" data-pid="${p.id}">
         <span class="dot" style="background:${(CATS[p.cat] || CATS.other).color}">${ic((CATS[p.cat] || CATS.other).icon)}</span>
         <div class="body"><div class="name">${esc(p.name)}</div><div class="muted">${p.day ? `Dzień ${p.day} ${esc(p.time || "")} · ` : ""}${esc(p.note || "")}${p.price ? ` · ${zl(p.price)}` : ""}</div></div>
         <button class="btn small" data-act="edit" aria-label="Edytuj">${ic("edit")}</button>
@@ -524,7 +526,11 @@
   }, true);
   document.addEventListener("load", e => {
     const img = e.target;
-    if (img instanceof HTMLImageElement && img.dataset.photo) img.closest(".sw-photo,.sh-hero,.dest")?.classList.add("has-img");
+    if (!(img instanceof HTMLImageElement) || !img.dataset.photo) return;
+    img.closest(".sw-photo,.sh-hero,.dest")?.classList.add("has-img");
+    // odbitka „wywołuje się”, gdy pierwszy raz leży na wierzchu albo na stole w Porównaj
+    if (img.closest(".sw-card:last-child")) Motion.develop(img, "sw:" + img.dataset.photo);
+    else if (img.closest(".dest")) Motion.develop(img, "cmp:" + img.dataset.photo);
   }, true);
   const photoImg = (d, cls) => `<img class="${cls}" data-photo="${d.id}" alt="" draggable="false" ${photoOf(d) && !imgFail.has(d.id) ? `src="${esc(photoOf(d))}"` : ""}>`;
   function updatePhotoInfo() {
@@ -636,10 +642,12 @@
 
   // ---------- karta szczegółów ----------
   const sheet = $("#sheet");
-  async function openInfo(id) {
+  async function openInfo(id, from) {
     const d = dest(id), c = pairAny(d), inf = (window.CITY_INFO || {})[d.name] || {};
     const gm = q => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q + ", " + d.name)}`;
     const fl = (f, dir) => `<li><b>${esc(f.day)} ${DATES[dayIdx(f.day)] || ""}</b> ${esc(f.dep)}–${esc(f.arr)} · ${hm(flightMin(f, dir, d.tz || 0))} · <b>${f.price} zł</b>${f.note ? ` <span class="muted">(${esc(f.note)})</span>` : ""}</li>`;
+    if (sheet.open) from = null;
+    await Motion.vt(() => {
     sheet.innerHTML = `<div class="sh">
       <div class="sh-hero"><div class="gal" id="gal"><div class="gal-s" data-gi="0">${photoImg(d, "sh-img")}</div>
         ${(inf.see || []).map((x, k) => `<div class="gal-s" data-gi="${k + 1}"><img class="sh-img" alt="" data-att="${k}"><span class="gal-cap">${esc(x)}</span></div>`).join("")}</div>
@@ -674,8 +682,9 @@
         <button class="btn primary" data-sh="yes">${ic("check")}Jedziemy</button>
       </div></div>`;
     sheet.dataset.id = id;
-    sheet.showModal();
+    if (!sheet.open) sheet.showModal();
     sheet.querySelector(".sh-body").scrollTop = 0;
+    }, { from }).updateCallbackDone;
     const gal = $("#gal");
     gal.addEventListener("scroll", () => {
       const k = Math.round(gal.scrollLeft / gal.clientWidth);
@@ -698,6 +707,14 @@
     if (!ok.length) return;
     lightbox(ok, Math.max(0, ok.findIndex(x => x.k === start)));
   }
+  // zamykanie: zdjęcie wraca na swoją odbitkę (w Porównaj albo na wierzch talii)
+  function closeSheet() {
+    const id = sheet.dataset.id;
+    const tgt = $("#view-compare").classList.contains("active") ? $(`.dest[data-id="${id}"] .thumb`)
+      : deck[0]?.id === id ? $("#deck .sw-card:last-child .sw-photo") : null;
+    const t = Motion.vt(() => { sheet.close(); if (tgt) tgt.style.viewTransitionName = "hero"; });
+    t.finished.finally(() => { if (tgt) tgt.style.viewTransitionName = ""; });
+  }
   sheet.addEventListener("change", e => {
     if (e.target.dataset.sh !== "pair") return;
     const d = dest(sheet.dataset.id);
@@ -705,12 +722,12 @@
     save(); sheet.querySelector(".sh-cost").innerHTML = costHTML(d); renderCompare();
   });
   sheet.addEventListener("click", e => {
-    if (e.target === sheet) return sheet.close();
+    if (e.target === sheet) return closeSheet();
     const lbb = e.target.closest("[data-sh=lb]");
     if (lbb) { const d = dest(sheet.dataset.id); return openLb(d, (window.CITY_INFO || {})[d.name] || {}, +lbb.dataset.k); }
     const b = e.target.closest("[data-sh]"); if (!b) return;
     const id = sheet.dataset.id, d = dest(id), a = b.dataset.sh;
-    if (a === "close") return sheet.close();
+    if (a === "close") return closeSheet();
     if (a === "edit") { sheet.close(); return editDest(id); }
     if (a === "photo") return pickPhoto(id);
     if (a === "map") { sheet.close(); currentDest = id; return show("map"); }
@@ -719,7 +736,7 @@
     const v = a === "yes" ? 1 : -1;
     if (deck[0]?.id === id && $("#view-swipe").classList.contains("active")) return fling(v);
     d.votes[who] = v; deck = deck.filter(x => x.id !== id); save();
-    if (v === 1 && isMatch(d)) toast(`Match! Oboje chcecie: ${d.name}`, 3000);
+    if (v === 1 && isMatch(d)) matchMoment(d);
     renderAll();
   });
 
@@ -778,19 +795,30 @@
     $("#sw-info").disabled = false;
     attachDrag(box.lastElementChild);
   }
+  function matchMoment(d) {
+    const c = pairAny(d);
+    Motion.celebrate({ name: d.name, photo: imgFail.has(d.id) ? "" : photoOf(d),
+      line: `Oboje na tak${c ? ` · loty dla ${S.persons === 2 ? "dwojga" : S.persons + " os."} ${zl(c.flight)}` : ""}`,
+      onCompare: () => { S.view.onlyFav = true; save(); show("compare"); } });
+  }
   function vote(v) {
     const d = deck.shift(); if (!d) return;
     d.votes[who] = v; history.push(d); save();
-    if (v === 1 && isMatch(d)) toast(`Match! Oboje chcecie: ${d.name}`, 3000);
     renderSwipe();
+    // następna odbitka prostuje się i wychodzi na wierzch
+    const top = $("#deck").lastElementChild;
+    if (top?.classList.contains("sw-card") && !Motion.RM())
+      top.animate([{ transform: "rotate(-2.6deg) translate(-4px,6px) scale(.98)" }, { transform: "none" }], { duration: 380, easing: Motion.EASE });
+    if (v === 1 && isMatch(d)) matchMoment(d);
   }
   function fling(v) {
     const top = $("#deck").lastElementChild;
     if (!top || !top.classList.contains("sw-card")) return;
-    top.style.transition = "transform .3s ease, opacity .3s";
-    top.style.transform = `translateX(${v * 130}%) rotate(${v * 25}deg)`;
+    const st = top.querySelector(v > 0 ? ".stamp.yes" : ".stamp.no"); if (st) st.style.opacity = 1;
+    top.style.transition = "transform .34s cubic-bezier(.5,0,.75,0), opacity .34s ease-in";
+    top.style.transform = `translate(${v * 135}%, -4%) rotate(${v * 22}deg)`;
     top.style.opacity = "0";
-    setTimeout(() => vote(v), 250);
+    setTimeout(() => vote(v), 260);
   }
   function attachDrag(el) {
     if (!el || !el.classList.contains("sw-card")) return;
@@ -808,16 +836,18 @@
       if (x0 === null) return; x0 = null;
       if (Math.abs(dx) > 100) return fling(dx > 0 ? 1 : -1);
       el.style.transition = "transform .2s"; el.style.transform = ""; yes.style.opacity = no.style.opacity = 0;
-      if (Math.abs(dx) < 8) openInfo(el.dataset.id);
+      if (Math.abs(dx) < 8) openInfo(el.dataset.id, el.querySelector(".sw-photo"));
     };
     el.addEventListener("pointerup", end); el.addEventListener("pointercancel", end);
   }
   $("#sw-yes").addEventListener("click", () => fling(1));
-  $("#sw-info").addEventListener("click", () => deck[0] && openInfo(deck[0].id));
+  $("#sw-info").addEventListener("click", () => deck[0] && openInfo(deck[0].id, $("#deck .sw-card:last-child .sw-photo")));
   $("#sw-no").addEventListener("click", () => fling(-1));
   $("#sw-undo").addEventListener("click", () => {
     const d = history.pop(); if (!d) return;
     delete d.votes[who]; deck.unshift(d); save(); renderSwipe();
+    const top = $("#deck").lastElementChild;
+    if (top && !Motion.RM()) top.animate([{ transform: "translateX(-120%) rotate(-18deg)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 420, easing: Motion.EASE });
   });
   $("#deck").addEventListener("click", e => {
     const g = e.target.closest("[data-go]"); if (!g) return;
@@ -873,7 +903,16 @@
   });
 
   // ---------- nawigacja ----------
+  const ORDER = ["swipe", "compare", "table", "map", "plan", "more"];
+  let current = null;
   function show(view) {
+    // przejście między zakładkami: treść przesuwa się w stronę wybranej zakładki
+    const dir = current && ORDER.indexOf(view) < ORDER.indexOf(current) ? "back" : "fwd";
+    if (current && current !== view) return Motion.vt(() => showNow(view), { dir });
+    showNow(view);
+  }
+  function showNow(view) {
+    current = view;
     document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "view-" + view));
     document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("active", b.dataset.view === view));
     if (view === "map") { initMap(); renderMap(); setTimeout(() => { map.invalidateSize(); focusDest(); }, 50); }

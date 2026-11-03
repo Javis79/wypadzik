@@ -365,6 +365,15 @@ Teardrop pins in category ink with a white drawn icon; done places fade to 50%. 
 ### Toast
 A square plate-ink bar above the tab bar, 14px 600 text, fading in over .2s and rising with `cubic-bezier(.2,.8,.2,1)`.
 
+### Motion
+The prints behave like paper on a table, and that one idea carries all the motion. It lives in `motion.js`, which the shell caches for offline use. Arrivals ease with `cubic-bezier(.16,1,.3,1)`, and every exit is faster than its entrance.
+- **Developing (signature):** the first time a photo lies on top of the deck or on the compare table in a session, it develops like instant film. It starts bleached, sepia and soft, then clears over 1.5s (2.4s inside the match).
+- **Match (focal moment):** a white camera flash, then a shutter click synthesised with Web Audio (no audio files) and a short vibration where the phone supports it. The print slides out of a slot and settles at -3deg while it develops. Two pink tape strips slap onto its corners, and the city name writes itself in marker as a left-to-right clip reveal. The K ✓ and Z ✓ tags pop in. A one-off canvas burst of tape and paper scraps (about 2s) then stops itself. Tapping anywhere, pressing Escape or choosing an action dismisses it.
+- **Swipe:** a flung print leaves with an accelerating ease and its marker stamp showing. The print beneath straightens up to take its place (380ms). Undo flies the print back in from the left.
+- **Continuity:** tab changes use View Transitions. The pink bar and tab bar stay put while the content slides 40px toward the chosen tab. Opening a print's details grows its photo into the sheet's hero (shared element `hero`), and closing returns it to the print. Re-sorting or filtering Porównaj moves the prints to their new places with FLIP (520ms).
+- **Map:** a new place's pin drops from above, squashes on landing and sends out a ring in its category colour. The map pans to it, and its row in the list flashes tape pink.
+- **Reduced motion:** nothing travels. The developing becomes a 300ms fade, the match appears without the flash, sound or scraps, and View Transitions and the pin drop are off. Fades that confirm a state stay.
+
 ## Do's and Don'ts
 
 ### Do:
