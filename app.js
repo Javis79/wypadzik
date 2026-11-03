@@ -1,6 +1,8 @@
 /* Wypad we dwoje: porównywarka kierunków + mapa offline + plan dnia */
 (() => {
-  const KEY = "wypad-v2";
+  const KEY = "wypad-v3";
+  const WHO_KEY = "wypad-who";
+  const PEOPLE = { K: "Krystian", Z: "Zuzia" };
   const DAYS = ["czw", "pt", "sob", "ndz", "pon", "wt"];
   const DATES = ["19.11", "20.11", "21.11", "22.11", "23.11", "24.11"];
   const dayIdx = d => DAYS.indexOf(d);
@@ -20,11 +22,19 @@
   // ---------- stan ----------
   let S;
   try { S = JSON.parse(localStorage.getItem(KEY)); } catch { S = null; }
-  if (!S || !Array.isArray(S.destinations) || S.version !== 2) S = structuredClone(window.SAMPLE_DATA);
+  if (!S || !Array.isArray(S.destinations) || S.version !== 3) S = structuredClone(window.SAMPLE_DATA);
   S.view = S.view || { sort: "cost", hideRejected: true, maxBack: "pon", onlyFav: false };
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} };
   const dest = id => S.destinations.find(d => d.id === id);
   let currentDest = S.destinations[0]?.id;
+  let who; try { who = localStorage.getItem(WHO_KEY) || "K"; } catch { who = "K"; }
+  S.destinations.forEach(d => { d.votes = d.votes || {}; });
+  // głosy: 1 = w prawo (tak), -1 = w lewo (nie)
+  const liked = d => Object.values(d.votes).includes(1);
+  const isMatch = d => d.votes.K === 1 && d.votes.Z === 1;
+  const rejected = d => !liked(d) && Object.values(d.votes).includes(-1);
+  const voteBadge = d => isMatch(d) ? '<span class="badge">❤ match</span>'
+    : Object.entries(d.votes).filter(([, v]) => v).map(([p, v]) => `<span class="vote ${v > 0 ? "yes" : "no"}">${PEOPLE[p][0]}${v > 0 ? "❤" : "✕"}</span>`).join("");
   const catOn = new Set(Object.keys(CATS));
 
   function toast(msg, ms = 2200) {
@@ -54,7 +64,8 @@
     if (!ps.length) return null;
     const sel = ps.find(([i, j]) => i === d.selOut && j === d.selBack);
     if (sel) return sel;
-    return ps.reduce((best, p) => pairCost(d, ...p) / (p[2] + 1) < pairCost(d, ...best) / (best[2] + 1) ? p : best);
+    const fc = ([i, j]) => d.out[i].price + d.back[j].price;
+    return ps.reduce((best, p) => fc(p) < fc(best) || (fc(p) === fc(best) && p[2] > best[2]) ? p : best);
   }
   function cost(d) {
     const c = chosen(d);
@@ -82,6 +93,14 @@
       ? `https://www.booking.com/searchresults.pl.html?ss=${q}&checkin=${ci}&checkout=${co}&group_adults=${n}&no_rooms=1&group_children=0&order=price`
       : `https://www.airbnb.pl/s/${q}/homes?checkin=${ci}&checkout=${co}&adults=${n}`;
   }
+  // czas lotu w minutach z uwzględnieniem strefy czasowej (godziny na kartkach są lokalne)
+  const mins = s => { const [h, m] = s.split(":").map(Number); return h * 60 + m; };
+  function flightMin(f, dir, tz) {
+    let m = mins(f.arr) - mins(f.dep) + (dir === "out" ? -tz : tz) * 60;
+    while (m < 0) m += 1440;
+    return m;
+  }
+  const hm = m => `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")} min`;
   const fmtFlight = f => `${f.day} ${DATES[dayIdx(f.day)] || ""} ${f.dep}–${f.arr}`;
 
   // ---------- widok: porównanie ----------
@@ -94,12 +113,12 @@
     $("#hideRej").checked = v.hideRejected; $("#onlyFav").checked = v.onlyFav;
     const list = $("#dest-list");
     let items = S.destinations.map(d => ({ d, c: cost(d) }));
-    const hiddenRej = items.filter(x => x.d.rejected).length;
-    if (v.hideRejected) items = items.filter(x => !x.d.rejected);
-    if (v.onlyFav) items = items.filter(x => x.d.fav);
+    const hiddenRej = items.filter(x => rejected(x.d)).length;
+    if (v.hideRejected) items = items.filter(x => !rejected(x.d));
+    if (v.onlyFav) items = items.filter(x => liked(x.d));
     const key = {
       cost: x => x.c ? x.c.total : 1e9,
-      fav: x => -(rating(x.d) * 1000 + (x.d.fav ? 500 : 0)) + (x.c ? x.c.total / 100 : 999),
+      fav: x => -(rating(x.d) * 1000 + (isMatch(x.d) ? 600 : liked(x.d) ? 300 : 0)) + (x.c ? x.c.total / 100 : 999),
       time: x => x.c ? -hoursThere(x.c) : 1e9,
       flight: x => x.c ? x.c.flight : 1e9,
       warm: x => -(x.d.temp || 0),
@@ -112,29 +131,30 @@
       if (!c) return `<article class="card dest rej" data-id="${d.id}"><div class="head"><div><h3>${esc(d.name)}</h3>
         <div class="muted">Brak pasującej pary lotów przy powrocie do ${esc(v.maxBack)}.</div></div></div>
         <div class="actions"><button class="btn small" data-act="edit">Edytuj</button></div></article>`;
-      const over = c.total > S.budget, pct = Math.min(100, c.total / (S.budget || 1) * 100);
-      const ps = pairs(d);
-      return `<article class="card dest ${d.fav ? "best" : ""} ${d.rejected ? "rej" : ""}" data-id="${d.id}">
+      const over = S.budget > 0 && c.total > S.budget, pct = S.budget > 0 ? Math.min(100, c.total / S.budget * 100) : 0;
+      const ps = pairs(d), missing = !d.stay?.perNight;
+      return `<article class="card dest ${isMatch(d) ? "best" : ""} ${rejected(d) ? "rej" : ""}" data-id="${d.id}">
         <div class="head" data-act="toggle">
-          <div style="min-width:0"><h3 style="display:inline">${esc(d.name)}</h3>${d.fav ? '<span class="badge">❤</span>' : ""}
+          <div style="min-width:0"><h3 style="display:inline">${esc(d.name)}</h3>${voteBadge(d)}
             <div class="muted">${esc(d.country)} · ~${d.temp ?? "?"}°C · ${c.n} ${c.n === 1 ? "noc" : c.n < 5 ? "noce" : "nocy"} · ${hoursThere(c)} h na miejscu</div></div>
-          <div class="total ${over ? "over" : ""}">${zl(c.total)}</div>
+          <div class="total ${over ? "over" : ""}">${zl(c.total)}${missing ? '<small>+ nocleg</small>' : ""}</div>
         </div>
         <div class="flights">
-          <span>🛫 ${esc(fmtFlight(c.o))} <b>${c.o.price} zł</b></span>
-          <span>🛬 ${esc(fmtFlight(c.b))} <b>${c.b.price} zł</b></span>
+          <span>🛫 ${esc(fmtFlight(c.o))} · ${hm(flightMin(c.o, "out", d.tz || 0))} <b>${c.o.price} zł</b></span>
+          <span>🛬 ${esc(fmtFlight(c.b))} · ${hm(flightMin(c.b, "back", d.tz || 0))} <b>${c.b.price} zł</b></span>
+          ${d.airport ? `<span>🚌 ${esc(d.airport)} · ~${d.apKm} km do centrum</span>` : ""}
         </div>
-        <div class="bar"><i class="${over ? "over" : ""}" style="width:${pct}%"></i></div>
+        ${S.budget > 0 ? `<div class="bar"><i class="${over ? "over" : ""}" style="width:${pct}%"></i></div>` : ""}
         ${open ? `
         ${ps.length > 1 ? `<label>Wariant lotów (${ps.length})<select data-act="pair">${ps.map(([i, j, n]) =>
           `<option value="${i},${j}" ${i === c.i && j === c.j ? "selected" : ""}>${esc(d.out[i].day)} ${esc(d.out[i].dep)} → ${esc(d.back[j].day)} ${esc(d.back[j].dep)} · ${n} n. · ${zl(pairCost(d, i, j, n))}</option>`).join("")}</select></label>` : ""}
         ${[c.o.note && "🛫 " + c.o.note, c.b.note && "🛬 " + c.b.note, d.note && "📝 " + d.note].filter(Boolean).map(n => `<div class="note">${esc(n)}</div>`).join("")}
         <div class="rows">
           <span class="k">✈ Loty</span><span class="muted">${S.persons} os. × ${c.o.price + c.b.price} zł</span><span class="v">${zl(c.flight)}</span>
-          <span class="k">🛏 Nocleg</span><span class="muted">${esc(d.stay?.name || "")} ${zl(d.stay?.perNight || 0)}/noc${d.stay?.est ? " (szac.)" : ""}</span><span class="v">${zl(c.stay)}</span>
-          <span class="k">🍝 Na miejscu</span><span class="muted">${zl(d.dailySpend || 0)}/dzień${d.est ? " (szac.)" : ""}</span><span class="v">${zl(c.spend)}</span>
-          <span class="k">🚌 Dojazdy</span><span class="muted">lotnisko ↔ miasto${d.est ? " (szac.)" : ""}</span><span class="v">${zl(c.transfer)}</span>
-          <span class="k">Zostaje</span><span></span><span class="v" style="color:${over ? "var(--warn)" : "var(--ok)"}">${zl(S.budget - c.total)}</span>
+          <span class="k">🛏 Nocleg</span><span class="muted">${missing ? "uzupełnij (Booking/Airbnb niżej)" : `${esc(d.stay?.name || "")} ${zl(d.stay.perNight)}/noc`}</span><span class="v">${zl(c.stay)}</span>
+          <span class="k">🍝 Na miejscu</span><span class="muted">${d.dailySpend ? zl(d.dailySpend) + "/dzień" : "uzupełnij"}</span><span class="v">${zl(c.spend)}</span>
+          <span class="k">🚌 Dojazdy</span><span class="muted">${d.transferCost ? "lotnisko ↔ miasto" : "uzupełnij"}</span><span class="v">${zl(c.transfer)}</span>
+          ${S.budget > 0 ? `<span class="k">Zostaje</span><span></span><span class="v" style="color:${over ? "var(--warn)" : "var(--ok)"}">${zl(S.budget - c.total)}</span>` : ""}
         </div>
         <div class="stars"><span>Krystian <b>${"★".repeat(d.ratingK || 0)}${"☆".repeat(5 - (d.ratingK || 0))}</b></span>
           <span>Zuzia <b>${"★".repeat(d.ratingZ || 0)}${"☆".repeat(5 - (d.ratingZ || 0))}</b></span>
@@ -148,8 +168,8 @@
           ${d.stay?.link ? `<a class="btn small" href="${esc(d.stay.link)}" target="_blank" rel="noopener">Nasz nocleg ↗</a>` : ""}
         </div>` : ""}
         <div class="actions quick">
-          <button class="btn small ${d.fav ? "on" : ""}" data-act="fav">${d.fav ? "❤ Ulubione" : "♡ Ulubione"}</button>
-          <button class="btn small" data-act="rej">${d.rejected ? "↺ Przywróć" : "✕ Odrzuć"}</button>
+          <button class="btn small ${d.votes[who] === 1 ? "on" : ""}" data-act="fav">${d.votes[who] === 1 ? "❤" : "♡"} Tak (${PEOPLE[who]})</button>
+          <button class="btn small ${d.votes[who] === -1 ? "on" : ""}" data-act="rej">✕ Nie</button>
           <button class="btn small" data-act="toggle">${open ? "Zwiń ▲" : "Szczegóły ▼"}</button>
         </div>
       </article>`;
@@ -163,8 +183,8 @@
     if (act === "toggle") openCards.has(id) ? openCards.delete(id) : openCards.add(id);
     if (act === "edit") return editDest(id);
     if (act === "map") { currentDest = id; return show("map"); }
-    if (act === "fav") { d.fav = !d.fav; if (d.fav) d.rejected = false; save(); }
-    if (act === "rej") { d.rejected = !d.rejected; if (d.rejected) d.fav = false; save(); toast(d.rejected ? `${d.name} odrzucone` : `${d.name} przywrócone`); }
+    if (act === "fav") { d.votes[who] = d.votes[who] === 1 ? 0 : 1; save(); }
+    if (act === "rej") { d.votes[who] = d.votes[who] === -1 ? 0 : -1; save(); }
     renderCompare();
   });
   $("#dest-list").addEventListener("change", e => {
@@ -207,34 +227,37 @@
       return m ? { day: m[1].toLowerCase(), dep: m[2].replace(".", ":"), arr: m[3].replace(".", ":"), price: +m[4], note: m[5] } : null;
     });
     openDialog(`<h2>${id ? esc(d.name) : "Nowy kierunek"}</h2>
+      <fieldset><legend>🛏 Nocleg</legend>
+        <div class="grid2">${f("sname", "Nazwa", d.stay.name)}${f("snight", "Cena za noc za dwoje (zł)", d.stay.perNight || "", "number")}</div>
+        ${f("slink", "Link do oferty", d.stay.link, "url")}</fieldset>
+      <div class="grid2">${f("daily", "Wydatki na miejscu / dzień (dla dwojga)", d.dailySpend || "", "number")}${f("transfer", "Dojazdy lotnisko ↔ miasto (razem)", d.transferCost || "", "number")}</div>
       <div class="grid2">${rate("rk", "Ocena Krystiana", d.ratingK)}${rate("rz", "Ocena Zuzi", d.ratingZ)}</div>
       ${f("pros", "Plusy (po przecinku)", d.pros)}${f("cons", "Minusy (po przecinku)", d.cons)}
-      <div class="grid2">${f("name", "Miasto", d.name, "text", "required")}${f("country", "Kraj", d.country)}</div>
-      <fieldset><legend>✈ Loty (cena za osobę, jedna linia = jeden lot)</legend>
+      <fieldset><legend>✈ Loty (cena za osobę, jedna linia = jeden lot, godziny lokalne)</legend>
         <p class="muted">Format: <code>czw 07:20-09:30 68 uwaga</code>. Dni: czw 19.11, pt, sob, ndz, pon 23.11, wt.</p>
-        <label>Wyloty z Krakowa<textarea name="out" rows="3">${esc(lines(d.out))}</textarea></label>
-        <label>Powroty<textarea name="back" rows="3">${esc(lines(d.back))}</textarea></label></fieldset>
-      <fieldset><legend>🛏 Nocleg</legend>
-        <div class="grid2">${f("sname", "Nazwa", d.stay.name)}${f("snight", "Cena za noc za dwoje (zł)", d.stay.perNight, "number")}</div>
-        ${f("slink", "Link", d.stay.link, "url")}</fieldset>
-      <div class="grid2">${f("daily", "Wydatki na miejscu / dzień (dla dwojga)", d.dailySpend, "number")}${f("transfer", "Dojazdy lotnisko ↔ miasto", d.transferCost, "number")}</div>
-      <div class="grid2">${f("temp", "Temp. w dzień (°C)", d.temp, "number")}${f("note", "Notatka", d.note)}</div>`,
+        <div class="grid2"><label>Wyloty z Krakowa<textarea name="out" rows="4">${esc(lines(d.out))}</textarea></label>
+        <label>Powroty<textarea name="back" rows="4">${esc(lines(d.back))}</textarea></label></div></fieldset>
+      <fieldset><legend>📍 Miejsce</legend>
+        <div class="grid2">${f("name", "Miasto", d.name, "text", "required")}${f("country", "Kraj", d.country)}
+        ${f("airport", "Lotnisko", d.airport)}${f("apKm", "Km lotnisko → centrum", d.apKm ?? "", "number")}
+        ${f("temp", "Temp. w dzień (°C)", d.temp ?? "", "number")}${f("tz", "Różnica czasu vs Polska (h)", d.tz ?? 0, "number")}</div>
+        ${f("photo", "Własne zdjęcie (link, opcjonalnie)", d.photo, "url")}${f("note", "Notatka", d.note)}</fieldset>`,
       async v => {
         const out = parse(v.out), back = parse(v.back);
         if (out.includes(null) || back.includes(null)) { toast("Nie rozumiem którejś linii z lotami, popraw format"); return; }
-        const nd = id ? d : { id: uid(), places: [] };
-        const stayChanged = +v.snight !== +d.stay.perNight || v.sname !== (d.stay.name || "");
+        const nd = id ? d : { id: uid(), places: [], votes: {} };
         const flightsChanged = JSON.stringify([out, back]) !== JSON.stringify([d.out, d.back]);
-        const estChanged = +v.daily !== +d.dailySpend || +v.transfer !== +d.transferCost;
+        const renamed = v.name !== d.name;
         Object.assign(nd, {
           name: v.name, country: v.country, dailySpend: +v.daily || 0, transferCost: +v.transfer || 0,
           ratingK: +v.rk, ratingZ: +v.rz, pros: v.pros, cons: v.cons, temp: v.temp === "" ? null : +v.temp, note: v.note,
+          airport: v.airport, apKm: v.apKm === "" ? null : +v.apKm, tz: +v.tz || 0, photo: v.photo,
           out, back, selOut: flightsChanged ? null : d.selOut, selBack: flightsChanged ? null : d.selBack,
-          stay: { name: v.sname, perNight: +v.snight || 0, link: v.slink, est: stayChanged ? false : d.stay.est },
-          est: estChanged ? false : d.est,
+          stay: { name: v.sname, perNight: +v.snight || 0, link: v.slink },
         });
+        if (renamed) { nd.wiki = v.name; nd._img = null; }
         if (!id) S.destinations.push(nd);
-        if (!nd.lat || (id && d._geoName !== v.name)) {
+        if (!nd.lat || renamed) {
           const g = await geocode(`${v.name} ${v.country}`);
           if (g) { nd.lat = g.lat; nd.lng = g.lng; nd._geoName = v.name; }
         }
@@ -433,6 +456,182 @@
     S = structuredClone(window.SAMPLE_DATA); currentDest = S.destinations[0]?.id; save(); renderAll();
   });
 
+  // ---------- zdjęcia z Wikipedii (po pobraniu zostają w cache, więc działają też offline) ----------
+  const photoOf = d => d.photo || d._img || "";
+  let photoBusy = false;
+  const imgFail = new Set();
+  async function loadPhotos() {
+    if (photoBusy || !navigator.onLine) return;
+    photoBusy = true;
+    for (const d of S.destinations) {
+      if (d.photo || d._img || imgFail.has(d.id)) continue;
+      try {
+        const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(d.wiki || d.name)}`);
+        const j = await r.json();
+        const src = j.thumbnail?.source || j.originalimage?.source;
+        if (src) { d._img = src.replace(/\/\d+px-/, "/800px-"); new Image().src = d._img; }
+        else imgFail.add(d.id);
+      } catch { imgFail.add(d.id); }
+      save();
+      if ($("#view-swipe").classList.contains("active")) paintPhotos();
+    }
+    photoBusy = false;
+  }
+  function paintPhotos() {
+    document.querySelectorAll(".sw-card[data-id]").forEach(el => {
+      const src = photoOf(dest(el.dataset.id));
+      const ph = el.querySelector(".sw-photo");
+      if (src && !ph.style.backgroundImage) ph.style.backgroundImage = `url("${src}")`;
+    });
+  }
+
+  // ---------- widok: wybieranie w stylu „w prawo / w lewo” ----------
+  let deck = [], history = [];
+  const pairAny = d => {
+    // najtańsza para niezależnie od limitu powrotu (żeby pokazać też kierunki z powrotem we wtorek)
+    const c = cost(d); if (c) return c;
+    const lim = S.view.maxBack; S.view.maxBack = "wt"; const c2 = cost(d); S.view.maxBack = lim; return c2;
+  };
+  function buildDeck() {
+    const left = S.destinations.filter(d => !d.votes[who]);
+    // kolejność losowa, ale stała w obrębie sesji
+    deck = left.sort((a, b) => (hash(a.id + who) - hash(b.id + who)));
+  }
+  const hash = s => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
+  function cardHTML(d) {
+    const c = pairAny(d);
+    const fl = (f, dir, label) => `<div class="sw-row"><span>${label}</span><b>${esc(f.day)} ${DATES[dayIdx(f.day)] || ""} · ${esc(f.dep)}–${esc(f.arr)}</b><span>${hm(flightMin(f, dir, d.tz || 0))}</span><b class="pr">${f.price} zł</b></div>`;
+    const notes = c ? [c.o.note, c.b.note, d.note].filter(Boolean) : [d.note].filter(Boolean);
+    return `<div class="sw-card" data-id="${d.id}">
+      <div class="sw-photo" style="${photoOf(d) ? `background-image:url('${esc(photoOf(d))}')` : ""}"><span class="sw-fallback">✈</span></div>
+      <div class="stamp yes">TAK</div><div class="stamp no">NIE</div>
+      <div class="sw-info">
+        <h2>${esc(d.name)} <small>${esc(d.country)} · ~${d.temp ?? "?"}°C</small></h2>
+        ${c ? `${fl(c.o, "out", "🛫 Tam")}${fl(c.b, "back", "🛬 Powrót")}
+        <div class="sw-tags">
+          <span>✈ Loty dla ${S.persons}: <b>${zl(c.flight)}</b></span>
+          <span>⏱ ${hoursThere(c)} h na miejscu · ${c.n} ${c.n === 1 ? "noc" : c.n < 5 ? "noce" : "nocy"}</span>
+          ${d.airport ? `<span>🚌 ${esc(d.airport)} · ~${d.apKm} km do centrum${d.apMin ? ` (~${d.apMin} min)` : ""}</span>` : ""}
+          ${pairs(d).length > 1 ? `<span>🔀 ${pairs(d).length} warianty lotów</span>` : ""}
+          ${dayIdx(c.b.day) > dayIdx(S.view.maxBack) ? `<span class="warn">powrót dopiero ${esc(c.b.day)} ${DATES[dayIdx(c.b.day)]}</span>` : ""}
+        </div>
+        ${notes.map(n => `<div class="sw-note">📝 ${esc(n)}</div>`).join("")}` : `<p>Brak pasującej pary lotów.</p>`}
+      </div>
+    </div>`;
+  }
+  function renderSwipe() {
+    $("#who-label").textContent = PEOPLE[who];
+    const box = $("#deck");
+    const matches = S.destinations.filter(isMatch);
+    $("#swipe-status").innerHTML = `Zostało ${deck.length} z ${S.destinations.length} · ` +
+      (matches.length ? `❤ Wspólne: <b>${matches.map(d => esc(d.name)).join(", ")}</b>` : "Brak wspólnych typów (jeszcze!)");
+    $("#sw-undo").disabled = !history.length;
+    if (!deck.length) {
+      const mine = S.destinations.filter(d => d.votes[who] === 1);
+      box.innerHTML = `<div class="sw-empty card">
+        <h2>Przejrzane! 🎉</h2>
+        <p>${esc(PEOPLE[who])} na tak: <b>${mine.map(d => esc(d.name)).join(", ") || "nic"}</b></p>
+        <p>Wspólne: <b>${matches.map(d => esc(d.name)).join(", ") || "jeszcze nic. Niech druga osoba też przejrzy (przełącz u góry)."}</b></p>
+        <button class="btn primary wide" data-go="fav">Porównaj ulubione</button>
+        <button class="btn wide" data-go="reset">Przejrzyj jeszcze raz (${esc(PEOPLE[who])})</button>
+      </div>`;
+      return;
+    }
+    box.innerHTML = deck.slice(0, 2).reverse().map(cardHTML).join("");
+    attachDrag(box.lastElementChild);
+  }
+  function vote(v) {
+    const d = deck.shift(); if (!d) return;
+    d.votes[who] = v; history.push(d); save();
+    if (v === 1 && isMatch(d)) toast(`❤ Match! Oboje chcecie: ${d.name}`, 3000);
+    renderSwipe();
+  }
+  function fling(v) {
+    const top = $("#deck").lastElementChild;
+    if (!top || !top.classList.contains("sw-card")) return;
+    top.style.transition = "transform .3s ease, opacity .3s";
+    top.style.transform = `translateX(${v * 130}%) rotate(${v * 25}deg)`;
+    top.style.opacity = "0";
+    setTimeout(() => vote(v), 250);
+  }
+  function attachDrag(el) {
+    if (!el || !el.classList.contains("sw-card")) return;
+    let x0 = null, y0 = 0, dx = 0;
+    const yes = el.querySelector(".stamp.yes"), no = el.querySelector(".stamp.no");
+    el.addEventListener("pointerdown", e => { x0 = e.clientX; y0 = e.clientY; dx = 0; el.setPointerCapture(e.pointerId); el.style.transition = "none"; });
+    el.addEventListener("pointermove", e => {
+      if (x0 === null) return;
+      dx = e.clientX - x0;
+      el.style.transform = `translateX(${dx}px) rotate(${dx / 18}deg)`;
+      yes.style.opacity = Math.max(0, Math.min(1, dx / 100));
+      no.style.opacity = Math.max(0, Math.min(1, -dx / 100));
+    });
+    const end = () => {
+      if (x0 === null) return; x0 = null;
+      if (Math.abs(dx) > 100) return fling(dx > 0 ? 1 : -1);
+      el.style.transition = "transform .2s"; el.style.transform = ""; yes.style.opacity = no.style.opacity = 0;
+      if (Math.abs(dx) < 6) { currentDest = el.dataset.id; openCards.add(el.dataset.id); }
+    };
+    el.addEventListener("pointerup", end); el.addEventListener("pointercancel", end);
+  }
+  $("#sw-yes").addEventListener("click", () => fling(1));
+  $("#sw-no").addEventListener("click", () => fling(-1));
+  $("#sw-undo").addEventListener("click", () => {
+    const d = history.pop(); if (!d) return;
+    delete d.votes[who]; deck.unshift(d); save(); renderSwipe();
+  });
+  $("#deck").addEventListener("click", e => {
+    const g = e.target.closest("[data-go]"); if (!g) return;
+    if (g.dataset.go === "fav") { S.view.onlyFav = true; S.view.hideRejected = true; save(); show("compare"); }
+    if (g.dataset.go === "reset") { S.destinations.forEach(d => delete d.votes[who]); history = []; save(); buildDeck(); renderSwipe(); }
+  });
+  addEventListener("keydown", e => {
+    if (!$("#view-swipe").classList.contains("active") || dlg.open) return;
+    if (e.key === "ArrowRight") fling(1);
+    if (e.key === "ArrowLeft") fling(-1);
+    if (e.key === "Backspace") $("#sw-undo").click();
+  });
+  function setWho(p) {
+    who = p; try { localStorage.setItem(WHO_KEY, p); } catch {}
+    history = []; buildDeck(); renderSwipe(); renderCompare();
+    toast(`Teraz wybiera: ${PEOPLE[p]}`);
+  }
+  $("#who").addEventListener("click", () => setWho(who === "K" ? "Z" : "K"));
+
+  // ---------- widok: tabela (wygodna na komputerze) ----------
+  function renderTable() {
+    const rows = [...S.destinations].sort((a, b) => (cost(a)?.total ?? 1e9) - (cost(b)?.total ?? 1e9));
+    $("#table").innerHTML = `<table class="tbl"><thead><tr>
+      <th>Miasto</th><th>Głosy</th><th>Wariant lotów</th><th class="num">Loty (${S.persons} os.)</th>
+      <th class="num">Nocleg / noc</th><th class="num">Wydatki / dzień</th><th class="num">Dojazdy</th><th class="num">Razem</th><th>Szukaj noclegu</th><th></th></tr></thead><tbody>
+      ${rows.map(d => {
+        const c = cost(d), ps = pairs(d);
+        const inp = (k, v) => `<input class="cell" data-k="${k}" type="number" inputmode="decimal" min="0" step="10" value="${v || ""}" placeholder="—">`;
+        return `<tr data-id="${d.id}" class="${rejected(d) ? "rej" : ""} ${isMatch(d) ? "match" : ""}">
+          <td><b>${esc(d.name)}</b><div class="muted">${esc(d.country)} · ~${d.temp ?? "?"}°C</div></td>
+          <td>${voteBadge(d) || '<span class="muted">—</span>'}</td>
+          <td>${c ? `<select class="cell" data-k="pair">${ps.map(([i, j, n]) => `<option value="${i},${j}" ${i === c.i && j === c.j ? "selected" : ""}>${esc(d.out[i].day)} ${esc(d.out[i].dep)} → ${esc(d.back[j].day)} ${esc(d.back[j].dep)} (${n} n.)</option>`).join("")}</select>` : '<span class="muted">brak pary do ' + esc(S.view.maxBack) + "</span>"}</td>
+          <td class="num">${c ? zl(c.flight) : "—"}</td>
+          <td class="num">${inp("perNight", d.stay?.perNight)}</td>
+          <td class="num">${inp("dailySpend", d.dailySpend)}</td>
+          <td class="num">${inp("transferCost", d.transferCost)}</td>
+          <td class="num"><b>${c ? zl(c.total) : "—"}</b></td>
+          <td>${c ? `<a href="${stayLink("booking", d, c)}" target="_blank" rel="noopener">Booking</a> · <a href="${stayLink("airbnb", d, c)}" target="_blank" rel="noopener">Airbnb</a>` : ""}</td>
+          <td><button class="btn small" data-act="edit">✎</button></td></tr>`;
+      }).join("")}</tbody></table>`;
+  }
+  $("#table").addEventListener("change", e => {
+    const el = e.target.closest(".cell"); if (!el) return;
+    const d = dest(el.closest("tr").dataset.id), k = el.dataset.k;
+    if (k === "pair") [d.selOut, d.selBack] = el.value.split(",").map(Number);
+    else if (k === "perNight") d.stay.perNight = +el.value || 0;
+    else d[k] = +el.value || 0;
+    save(); renderTable();
+  });
+  $("#table").addEventListener("click", e => {
+    if (e.target.closest("[data-act=edit]")) editDest(e.target.closest("tr").dataset.id);
+  });
+
   // ---------- nawigacja ----------
   function show(view) {
     document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "view-" + view));
@@ -441,15 +640,27 @@
     if (view === "plan") renderPlan();
     if (view === "more") updateCacheInfo();
     if (view === "compare") renderCompare();
+    if (view === "swipe") { if (!deck.length) buildDeck(); renderSwipe(); loadPhotos(); }
+    if (view === "table") renderTable();
+    try { localStorage.setItem("wypad-tab", view); } catch {}
     setAdding(false);
   }
   document.querySelector(".tabs").addEventListener("click", e => { const b = e.target.closest("button"); if (b) show(b.dataset.view); });
-  function renderAll() { renderCompare(); renderMap(); renderPlan(); }
+  function renderAll() {
+    renderCompare(); renderMap(); renderPlan();
+    if ($("#view-table").classList.contains("active")) renderTable();
+    if ($("#view-swipe").classList.contains("active")) renderSwipe();
+  }
 
   function net() { const n = $("#net"); n.textContent = navigator.onLine ? "online" : "offline"; n.classList.toggle("off", !navigator.onLine); }
   addEventListener("online", net); addEventListener("offline", net); net();
 
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
   if (navigator.storage?.persist) navigator.storage.persist();
+  buildDeck();
   renderAll();
+  let startTab = "swipe"; try { startTab = localStorage.getItem("wypad-tab") || "swipe"; } catch {}
+  if (startTab === "table" && innerWidth < 760) startTab = "compare";
+  show(startTab);
+  addEventListener("online", loadPhotos);
 })();

@@ -16,12 +16,33 @@
 <body>
 <header class="top">
   <h1>Wypad <span>we dwoje</span></h1>
-  <span id="net" class="net"></span>
+  <div class="top-r">
+    <button id="who" class="net who" title="Przełącz osobę">👤 <span id="who-label"></span></button>
+    <span id="net" class="net"></span>
+  </div>
 </header>
 
 <main>
+  <!-- WYBIERANIE -->
+  <section id="view-swipe" class="view">
+    <p class="muted sw-help">W prawo = jedziemy, w lewo = nie. Na komputerze strzałki ← →. Przełącz osobę u góry, żeby zobaczyć wspólne typy.</p>
+    <div id="deck"></div>
+    <div class="sw-btns">
+      <button class="round no" id="sw-no" aria-label="Nie">✕</button>
+      <button class="round undo" id="sw-undo" aria-label="Cofnij">↺</button>
+      <button class="round yes" id="sw-yes" aria-label="Tak">❤</button>
+    </div>
+    <p class="muted center" id="swipe-status"></p>
+  </section>
+
+  <!-- TABELA -->
+  <section id="view-table" class="view">
+    <p class="muted">Wpisuj ceny prosto w tabeli. Zapisuje się samo. Kwoty za nocleg i dojazdy dla dwojga.</p>
+    <div id="table" class="tbl-wrap"></div>
+  </section>
+
   <!-- PORÓWNANIE -->
-  <section id="view-compare" class="view active">
+  <section id="view-compare" class="view">
     <div class="budget card">
       <label>Budżet na dwoje (zł)
         <input id="budget" type="number" inputmode="numeric" min="0" step="50">
@@ -84,7 +105,9 @@
 </main>
 
 <nav class="tabs">
-  <button data-view="compare" class="active"><b>⚖</b>Porównaj</button>
+  <button data-view="swipe"><b>🔥</b>Wybierz</button>
+  <button data-view="compare"><b>⚖</b>Porównaj</button>
+  <button data-view="table" class="desk-only"><b>▦</b>Tabela</button>
   <button data-view="map"><b>🗺</b>Mapa</button>
   <button data-view="plan"><b>🗓</b>Plan</button>
   <button data-view="more"><b>⋯</b>Więcej</button>

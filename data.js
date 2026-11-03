@@ -1,23 +1,44 @@
 // Loty przepisane z kartek Krystiana (wylot z Krakowa, 19.11.2026 → 22/23.11).
-// Ceny lotów: zł za osobę w jedną stronę. Nocleg i wydatki: SZACUNKI na dwie osoby (do poprawienia).
+// Ceny lotów: zł za osobę w jedną stronę. Nocleg, wydatki i dojazdy są puste: uzupełniacie je sami (linki do Booking/Airbnb w apce).
+// Lotniska i odległości to przybliżenia (~), do sprawdzenia przy rezerwacji.
 // Format lotu: "dzień HH:MM-HH:MM cena [uwaga]". Dni: czw=19.11, pt=20, sob=21, ndz=22, pon=23, wt=24.
 (() => {
   const fl = s => {
     const m = s.match(/^(\S+) (\d\d?:\d\d)-(\d\d?:\d\d) (\d+)\s*(.*)$/);
     return { day: m[1], dep: m[2], arr: m[3], price: +m[4], note: m[5] || "" };
   };
-  const D = (name, country, lat, lng, temp, stay, daily, transfer, out, back, note = "") => ({
-    id: name.toLowerCase().normalize("NFD").replace(/[^a-z]/g, ""),
-    name, country, lat, lng, temp, note,
-    out: out.map(fl), back: back.map(fl), selOut: null, selBack: null,
-    stay: { name: "", perNight: stay, link: "", est: true },
-    dailySpend: daily, transferCost: transfer, est: true,
-    ratingK: 0, ratingZ: 0, pros: "", cons: "", fav: false, rejected: false, places: [],
-  });
+  // strefa czasowa względem Polski, tytuł artykułu na Wikipedii (zdjęcie), lotnisko: [nazwa, km do centrum, minuty dojazdu]
+  const X = {
+    Alicante: [0, "Alicante", "Alicante (ALC)", 10, 25], Bari: [0, "Bari", "Bari (BRI)", 9, 30],
+    Barcelona: [0, "Barcelona", "El Prat (BCN)", 14, 35], Bilbao: [0, "Bilbao", "Bilbao (BIO)", 12, 25],
+    Bolonia: [0, "Bologna", "Bolonia (BLQ)", 6, 20], Bukareszt: [1, "Bucharest", "Otopeni (OTP) lub Băneasa (BBU)", 17, 40],
+    Cypr: [1, "Larnaca", "Larnaka (LCA)?", 5, 15], Dubrovnik: [0, "Dubrovnik", "Dubrownik (DBV)", 20, 35],
+    "Gran Canaria": [-1, "Las_Palmas", "Gran Canaria (LPA)", 20, 30], Katania: [0, "Catania", "Katania (CTA)", 5, 20],
+    Kopenhaga: [0, "Copenhagen", "Kastrup (CPH)", 8, 15], Lizbona: [-1, "Lisbon", "Lizbona (LIS)", 7, 25],
+    Madryt: [0, "Madrid", "Barajas (MAD)", 13, 35], Malaga: [0, "Málaga", "Malaga (AGP)", 8, 15],
+    Malta: [0, "Valletta", "Malta (MLA)", 6, 25], Mediolan: [0, "Milan", "Bergamo (BGY) lub Malpensa (MXP)", 50, 60],
+    Oslo: [0, "Oslo", "Gardermoen (OSL) lub Torp (TRF, ~110 km)", 50, 25], Pafos: [1, "Paphos", "Pafos (PFO)", 15, 25],
+    Palermo: [0, "Palermo", "Palermo (PMO)", 30, 50], Piza: [0, "Pisa", "Piza (PSA)", 2, 10],
+    Porto: [-1, "Porto", "Porto (OPO)", 15, 30], Rzym: [0, "Rome", "Ciampino (CIA) lub Fiumicino (FCO)", 15, 40],
+    Saloniki: [1, "Thessaloniki", "Saloniki (SKG)", 15, 35], Sevilla: [0, "Seville", "Sewilla (SVQ)", 10, 25],
+    Sofia: [1, "Sofia", "Sofia (SOF)", 10, 25], Sztokholm: [0, "Stockholm", "Arlanda (ARN) lub Skavsta (NYO)", 40, 40],
+    Tirana: [0, "Tirana", "Tirana (TIA)", 17, 30], Walencja: [0, "Valencia", "Walencja (VLC)", 9, 25],
+    Wenecja: [0, "Venice", "Treviso (TSF) lub Marco Polo (VCE)", 40, 60],
+  };
+  const D = (name, country, lat, lng, temp, _s, _d, _t, out, back, note = "") => {
+    const [tz, wiki, airport, apKm, apMin] = X[name] || [0, name, "", null, null];
+    return {
+      id: name.toLowerCase().normalize("NFD").replace(/[^a-z]/g, ""),
+      name, country, lat, lng, temp, note, tz, wiki, photo: "", airport, apKm, apMin,
+      out: out.map(fl), back: back.map(fl), selOut: null, selBack: null,
+      stay: { name: "", perNight: 0, link: "" }, dailySpend: 0, transferCost: 0,
+      votes: {}, pros: "", cons: "", places: [],
+    };
+  };
 
   window.SAMPLE_DATA = {
-    version: 2,
-    budget: 3000,
+    version: 3,
+    budget: 0,
     persons: 2,
     destinations: [
       D("Alicante", "Hiszpania", 38.3452, -0.4810, 20, 300, 300, 60,
