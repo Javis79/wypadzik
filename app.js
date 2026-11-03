@@ -161,6 +161,7 @@
           <span>📍 ${d.places?.length || 0} miejsc</span></div>
         ${d.pros || d.cons ? `<div class="pc"><ul class="p">${(d.pros || "").split(",").filter(s => s.trim()).map(p => `<li>${esc(p.trim())}</li>`).join("")}</ul><ul class="c">${(d.cons || "").split(",").filter(s => s.trim()).map(p => `<li>${esc(p.trim())}</li>`).join("")}</ul></div>` : ""}
         <div class="actions">
+          <button class="btn small" data-act="info">ℹ Info i pogoda</button>
           <button class="btn small" data-act="edit">Edytuj / oceń</button>
           <button class="btn small" data-act="map">Mapa</button>
           <a class="btn small" href="${stayLink("booking", d, c)}" target="_blank" rel="noopener">Booking ↗</a>
@@ -182,6 +183,7 @@
     const act = b.dataset.act;
     if (act === "toggle") openCards.has(id) ? openCards.delete(id) : openCards.add(id);
     if (act === "edit") return editDest(id);
+    if (act === "info") return openInfo(id);
     if (act === "map") { currentDest = id; return show("map"); }
     if (act === "fav") { d.votes[who] = d.votes[who] === 1 ? 0 : 1; save(); }
     if (act === "rej") { d.votes[who] = d.votes[who] === -1 ? 0 : -1; save(); }
@@ -409,6 +411,12 @@
     const keys = await (await caches.open(TILE_CACHE)).keys();
     $("#cache-info").textContent = `Zapisane kafelki mapy: ${keys.length} (ok. ${Math.round(keys.length * 25 / 1024)} MB). Pobierasz je w zakładce Mapa przyciskiem „Mapa offline” dla widocznego obszaru.`;
   }
+  $("#reload-photos").addEventListener("click", async () => {
+    if (!navigator.onLine) return toast("Potrzebny internet");
+    imgFail.clear(); await window.caches?.delete("img-v2");
+    S.destinations.forEach(d => { d._img = ""; d._imgOrig = ""; });
+    await loadPhotos(true); toast("Zdjęcia odświeżone");
+  });
   $("#clear-tiles").addEventListener("click", async () => {
     if (!confirm("Usunąć wszystkie zapisane mapy?")) return;
     await caches.delete(TILE_CACHE); updateCacheInfo(); toast("Wyczyszczone");
@@ -457,33 +465,143 @@
   });
 
   // ---------- zdjęcia z Wikipedii (po pobraniu zostają w cache, więc działają też offline) ----------
+  // Jedno zapytanie do API Wikipedii o zdjęcia wszystkich miast. Rozmiar 960 px, bo Wikimedia
+  // odrzuca miniatury w niestandardowych rozmiarach.
   const photoOf = d => d.photo || d._img || "";
   let photoBusy = false;
   const imgFail = new Set();
-  async function loadPhotos() {
+  async function loadPhotos(force = false) {
     if (photoBusy || !navigator.onLine) return;
+    const todo = S.destinations.filter(d => !d.photo && (force || !d._img));
+    if (!todo.length) return;
     photoBusy = true;
-    for (const d of S.destinations) {
-      if (d.photo || d._img || imgFail.has(d.id)) continue;
-      try {
-        const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(d.wiki || d.name)}`);
-        const j = await r.json();
-        const src = j.thumbnail?.source || j.originalimage?.source;
-        if (src) { d._img = src.replace(/\/\d+px-/, "/800px-"); new Image().src = d._img; }
-        else imgFail.add(d.id);
-      } catch { imgFail.add(d.id); }
+    try {
+      const titles = todo.map(d => d.wiki || d.name);
+      const url = "https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1" +
+        "&prop=pageimages&piprop=thumbnail|original&pithumbsize=960&pilimit=50&titles=" + encodeURIComponent(titles.join("|"));
+      const j = await (await fetch(url)).json();
+      // mapowanie tytułów po przekierowaniach i normalizacji
+      const alias = {};
+      [...(j.query?.normalized || []), ...(j.query?.redirects || [])].forEach(x => { alias[x.from] = x.to; });
+      const resolve = t => { let k = t.replace(/_/g, " "); for (let i = 0; i < 3 && alias[k]; i++) k = alias[k]; return k; };
+      const pages = {};
+      Object.values(j.query?.pages || {}).forEach(pg => { pages[pg.title] = pg; });
+      todo.forEach(d => {
+        const pg = pages[resolve(d.wiki || d.name)];
+        if (pg?.thumbnail?.source) { d._img = pg.thumbnail.source; d._imgOrig = pg.original?.source || ""; imgFail.delete(d.id); }
+      });
       save();
-      if ($("#view-swipe").classList.contains("active")) paintPhotos();
-    }
+    } catch (e) { console.warn("zdjęcia", e); }
     photoBusy = false;
+    paintPhotos(); updatePhotoInfo();
   }
   function paintPhotos() {
-    document.querySelectorAll(".sw-card[data-id]").forEach(el => {
-      const src = photoOf(dest(el.dataset.id));
-      const ph = el.querySelector(".sw-photo");
-      if (src && !ph.style.backgroundImage) ph.style.backgroundImage = `url("${src}")`;
+    document.querySelectorAll("[data-photo]").forEach(img => {
+      const d = dest(img.dataset.photo), src = photoOf(d);
+      if (src && img.getAttribute("src") !== src && !imgFail.has(d.id)) img.src = src;
     });
   }
+  // gdy miniatura się nie wczyta, spróbuj oryginału, a potem pokaż kolorowe tło
+  document.addEventListener("error", e => {
+    const img = e.target;
+    if (!(img instanceof HTMLImageElement) || !img.dataset.photo) return;
+    const d = dest(img.dataset.photo);
+    if (d?._imgOrig && img.src !== d._imgOrig) { img.src = d._imgOrig; return; }
+    imgFail.add(d?.id); img.removeAttribute("src"); img.classList.add("broken");
+  }, true);
+  const photoImg = (d, cls) => `<img class="${cls}" data-photo="${d.id}" alt="" draggable="false" ${photoOf(d) ? `src="${esc(photoOf(d))}"` : ""}>`;
+  function updatePhotoInfo() {
+    const el = $("#photo-info"); if (!el) return;
+    const n = S.destinations.filter(d => photoOf(d)).length;
+    el.textContent = `Zdjęcia: ${n} z ${S.destinations.length} miast ma adres zdjęcia${imgFail.size ? `, ${imgFail.size} nie chce się wczytać` : ""}.`;
+  }
+
+  // ---------- pogoda (Open-Meteo, bez klucza) ----------
+  const WMO = c => c === 0 ? "☀️" : c <= 2 ? "🌤" : c === 3 ? "☁️" : c <= 48 ? "🌫" : c <= 67 ? "🌧" : c <= 77 ? "🌨" : c <= 82 ? "🌦" : "⛈";
+  async function loadWeather(d, c) {
+    const from = isoDate(c.o.day), to = isoDate(c.b.day);
+    const key = `${from}_${to}`;
+    const w = d._wx;
+    if (w && w.key === key && (w.kind === "archive" ? Date.now() - w.at < 864e5 : Date.now() - w.at < 6 * 36e5)) return w;
+    if (!navigator.onLine) return w || null;
+    const q = `latitude=${d.lat}&longitude=${d.lng}&timezone=auto`;
+    try {
+      const r = await fetch(`https://api.open-meteo.com/v1/forecast?${q}&start_date=${from}&end_date=${to}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max`);
+      const j = await r.json();
+      if (r.ok && j.daily?.time?.length) {
+        d._wx = { key, kind: "forecast", at: Date.now(), days: j.daily.time.map((t, i) => ({ t, code: j.daily.weather_code[i], max: j.daily.temperature_2m_max[i], min: j.daily.temperature_2m_min[i], rain: j.daily.precipitation_probability_max[i] })) };
+        save(); return d._wx;
+      }
+    } catch {}
+    // prognoza jeszcze niedostępna: jak było w tych samych dniach rok temu
+    try {
+      const ly = s => s.replace("2026", "2025");
+      const r = await fetch(`https://archive-api.open-meteo.com/v1/archive?${q}&start_date=${ly(from)}&end_date=${ly(to)}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum`);
+      const j = await r.json();
+      if (r.ok && j.daily?.time?.length) {
+        d._wx = { key, kind: "archive", at: Date.now(), days: j.daily.time.map((t, i) => ({ t, code: j.daily.weather_code[i], max: j.daily.temperature_2m_max[i], min: j.daily.temperature_2m_min[i], mm: j.daily.precipitation_sum[i] })) };
+        save(); return d._wx;
+      }
+    } catch {}
+    return w || null;
+  }
+  function weatherHTML(w) {
+    if (!w) return `<p class="muted">Pogoda pobierze się, gdy będzie internet. Średnio w listopadzie ok. ${"${t}"}°C w dzień.</p>`;
+    const dn = t => { t = t.replace(/^2025/, "2026"); const dt = new Date(t + "T12:00"); return `${["ndz", "pon", "wt", "śr", "czw", "pt", "sob"][dt.getDay()]} ${t.slice(8, 10)}.${t.slice(5, 7)}`; };
+    return `${w.kind === "archive" ? `<p class="muted">Prawdziwa prognoza pojawi się ok. 16 dni przed wyjazdem, czyli lada dzień. Na razie: <b>jak było w tych dniach rok temu</b>.</p>` : `<p class="muted">Prognoza na Wasze dni (aktualizuje się przy otwarciu).</p>`}
+      <div class="wx">${w.days.map(x => `<div class="wx-d"><span>${dn(x.t)}</span><span class="wx-i">${WMO(x.code)}</span><b>${Math.round(x.max)}°</b><span class="muted">${Math.round(x.min)}°</span><span class="muted">${w.kind === "archive" ? `${(x.mm ?? 0).toFixed(1)} mm` : `${x.rain ?? 0}% 💧`}</span></div>`).join("")}</div>`;
+  }
+
+  // ---------- karta szczegółów ----------
+  const sheet = $("#sheet");
+  async function openInfo(id) {
+    const d = dest(id), c = pairAny(d), inf = (window.CITY_INFO || {})[d.name] || {};
+    const gm = q => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q + ", " + d.name)}`;
+    const fl = (f, dir) => `<li><b>${esc(f.day)} ${DATES[dayIdx(f.day)] || ""}</b> ${esc(f.dep)}–${esc(f.arr)} · ${hm(flightMin(f, dir, d.tz || 0))} · <b>${f.price} zł</b>${f.note ? ` <span class="muted">(${esc(f.note)})</span>` : ""}</li>`;
+    sheet.innerHTML = `<div class="sh">
+      <div class="sh-hero">${photoImg(d, "sh-img")}<button class="sh-x" data-sh="close" aria-label="Zamknij">✕</button>
+        <div class="sh-title"><h2>${esc(d.name)}</h2><span>${esc(d.country)}</span></div></div>
+      <div class="sh-body">
+        ${inf.about ? `<p class="sh-about">${esc(inf.about)}</p>` : ""}
+        <h3>🌤 Pogoda ${c ? `${esc(c.o.day)} ${DATES[dayIdx(c.o.day)]} – ${esc(c.b.day)} ${DATES[dayIdx(c.b.day)]}` : ""}</h3>
+        <div id="sh-wx"><p class="muted">Ładuję pogodę…</p></div>
+        <h3>✈ Loty z Krakowa <span class="muted">(cena za osobę)</span></h3>
+        <div class="sh-cols"><div><div class="muted">Tam</div><ul>${d.out.map(f => fl(f, "out")).join("")}</ul></div>
+          <div><div class="muted">Powrót</div><ul>${d.back.map(f => fl(f, "back")).join("")}</ul></div></div>
+        ${c ? `<p>Najtańsza para: <b>${zl(c.flight)}</b> dla ${S.persons} os. · ${hoursThere(c)} h na miejscu</p>` : ""}
+        ${d.airport ? `<p>🚌 <b>${esc(d.airport)}</b> · ok. ${d.apKm} km do centrum${d.apMin ? `, ok. ${d.apMin} min` : ""}</p>` : ""}
+        ${inf.see ? `<h3>🏛 Co zobaczyć</h3><ul class="sh-list">${inf.see.map(x => `<li><a href="${gm(x)}" target="_blank" rel="noopener">${esc(x)}</a></li>`).join("")}</ul>` : ""}
+        ${inf.eat ? `<h3>🍝 Czego spróbować</h3><ul class="sh-list">${inf.eat.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
+        ${d.note ? `<p class="note">📝 ${esc(d.note)}</p>` : ""}
+        <div class="actions">
+          ${c ? `<a class="btn small" href="${stayLink("booking", d, c)}" target="_blank" rel="noopener">Booking ↗</a><a class="btn small" href="${stayLink("airbnb", d, c)}" target="_blank" rel="noopener">Airbnb ↗</a>` : ""}
+          <a class="btn small" href="https://pl.wikipedia.org/wiki/${encodeURIComponent(d.name)}" target="_blank" rel="noopener">Wikipedia ↗</a>
+          <button class="btn small" data-sh="edit">✎ Edytuj</button>
+        </div>
+      </div>
+      <div class="sh-vote">
+        <button class="btn ${d.votes[who] === -1 ? "on" : ""}" data-sh="no">✕ Nie</button>
+        <button class="btn primary" data-sh="yes">❤ Tak, jedziemy</button>
+      </div></div>`;
+    sheet.dataset.id = id;
+    sheet.showModal();
+    sheet.querySelector(".sh-body").scrollTop = 0;
+    const w = c ? await loadWeather(d, c) : null;
+    const box = $("#sh-wx"); if (box && sheet.dataset.id === id) box.innerHTML = weatherHTML(w).replace("${t}", d.temp ?? "?");
+  }
+  sheet.addEventListener("click", e => {
+    if (e.target === sheet) return sheet.close();
+    const b = e.target.closest("[data-sh]"); if (!b) return;
+    const id = sheet.dataset.id, d = dest(id), a = b.dataset.sh;
+    if (a === "close") return sheet.close();
+    if (a === "edit") { sheet.close(); return editDest(id); }
+    sheet.close();
+    const v = a === "yes" ? 1 : -1;
+    if (deck[0]?.id === id && $("#view-swipe").classList.contains("active")) return fling(v);
+    d.votes[who] = v; deck = deck.filter(x => x.id !== id); save();
+    if (v === 1 && isMatch(d)) toast(`❤ Match! Oboje chcecie: ${d.name}`, 3000);
+    renderAll();
+  });
 
   // ---------- widok: wybieranie w stylu „w prawo / w lewo” ----------
   let deck = [], history = [];
@@ -503,7 +621,7 @@
     const fl = (f, dir, label) => `<div class="sw-row"><span>${label}</span><b>${esc(f.day)} ${DATES[dayIdx(f.day)] || ""} · ${esc(f.dep)}–${esc(f.arr)}</b><span>${hm(flightMin(f, dir, d.tz || 0))}</span><b class="pr">${f.price} zł</b></div>`;
     const notes = c ? [c.o.note, c.b.note, d.note].filter(Boolean) : [d.note].filter(Boolean);
     return `<div class="sw-card" data-id="${d.id}">
-      <div class="sw-photo" style="${photoOf(d) ? `background-image:url('${esc(photoOf(d))}')` : ""}"><span class="sw-fallback">✈</span></div>
+      <div class="sw-photo"><span class="sw-fallback">✈</span>${photoImg(d, "sw-img")}<button class="sw-i" data-info="${d.id}" aria-label="Szczegóły">i</button></div>
       <div class="stamp yes">TAK</div><div class="stamp no">NIE</div>
       <div class="sw-info">
         <h2>${esc(d.name)} <small>${esc(d.country)} · ~${d.temp ?? "?"}°C</small></h2>
@@ -513,6 +631,7 @@
           <span>⏱ ${hoursThere(c)} h na miejscu · ${c.n} ${c.n === 1 ? "noc" : c.n < 5 ? "noce" : "nocy"}</span>
           ${d.airport ? `<span>🚌 ${esc(d.airport)} · ~${d.apKm} km do centrum${d.apMin ? ` (~${d.apMin} min)` : ""}</span>` : ""}
           ${pairs(d).length > 1 ? `<span>🔀 ${pairs(d).length} warianty lotów</span>` : ""}
+          <span class="tap">👆 stuknij po szczegóły</span>
           ${dayIdx(c.b.day) > dayIdx(S.view.maxBack) ? `<span class="warn">powrót dopiero ${esc(c.b.day)} ${DATES[dayIdx(c.b.day)]}</span>` : ""}
         </div>
         ${notes.map(n => `<div class="sw-note">📝 ${esc(n)}</div>`).join("")}` : `<p>Brak pasującej pary lotów.</p>`}
@@ -527,6 +646,7 @@
       (matches.length ? `❤ Wspólne: <b>${matches.map(d => esc(d.name)).join(", ")}</b>` : "Brak wspólnych typów (jeszcze!)");
     $("#sw-undo").disabled = !history.length;
     if (!deck.length) {
+      $("#sw-info").disabled = true;
       const mine = S.destinations.filter(d => d.votes[who] === 1);
       box.innerHTML = `<div class="sw-empty card">
         <h2>Przejrzane! 🎉</h2>
@@ -538,6 +658,7 @@
       return;
     }
     box.innerHTML = deck.slice(0, 2).reverse().map(cardHTML).join("");
+    $("#sw-info").disabled = false;
     attachDrag(box.lastElementChild);
   }
   function vote(v) {
@@ -570,11 +691,12 @@
       if (x0 === null) return; x0 = null;
       if (Math.abs(dx) > 100) return fling(dx > 0 ? 1 : -1);
       el.style.transition = "transform .2s"; el.style.transform = ""; yes.style.opacity = no.style.opacity = 0;
-      if (Math.abs(dx) < 6) { currentDest = el.dataset.id; openCards.add(el.dataset.id); }
+      if (Math.abs(dx) < 8) openInfo(el.dataset.id);
     };
     el.addEventListener("pointerup", end); el.addEventListener("pointercancel", end);
   }
   $("#sw-yes").addEventListener("click", () => fling(1));
+  $("#sw-info").addEventListener("click", () => deck[0] && openInfo(deck[0].id));
   $("#sw-no").addEventListener("click", () => fling(-1));
   $("#sw-undo").addEventListener("click", () => {
     const d = history.pop(); if (!d) return;
@@ -586,7 +708,8 @@
     if (g.dataset.go === "reset") { S.destinations.forEach(d => delete d.votes[who]); history = []; save(); buildDeck(); renderSwipe(); }
   });
   addEventListener("keydown", e => {
-    if (!$("#view-swipe").classList.contains("active") || dlg.open) return;
+    if (!$("#view-swipe").classList.contains("active") || dlg.open || sheet.open) return;
+    if ((e.key === "ArrowUp" || e.key === "i") && deck[0]) openInfo(deck[0].id);
     if (e.key === "ArrowRight") fling(1);
     if (e.key === "ArrowLeft") fling(-1);
     if (e.key === "Backspace") $("#sw-undo").click();
@@ -638,7 +761,7 @@
     document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("active", b.dataset.view === view));
     if (view === "map") { initMap(); renderMap(); setTimeout(() => { map.invalidateSize(); focusDest(); }, 50); }
     if (view === "plan") renderPlan();
-    if (view === "more") updateCacheInfo();
+    if (view === "more") { updateCacheInfo(); updatePhotoInfo(); }
     if (view === "compare") renderCompare();
     if (view === "swipe") { if (!deck.length) buildDeck(); renderSwipe(); loadPhotos(); }
     if (view === "table") renderTable();

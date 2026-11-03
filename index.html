@@ -25,11 +25,12 @@
 <main>
   <!-- WYBIERANIE -->
   <section id="view-swipe" class="view">
-    <p class="muted sw-help">W prawo = jedziemy, w lewo = nie. Na komputerze strzałki ← →. Przełącz osobę u góry, żeby zobaczyć wspólne typy.</p>
+    <p class="muted sw-help">W prawo = jedziemy, w lewo = nie. Stuknij kartę, żeby zobaczyć pogodę i atrakcje. Na komputerze strzałki ← → i ↑. Przełącz osobę u góry, żeby zobaczyć wspólne typy.</p>
     <div id="deck"></div>
     <div class="sw-btns">
       <button class="round no" id="sw-no" aria-label="Nie">✕</button>
       <button class="round undo" id="sw-undo" aria-label="Cofnij">↺</button>
+      <button class="round undo" id="sw-info" aria-label="Szczegóły">ℹ</button>
       <button class="round yes" id="sw-yes" aria-label="Tak">❤</button>
     </div>
     <p class="muted center" id="swipe-status"></p>
@@ -93,6 +94,11 @@
       <button class="btn wide" id="share">Udostępnij…</button>
     </div>
     <div class="card">
+      <h2>Zdjęcia miast</h2>
+      <p class="muted" id="photo-info">…</p>
+      <button class="btn wide" id="reload-photos">Pobierz zdjęcia ponownie</button>
+    </div>
+    <div class="card">
       <h2>Mapy offline</h2>
       <p class="muted" id="cache-info">…</p>
       <button class="btn wide danger" id="clear-tiles">Wyczyść zapisane mapy</button>
@@ -113,11 +119,13 @@
   <button data-view="more"><b>⋯</b>Więcej</button>
 </nav>
 
+<dialog id="sheet" class="sheet"></dialog>
 <dialog id="dlg"><form method="dialog" id="dlg-form"></form></dialog>
 <div id="toast"></div>
 
 <script src="vendor/leaflet.js"></script>
 <script src="data.js"></script>
+<script src="info.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
