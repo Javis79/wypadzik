@@ -73,6 +73,15 @@
     let arr = t(c.o.arr); if (arr < t(c.o.dep)) arr += 24;
     return Math.round((dayIdx(c.b.day) - dayIdx(c.o.day)) * 24 + t(c.b.dep) - arr);
   }
+  // link do wyszukiwarki noclegów z datami z wybranego wariantu lotów (przylot po północy = nocleg od dnia wylotu)
+  const isoDate = day => `2026-11-${DATES[dayIdx(day)].slice(0, 2)}`;
+  function stayLink(site, d, c) {
+    const q = encodeURIComponent(`${d.name}, ${d.country.replace(/\s*\(.*\)/, "")}`);
+    const ci = isoDate(c.o.day), co = isoDate(c.b.day), n = +S.persons || 2;
+    return site === "booking"
+      ? `https://www.booking.com/searchresults.pl.html?ss=${q}&checkin=${ci}&checkout=${co}&group_adults=${n}&no_rooms=1&group_children=0&order=price`
+      : `https://www.airbnb.pl/s/${q}/homes?checkin=${ci}&checkout=${co}&adults=${n}`;
+  }
   const fmtFlight = f => `${f.day} ${DATES[dayIdx(f.day)] || ""} ${f.dep}–${f.arr}`;
 
   // ---------- widok: porównanie ----------
@@ -134,7 +143,8 @@
         <div class="actions">
           <button class="btn small" data-act="edit">Edytuj / oceń</button>
           <button class="btn small" data-act="map">Mapa</button>
-          <a class="btn small" href="https://www.google.com/travel/hotels/${encodeURIComponent(d.name)}" target="_blank" rel="noopener">Hotele ↗</a>
+          <a class="btn small" href="${stayLink("booking", d, c)}" target="_blank" rel="noopener">Booking ↗</a>
+          <a class="btn small" href="${stayLink("airbnb", d, c)}" target="_blank" rel="noopener">Airbnb ↗</a>
           ${d.stay?.link ? `<a class="btn small" href="${esc(d.stay.link)}" target="_blank" rel="noopener">Nasz nocleg ↗</a>` : ""}
         </div>` : ""}
         <div class="actions quick">
