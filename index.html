@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e8590c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Wypad">
+<title>Wypad we dwoje</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <h1>Wypad <span>we dwoje</span></h1>
+  <span id="net" class="net"></span>
+</header>
+
+<main>
+  <!-- PORÓWNANIE -->
+  <section id="view-compare" class="view active">
+    <div class="budget card">
+      <label>Budżet na dwoje (zł)
+        <input id="budget" type="number" inputmode="numeric" min="0" step="50">
+      </label>
+      <label>Osoby
+        <input id="persons" type="number" inputmode="numeric" min="1" max="6">
+      </label>
+      <label>Sortuj<select id="sort"></select></label>
+      <label>Powrót najpóźniej
+        <select id="maxBack"><option value="ndz">ndz 22.11</option><option value="pon">pon 23.11</option><option value="wt">wt 24.11</option></select>
+      </label>
+      <label class="check"><input type="checkbox" id="hideRej"> Ukryj odrzucone</label>
+      <label class="check"><input type="checkbox" id="onlyFav"> Tylko ulubione ❤</label>
+    </div>
+    <p class="muted" id="summary"></p>
+    <div id="dest-list"></div>
+    <button class="btn primary wide" id="add-dest">+ Dodaj kierunek</button>
+  </section>
+
+  <!-- MAPA -->
+  <section id="view-map" class="view">
+    <div class="map-bar">
+      <select id="map-dest"></select>
+      <div class="chips" id="cat-filter"></div>
+    </div>
+    <div id="map"></div>
+    <div class="map-actions">
+      <button class="btn" id="add-place">📍 Dodaj miejsce</button>
+      <button class="btn" id="locate">◎ Gdzie jestem</button>
+      <button class="btn" id="offline-dl">⬇ Mapa offline</button>
+    </div>
+    <div id="place-list"></div>
+  </section>
+
+  <!-- PLAN -->
+  <section id="view-plan" class="view">
+    <select id="plan-dest" class="wide"></select>
+    <div id="plan"></div>
+  </section>
+
+  <!-- USTAWIENIA -->
+  <section id="view-more" class="view">
+    <div class="card">
+      <h2>Dane</h2>
+      <p class="muted">Wszystko zapisuje się lokalnie w telefonie. Żeby mieć to samo u Zuzi, wyeksportuj plik i wyślij go jej, a ona go zaimportuje.</p>
+      <button class="btn wide" id="export">Eksportuj (plik .json)</button>
+      <label class="btn wide filebtn">Importuj z pliku<input type="file" id="import" accept="application/json,.json" hidden></label>
+      <button class="btn wide" id="share">Udostępnij…</button>
+    </div>
+    <div class="card">
+      <h2>Mapy offline</h2>
+      <p class="muted" id="cache-info">…</p>
+      <button class="btn wide danger" id="clear-tiles">Wyczyść zapisane mapy</button>
+    </div>
+    <div class="card">
+      <h2>Reset</h2>
+      <button class="btn wide danger" id="reset">Przywróć przykładowe dane</button>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs">
+  <button data-view="compare" class="active"><b>⚖</b>Porównaj</button>
+  <button data-view="map"><b>🗺</b>Mapa</button>
+  <button data-view="plan"><b>🗓</b>Plan</button>
+  <button data-view="more"><b>⋯</b>Więcej</button>
+</nav>
+
+<dialog id="dlg"><form method="dialog" id="dlg-form"></form></dialog>
+<div id="toast"></div>
+
+<script src="vendor/leaflet.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
