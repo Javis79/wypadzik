@@ -26,7 +26,7 @@
   try { S = JSON.parse(localStorage.getItem(KEY)); } catch { S = null; }
   if (!S || !Array.isArray(S.destinations) || S.version !== 3) S = structuredClone(window.SAMPLE_DATA);
   S.view = S.view || { sort: "cost", hideRejected: true, maxBack: "pon", onlyFav: false };
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} };
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} window.WypadSync?.schedule(); };
   const dest = id => S.destinations.find(d => d.id === id);
   let currentDest = S.destinations[0]?.id;
   let who; try { who = localStorage.getItem(WHO_KEY) || "K"; } catch { who = "K"; }
@@ -441,7 +441,7 @@
     e.target.value = "";
   });
   $("#reset").addEventListener("click", () => {
-    if (!confirm("Zastąpić wszystko przykładowymi danymi?")) return;
+    if (!confirm(WypadSync.room ? "Zastąpić wszystko przykładowymi danymi? Zmiana trafi też na drugi telefon." : "Zastąpić wszystko przykładowymi danymi?")) return;
     S = structuredClone(window.SAMPLE_DATA); currentDest = S.destinations[0]?.id; save(); renderAll();
   });
 
@@ -795,10 +795,10 @@
     $("#sw-info").disabled = false;
     attachDrag(box.lastElementChild);
   }
-  function matchMoment(d) {
+  function matchMoment(d, lead) {
     const c = pairAny(d);
     Motion.celebrate({ name: d.name, photo: imgFail.has(d.id) ? "" : photoOf(d),
-      line: `Oboje na tak${c ? ` · loty dla ${S.persons === 2 ? "dwojga" : S.persons + " os."} ${zl(c.flight)}` : ""}`,
+      line: `${lead || "Oboje na tak"}${c ? ` · loty dla ${S.persons === 2 ? "dwojga" : S.persons + " os."} ${zl(c.flight)}` : ""}`,
       onCompare: () => { S.view.onlyFav = true; save(); show("compare"); } });
   }
   function vote(v) {
@@ -936,7 +936,111 @@
     if ($("#view-swipe").classList.contains("active")) renderSwipe();
   }
 
-  function net() { const n = $("#net"); n.textContent = navigator.onLine ? "" : "offline"; n.classList.toggle("off", !navigator.onLine); }
+  // ---------- wspólny wyjazd na dwóch telefonach (Supabase, sync.js) ----------
+  // wspólne: budżet, osoby, kierunki (z kosztami i ocenami), głosy i miejsca; prywatne: kto głosuje, filtry, zdjęcia w pamięci
+  const shared = d => {
+    const o = {};
+    for (const [k, v] of Object.entries(d)) {
+      if (k[0] === "_" || k === "votes" || k === "places") continue;
+      if (k === "photo" && typeof v === "string" && v.startsWith("data:") && v.length > 150000) continue;
+      o[k] = v;
+    }
+    return o;
+  };
+  function snapshot() {
+    const it = { cfg: { budget: S.budget, persons: S.persons } };
+    S.destinations.forEach(d => {
+      it["d:" + d.id] = shared(d);
+      Object.entries(d.votes || {}).forEach(([p, v]) => { if (v) it[`v:${d.id}:${p}`] = v; });
+      (d.places || []).forEach(p => { const { _m, ...q } = p; it[`p:${d.id}:${p.id}`] = q; });
+    });
+    return it;
+  }
+  function applyRemote(remote) {
+    const before = new Set(S.destinations.filter(isMatch).map(d => d.id));
+    const rank = k => k === "cfg" ? 0 : k.startsWith("d:") ? 1 : 2;
+    Object.keys(remote).sort((a, b) => rank(a) - rank(b)).forEach(k => {
+      const v = remote[k], [t, id, x] = k.split(":");
+      if (k === "cfg") { if (v) { S.budget = v.budget ?? S.budget; S.persons = v.persons ?? S.persons; } return; }
+      let d = dest(id);
+      if (t === "d") {
+        if (v === null) { S.destinations = S.destinations.filter(q => q.id !== id); deck = deck.filter(q => q.id !== id); return; }
+        if (d) Object.assign(d, v); else S.destinations.push({ ...v, votes: {}, places: [] });
+        return;
+      }
+      if (!d) return;
+      if (t === "v") { if (v) d.votes[x] = v; else delete d.votes[x]; }
+      if (t === "p") {
+        const i = d.places.findIndex(q => q.id === x);
+        if (v === null) { if (i >= 0) d.places.splice(i, 1); }
+        else if (i >= 0) Object.assign(d.places[i], v); else d.places.push(v);
+      }
+    });
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
+    // głosy drugiej osoby: kierunki, na które ta osoba już zagłosowała, nie wracają do talii
+    deck = deck.filter(d => dest(d.id) && !d.votes[who]);
+    renderAll();
+    if ($("#view-swipe").classList.contains("active")) renderSwipe();
+    const fresh = S.destinations.filter(d => isMatch(d) && !before.has(d.id));
+    if (!fresh.length) return;
+    const show = () => matchMoment(fresh[0], `${PEOPLE[who === "K" ? "Z" : "K"]} też chce!`);
+    // telefon w kieszeni: pokaż match, gdy apka znów będzie na ekranie
+    if (!document.hidden) show();
+    else document.addEventListener("visibilitychange", function once() { if (!document.hidden) { document.removeEventListener("visibilitychange", once); show(); } });
+  }
+  let syncState = "off", syncAt = null;
+  function renderSync() {
+    const box = $("#pair"); if (!box) return;
+    const room = WypadSync.room, other = who === "K" ? "Z" : "K";
+    if (!room) {
+      box.innerHTML = `<p class="muted">Każde z Was głosuje na swoim telefonie, a apka sama łączy głosy, koszty i miejsca. Utwórz wspólny wyjazd i wyślij link ${PEOPLE[other] === "Zuzia" ? "Zuzi" : "Krystianowi"}.</p>
+        <button class="btn primary wide" data-pair="new">${ic("swap")}Połącz nasze telefony</button>`;
+      return;
+    }
+    const when = syncAt ? syncAt.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) : "";
+    const label = { ok: `Połączone · zsynchronizowane ${when}`, busy: "Synchronizuję…", offline: "Brak internetu, zmiany wyślą się później", error: "Nie udało się zsynchronizować, spróbuję ponownie" }[syncState] || "Połączone";
+    box.innerHTML = `<p class="sync-state ${syncState}">${ic(syncState === "ok" ? "check" : syncState === "error" ? "x" : "swap")}${esc(label)}</p>
+      <p class="muted">Link dla ${PEOPLE[other] === "Zuzia" ? "Zuzi" : "Krystiana"} (otwiera ten sam wyjazd i ustawia, kto głosuje):</p>
+      <input class="pair-link" readonly value="${esc(pairLink(room, other))}">
+      <button class="btn primary wide" data-pair="share">${ic("ext")}Wyślij link</button>
+      <button class="btn wide" data-pair="now">${ic("undo")}Synchronizuj teraz</button>
+      <button class="btn wide danger" data-pair="leave">Rozłącz ten telefon</button>`;
+  }
+  const pairLink = (room, p) => `${location.origin}${location.pathname}#para=${room}&kto=${p}`;
+  $("#pair")?.addEventListener("click", async e => {
+    const b = e.target.closest("[data-pair]"); if (!b) return;
+    const a = b.dataset.pair, other = who === "K" ? "Z" : "K";
+    if (a === "new") {
+      if (!navigator.onLine) return toast("Potrzebny internet");
+      await WypadSync.join(WypadSync.newRoom()); renderSync();
+      toast("Wspólny wyjazd utworzony. Wyślij link drugiej osobie.", 3200);
+    }
+    if (a === "share") {
+      const url = pairLink(WypadSync.room, other);
+      if (navigator.share) { try { await navigator.share({ title: "Wypad we dwoje", text: `Głosuj ze mną, gdzie jedziemy:`, url }); } catch {} }
+      else { try { await navigator.clipboard.writeText(url); toast("Link skopiowany"); } catch { $(".pair-link")?.select(); } }
+    }
+    if (a === "now") WypadSync.sync();
+    if (a === "leave" && confirm("Rozłączyć ten telefon? Dane zostaną na nim, ale przestaną się synchronizować.")) { WypadSync.leave(); renderSync(); }
+  });
+  $("#pair")?.addEventListener("focusin", e => { if (e.target.classList.contains("pair-link")) e.target.select(); });
+  // otwarcie linku od drugiej osoby: dołącz do wyjazdu i ustaw, kto głosuje na tym telefonie
+  async function joinFromLink() {
+    const h = new URLSearchParams(location.hash.slice(1)), room = h.get("para"), p = h.get("kto");
+    if (!room) return;
+    window.history.replaceState(null, "", location.pathname + location.search);
+    if (room === WypadSync.room) return;
+    if (!/^[a-z0-9]{16,64}$/.test(room)) return toast("Ten link jest uszkodzony");
+    if (!confirm(`Dołączyć do wspólnego wyjazdu${p && PEOPLE[p] ? ` jako ${PEOPLE[p]}` : ""}? Twoje dotychczasowe głosy zostaną dołączone.`)) return;
+    if (p && PEOPLE[p]) setWho(p);
+    await WypadSync.join(room); renderSync();
+    toast(`Połączone. Głosujesz jako ${PEOPLE[who]}.`, 3000);
+  }
+  function net() {
+    const n = $("#net"), bad = !navigator.onLine || (WypadSync.room && syncState === "error");
+    n.textContent = !navigator.onLine ? "offline" : bad ? "bez synchr." : "";
+    n.classList.toggle("off", bad);
+  }
   addEventListener("online", net); addEventListener("offline", net); net();
 
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
@@ -946,5 +1050,9 @@
   let startTab = "swipe"; try { startTab = localStorage.getItem("wypad-tab") || "swipe"; } catch {}
   if (startTab === "table" && innerWidth < 760) startTab = "compare";
   show(startTab);
+  WypadSync.init({ snapshot, apply: applyRemote, onStatus: (st, x) => { syncState = st; if (x?.at) syncAt = x.at; renderSync(); net(); } });
+  renderSync();
+  joinFromLink();
+  addEventListener("hashchange", joinFromLink);
   addEventListener("online", loadPhotos);
 })();

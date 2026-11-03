@@ -133,8 +133,12 @@
   <!-- USTAWIENIA -->
   <section id="view-more" class="view">
     <div class="panel">
-      <h2>Dane</h2>
-      <p class="muted">Wszystko zapisuje się lokalnie w telefonie. Żeby mieć to samo u Zuzi, wyeksportuj plik i wyślij go jej, a ona go zaimportuje.</p>
+      <h2>Razem na dwóch telefonach</h2>
+      <div id="pair"></div>
+    </div>
+    <div class="panel">
+      <h2>Kopia zapasowa</h2>
+      <p class="muted">Plik z wszystkimi danymi z tego telefonu. Import zastępuje dane na tym telefonie.</p>
       <button class="btn wide" id="export"><svg class="ic"><use href="#i-down"/></svg>Eksportuj (plik .json)</button>
       <label class="btn wide filebtn">Importuj z pliku<input type="file" id="import" accept="application/json,.json" hidden></label>
       <button class="btn wide" id="share">Udostępnij…</button>
@@ -173,6 +177,7 @@
 <script src="data.js"></script>
 <script src="info.js"></script>
 <script src="motion.js"></script>
+<script src="sync.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

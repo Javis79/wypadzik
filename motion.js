@@ -44,7 +44,11 @@
     const root = document.documentElement;
     if (dir) root.dataset.dir = dir; else delete root.dataset.dir;
     if (from) from.style.viewTransitionName = "hero";
-    const t = document.startViewTransition(() => { if (from) from.style.viewTransitionName = ""; update(); });
+    // zabezpieczenie: gdyby przeglądarka nie wywołała zmiany (np. strona chwilowo nie rysuje), zrób ją sama
+    let done = false;
+    const run = () => { if (done) return; done = true; if (from) from.style.viewTransitionName = ""; update(); };
+    const t = document.startViewTransition(run);
+    setTimeout(() => { if (!done) { t.skipTransition(); run(); } }, 500);
     t.ready.catch(() => {}); t.updateCallbackDone.catch(() => {});
     t.finished.finally(() => delete root.dataset.dir);
     return t;

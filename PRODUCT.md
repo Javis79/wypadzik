@@ -33,7 +33,7 @@ It's a private decision tool for exactly two people, not a travel portal. Its fl
 ## Operating Context
 
 - **Order of use:** Wybierz (swipe to vote) → Porównaj (compare with budget, sorting and filters) → Tabela (enter costs on desktop) → Mapa (places by category, offline tiles) → Plan (day plan) → Więcej (data, photos, offline maps, reset).
-- **Sharing:** there is no server. One person exports a `.json` file (or shares it) and the other imports it.
+- **Sharing:** each person uses their own phone. One person taps "Połącz nasze telefony" in Więcej and sends the link; the other opens it, joins the same trip and is set as the other voter. Votes, costs, ratings and places then sync live between the two phones. The `.json` export stays as a backup.
 - **Booking happens elsewhere:** links to Booking and Airbnb carry the dates of the chosen flight pair.
 - **Real situations:** sitting on the couch deciding together, at a laptop typing in prices, and walking a foreign city without signal.
 
@@ -49,7 +49,7 @@ It's a private decision tool for exactly two people, not a travel portal. Its fl
 
 **Technical constraints (confirmed)**
 - No build step. Plain static HTML, CSS and JS, deployed on GitHub Pages, with Leaflet bundled in `vendor/`.
-- Data stays on the device in `localStorage`. There is no backend and no account, and sync is JSON export and import.
+- Data lives on each device in `localStorage` and syncs between the pair through Supabase (project `zyvjjqucfidnbzoevqlr`, decided 2026-11-03). There are no accounts: a random pair code in the shared link is the only key. The table is closed to direct access and only the `wypad_pull` / `wypad_push` functions read and write it; the live "something changed" signal goes over a Realtime broadcast channel named after the code. The app keeps working offline and sends changes when it is back online. The client uses the public publishable key, and the code is in `sync.js`.
 - The interface is in Polish only.
 - Only free data sources: OSM tiles and Nominatim, Wikipedia and Openverse photos, and Open-Meteo. No paid APIs and no API keys.
 - Everything must work offline through the service worker (`sw.js`), and maps can be saved in advance.
@@ -77,7 +77,7 @@ It's a private decision tool for exactly two people, not a travel portal. Its fl
 2. **Real numbers before nice ones.** Costs, times and the hours they get there are shown honestly. Approximations are marked, and empty values stay visibly empty.
 3. **It works without signal.** Anything needed in the city has to work offline.
 4. **One clear path from choosing to the trip.** Swipe, compare, then plan, without detours.
-5. **Simple to keep running.** Static files, free sources, data on the device. New features can't need a server or keys.
+5. **Simple to keep running.** Static files and free sources. The one server is the free Supabase project for syncing the pair, and new features shouldn't need any other server or secret key.
 
 ## Accessibility & Inclusion
 

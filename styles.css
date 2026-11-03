@@ -255,6 +255,10 @@ code{font:12px ui-monospace,Menlo,monospace;background:var(--field);padding:1px 
 .panel{background:var(--sheet);padding:16px;margin:0 -16px 10px;border-bottom:1px solid var(--rule)}
 .panel h2{margin:0 0 6px;font-size:19px}
 .filebtn{cursor:pointer}
+.sync-state{display:flex;gap:8px;align-items:center;font-weight:700;margin:0 0 8px}
+.sync-state .ic{width:18px;height:18px}
+.sync-state.ok .ic{color:var(--yes)}.sync-state.error{color:var(--no)}.sync-state.offline{color:var(--muted)}
+.pair-link{font:13px ui-monospace,Menlo,monospace;color:var(--ink-2);margin:2px 0 4px}
 .plog{white-space:pre-wrap;font:11px ui-monospace,Menlo,monospace;max-height:200px;overflow:auto;background:var(--field);padding:6px}
 
 /* ---------- nawigacja ---------- */
