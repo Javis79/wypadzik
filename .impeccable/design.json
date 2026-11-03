@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-03T12:00:00Z",
+  "title": "Design System: Wypad we dwoje",
+  "extensions": {
+    "colorMeta": {
+      "trip-orange": { "role": "primary", "displayName": "Trip Orange", "canonical": "#e8590c", "tonalRamp": ["#4a1a02", "#7a2c05", "#a83e08", "#e8590c", "#f57c3a", "#fa9e6b", "#fdc4a1", "#ffe8d9"] },
+      "fits-green": { "role": "secondary", "displayName": "Fits Green", "canonical": "#2b8a3e", "tonalRamp": ["#0b2a12", "#14461e", "#1f6a2e", "#2b8a3e", "#40c057", "#69db7c", "#a9e9b4", "#e3f8e7"] },
+      "over-red": { "role": "secondary", "displayName": "Over-Budget Red", "canonical": "#c92a2a", "tonalRamp": ["#3d0b0b", "#661414", "#961e1e", "#c92a2a", "#fa5252", "#ff8787", "#ffc0c0", "#fff0f0"] },
+      "price-peach": { "role": "tertiary", "displayName": "Price Peach", "canonical": "#ffd8a8" },
+      "cat-sight": { "role": "tertiary", "displayName": "Sight Blue", "canonical": "#1971c2" },
+      "cat-stay": { "role": "tertiary", "displayName": "Stay Violet", "canonical": "#7048e8" },
+      "cat-other": { "role": "tertiary", "displayName": "Other Olive", "canonical": "#5c940d" },
+      "paper": { "role": "neutral", "displayName": "Paper", "canonical": "#faf7f2", "tonalRamp": ["#16130f", "#221e19", "#3a332b", "#7a7268", "#a39a8e", "#e9e2d8", "#f3ede4", "#faf7f2"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#1f1b16" },
+      "muted": { "role": "neutral", "displayName": "Muted", "canonical": "#7a7268" },
+      "line": { "role": "neutral", "displayName": "Hairline", "canonical": "#e9e2d8" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "City name on the swipe card and detail hero, white on a photo gradient." },
+      "headline": { "displayName": "Headline", "purpose": "Destination total on comparison cards." },
+      "title": { "displayName": "Title", "purpose": "Wordmark in the header." },
+      "body": { "displayName": "Body", "purpose": "Base text and descriptions." },
+      "data": { "displayName": "Data", "purpose": "Flight and cost rows, table cells; tabular figures, bold prices." },
+      "label": { "displayName": "Label", "purpose": "Form labels, help text, chips, small buttons." },
+      "micro": { "displayName": "Micro", "purpose": "Badges, vote markers, header pills, tab labels." }
+    },
+    "shadows": [
+      { "name": "swipe-lift", "value": "0 8px 24px rgba(0,0,0,.25)", "purpose": "Top card in the swipe deck." },
+      { "name": "button-press", "value": "0 2px 8px rgba(0,0,0,.12)", "purpose": "Round vote buttons." },
+      { "name": "pin", "value": "0 1px 4px rgba(0,0,0,.4)", "purpose": "Map pins." },
+      { "name": "best-fit-ring", "value": "0 0 0 2px color-mix(in srgb, #2b8a3e 25%, transparent)", "purpose": "State ring on the best destination card." }
+    ],
+    "motion": [
+      { "name": "toast-fade", "value": "opacity .2s", "purpose": "Toast appear and disappear." }
+    ],
+    "breakpoints": [
+      { "name": "narrow", "value": "400px" },
+      { "name": "sheet-cols", "value": "480px" },
+      { "name": "desktop", "value": "760px" },
+      { "name": "short-phone", "value": "max-height: 760px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Default soft button with a hairline border.",
+      "html": "<button class=\"ds-btn\">📍 Dodaj miejsce</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line,#e9e2d8);background:var(--card,#fff);color:var(--ink,#1f1b16);border-radius:10px;padding:10px 12px;font:15px/1.4 system-ui,sans-serif;min-height:42px;cursor:pointer}.ds-btn:focus-visible{outline:2px solid #e8590c;outline-offset:2px}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action in a view, trip orange.",
+      "html": "<button class=\"ds-btn-primary\">+ Dodaj kierunek</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #e8590c;background:#e8590c;color:#fff;border-radius:10px;padding:10px 12px;font:15px/1.4 system-ui,sans-serif;min-height:42px;cursor:pointer}.ds-btn-primary:focus-visible{outline:2px solid #1f1b16;outline-offset:2px}"
+    },
+    {
+      "name": "Vote Buttons",
+      "kind": "custom",
+      "refersTo": "vote-round",
+      "description": "Round no / undo / info / yes buttons under the swipe deck.",
+      "html": "<div class=\"ds-votes\"><button class=\"ds-round ds-no\">✕</button><button class=\"ds-round ds-sm\">↺</button><button class=\"ds-round ds-sm\">ℹ</button><button class=\"ds-round ds-yes\">❤</button></div>",
+      "css": ".ds-votes{display:flex;gap:22px;align-items:center;justify-content:center}.ds-round{width:62px;height:62px;border-radius:50%;border:1px solid #e9e2d8;background:#fff;font-size:26px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)}.ds-round:active{transform:scale(.95)}.ds-no{color:#fa5252}.ds-yes{color:#40c057}.ds-sm{width:46px;height:46px;font-size:20px;color:#7a7268}"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Recessed paper field with a muted label above.",
+      "html": "<label class=\"ds-label\">Budżet na dwoje (zł)<input class=\"ds-input\" value=\"2400\"></label>",
+      "css": ".ds-label{display:block;font:13px/1.4 system-ui,sans-serif;color:#7a7268}.ds-input{display:block;margin-top:3px;width:100%;box-sizing:border-box;font:15px/1.4 system-ui,sans-serif;color:#1f1b16;background:#faf7f2;border:1px solid #e9e2d8;border-radius:10px;padding:9px 10px}.ds-input:focus-visible{outline:2px solid #e8590c;outline-offset:1px}"
+    },
+    {
+      "name": "Category Chips",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Pill filters; the selected one inverts to ink.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip ds-on\">🍝 Jedzenie</button><button class=\"ds-chip\">🏛 Zwiedzanie</button></div>",
+      "css": ".ds-chips{display:flex;gap:6px}.ds-chip{border:1px solid #e9e2d8;background:#fff;color:#1f1b16;border-radius:99px;padding:5px 11px;font:13px system-ui,sans-serif;cursor:pointer}.ds-chip.ds-on{background:#1f1b16;color:#faf7f2}"
+    },
+    {
+      "name": "Destination Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Flat comparison card: name, muted meta, bold total, flight rows.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-head\"><div><b class=\"ds-name\">Sofia</b><span class=\"ds-badge\">❤ match</span><div class=\"ds-meta\">Bułgaria · ~10°C · 3 noce</div></div><div class=\"ds-total\">376 zł<small>+ nocleg</small></div></div><div class=\"ds-fl\">pt 20.11 10:15–13:05 · <b>66 zł</b></div></div>",
+      "css": ".ds-card{background:#fff;border:1px solid #e9e2d8;border-radius:14px;padding:14px;font:15px/1.4 system-ui,sans-serif;color:#1f1b16;max-width:340px}.ds-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.ds-name{font-size:20px}.ds-meta,.ds-fl{font-size:13px;color:#7a7268}.ds-fl b{color:#1f1b16}.ds-total{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}.ds-total small{display:block;font-size:11px;font-weight:500;color:#7a7268;text-align:right}.ds-badge{font-size:11px;padding:2px 7px;border-radius:99px;background:#2b8a3e;color:#fff;margin-left:6px;vertical-align:middle}"
+    },
+    {
+      "name": "Bottom Tab Bar",
+      "kind": "nav",
+      "refersTo": "tab-bar",
+      "description": "Mobile navigation: emoji over label, active tab in orange.",
+      "html": "<nav class=\"ds-tabs\"><button class=\"ds-on\"><b>🔥</b>Wybierz</button><button><b>⚖</b>Porównaj</button><button><b>🗺</b>Mapa</button><button><b>🗓</b>Plan</button></nav>",
+      "css": ".ds-tabs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:#fff;border-top:1px solid #e9e2d8}.ds-tabs button{height:56px;border:0;background:none;color:#7a7268;font:12px system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}.ds-tabs b{font-size:20px;font-weight:400}.ds-tabs .ds-on{color:#e8590c}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Bilet i mapa (Ticket and Map)",
+    "overview": "Wypad reads like a well-filled-in boarding pass lying on a map: the facts that decide the trip come first and are easy to scan. Those facts are flight times, price per person, the total for two, hours in the city and the distance from the airport. The city photo is the reward for looking, not the argument. Even on the swipe card, where the photo fills the frame, the lower third is a dense data panel of flight rows with tabular figures and prices.\n\nThe surface is warm and quiet. Off-white paper (light) or a deep brown-black (dark) with white or brown cards, hairline beige borders and almost no shadow. There is one brand colour, a trip orange, which marks \"us\": the wordmark, the active tab, primary actions and links. Green and red are reserved for whether something fits: a match, within budget, over budget, yes or no. The type is the system font throughout, and hierarchy comes from weight and size rather than a second typeface.\n\nDensity is compact and phone-first. It's used one-handed, often next to the other person, and later outdoors. On desktop, the same parts spread into a centred column up to 1200px with a top tab bar and a cost table.",
+    "keyCharacteristics": [
+      "Numbers lead: prices, times and totals are bold and use tabular figures, and the label next to them is muted.",
+      "A single brand accent (trip orange); green and red only for fit or no fit.",
+      "Flat paper and cards with 1px beige hairlines. Depth is reserved for the photo-led swipe deck and the round vote buttons.",
+      "Soft, friendly geometry: rounded 10–20px corners, pill-shaped chips, badges and toasts.",
+      "Emoji serve as icons (tabs, categories, flight rows). There is no icon font.",
+      "Light and dark mode follow `prefers-color-scheme`; only the neutrals change."
+    ],
+    "rules": [
+      { "name": "The Us-Or-Fit Rule", "body": "Orange means \"this is us / this is active\". Green and red mean \"this fits / this doesn't\". Never use green or red for decoration, and never use orange to say something is good or bad.", "section": "colors" },
+      { "name": "The Muted Label Rule", "body": "Every number has a muted label beside it and the number itself is in ink. Don't colour a number unless it is over budget (red) or a price on a dark photo (peach).", "section": "colors" },
+      { "name": "The Tabular Rule", "body": "Anything that is compared in a column (prices, times, totals) uses `font-variant-numeric: tabular-nums` and aligns right.", "section": "typography" },
+      { "name": "The Paper-Flat Rule", "body": "If it isn't something you physically hold, press or drop on a map, it gets a hairline border and no shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "**Do** put the decision number (the total for two, the price per person, hours there) in bold ink with tabular figures and a muted label beside it.",
+      "**Do** keep orange for \"us and active\": the wordmark, the active tab, primary buttons and links.",
+      "**Do** use green only for a match, within budget or a pro, and red only for over budget, a no, a con, offline or something destructive.",
+      "**Do** separate surfaces with the 1px `line` border and a change of tone; keep cards flat.",
+      "**Do** use pills for anything small and label-like, and 10px corners for anything you tap or type into.",
+      "**Do** redefine only the neutral tokens for dark mode; the accent and status colours stay the same.",
+      "**Do** test every view at 375 × 812 and on a short phone (≤ 700px tall). Hiding secondary tags is better than shrinking the photo away."
+    ],
+    "donts": [
+      "**Don't** add a second brand colour or use the category colours (blue, violet, olive) outside the map pins and place dots.",
+      "**Don't** add shadows to cards, dialogs or bars; depth belongs to the swipe card, vote buttons and pins.",
+      "**Don't** let the photo hide the numbers: on photo surfaces, data sits on a dark gradient in white or peach.",
+      "**Don't** introduce a web font or an icon font; the system stack and emoji are the type and icons."
+    ]
+  }
+}
