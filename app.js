@@ -606,6 +606,55 @@
       <div class="wx">${w.days.map(x => `<div class="wx-d"><span>${dn(x.t)}</span><span class="wx-i">${WMO(x.code)}</span><b>${Math.round(x.max)}°</b><span class="muted">${Math.round(x.min)}°</span><span class="muted">${w.kind === "archive" ? `${(x.mm ?? 0).toFixed(1)} mm` : `${x.rain ?? 0}% 💧`}</span></div>`).join("")}</div>`;
   }
 
+  // ---------- zdjęcia atrakcji (wyszukiwanie w polskiej Wikipedii, zapas: Openverse) ----------
+  async function attractionPhoto(d, name) {
+    d._att = d._att || {};
+    if (d._att[name] !== undefined) return d._att[name];
+    if (!navigator.onLine) return "";
+    const clean = name.replace(/^Wycieczka:\s*/, "").replace(/\s*\(.*?\)\s*/g, " ").split(" lub ")[0].trim();
+    let src = "";
+    try {
+      const u = "https://pl.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=3" +
+        "&prop=pageimages&piprop=thumbnail&pithumbsize=800&gsrsearch=" + encodeURIComponent(`${clean} ${name.startsWith("Wycieczka") ? "" : d.name}`);
+      const j = await (await fetch(u)).json();
+      const pages = Object.values(j.query?.pages || {}).sort((a, b) => a.index - b.index);
+      src = pages.find(p => p.thumbnail?.source && !/\.svg/i.test(p.thumbnail.source))?.thumbnail.source || "";
+    } catch {}
+    if (!src) try {
+      const r = await fetch(`https://api.openverse.org/v1/images/?q=${encodeURIComponent(`${clean} ${EN[d.name] || d.name}`)}&page_size=3&mature=false`);
+      const j = await r.json();
+      src = (j.results || [])[0]?.url || "";
+    } catch {}
+    d._att[name] = src; save();
+    return src;
+  }
+  // podgląd zdjęcia na cały ekran (przesuwanie palcem / strzałkami)
+  const lb = { list: [], i: 0 };
+  function lightbox(list, i) {
+    lb.list = list; lb.i = i;
+    let el = $("#lightbox");
+    if (!el) {
+      el = document.createElement("div"); el.id = "lightbox";
+      el.innerHTML = `<img alt=""><div class="lb-cap"></div><button class="lb-x" aria-label="Zamknij">✕</button><button class="lb-p" aria-label="Poprzednie">‹</button><button class="lb-n" aria-label="Następne">›</button>`;
+      document.body.appendChild(el);
+      el.addEventListener("click", e => {
+        if (e.target.closest(".lb-p")) return lbGo(-1);
+        if (e.target.closest(".lb-n")) return lbGo(1);
+        el.classList.remove("open");
+      });
+      let x0 = null;
+      el.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
+      el.addEventListener("touchend", e => { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 50) { e.preventDefault(); lbGo(dx < 0 ? 1 : -1); } });
+      addEventListener("keydown", e => { if (!el.classList.contains("open")) return; if (e.key === "ArrowRight") lbGo(1); if (e.key === "ArrowLeft") lbGo(-1); if (e.key === "Escape") el.classList.remove("open"); });
+    }
+    lbGo(0); el.classList.add("open");
+  }
+  function lbGo(step) {
+    lb.i = (lb.i + step + lb.list.length) % lb.list.length;
+    const el = $("#lightbox"), it = lb.list[lb.i];
+    el.querySelector("img").src = it.src; el.querySelector(".lb-cap").textContent = `${it.cap} · ${lb.i + 1}/${lb.list.length}`;
+  }
+
   // ---------- karta szczegółów ----------
   const sheet = $("#sheet");
   async function openInfo(id) {
@@ -613,8 +662,11 @@
     const gm = q => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q + ", " + d.name)}`;
     const fl = (f, dir) => `<li><b>${esc(f.day)} ${DATES[dayIdx(f.day)] || ""}</b> ${esc(f.dep)}–${esc(f.arr)} · ${hm(flightMin(f, dir, d.tz || 0))} · <b>${f.price} zł</b>${f.note ? ` <span class="muted">(${esc(f.note)})</span>` : ""}</li>`;
     sheet.innerHTML = `<div class="sh">
-      <div class="sh-hero">${photoImg(d, "sh-img")}<button class="sh-x" data-sh="close" aria-label="Zamknij">✕</button>
-        <div class="sh-title"><h2>${esc(d.name)}</h2><span>${esc(d.country)}</span></div></div>
+      <div class="sh-hero"><div class="gal" id="gal"><div class="gal-s" data-gi="0">${photoImg(d, "sh-img")}</div>
+        ${(inf.see || []).map((x, k) => `<div class="gal-s" data-gi="${k + 1}"><img class="sh-img" alt="" data-att="${k}"><span class="gal-cap">${esc(x)}</span></div>`).join("")}</div>
+        <button class="sh-x" data-sh="close" aria-label="Zamknij">✕</button>
+        <div class="gal-dots">${[0, ...(inf.see || [])].map((_, k) => `<i class="${k ? "" : "on"}"></i>`).join("")}</div>
+        <div class="sh-title"><h2>${esc(d.name)}</h2><span>${esc(d.country)} · przesuń, żeby zobaczyć atrakcje</span></div></div>
       <div class="sh-body">
         ${inf.about ? `<p class="sh-about">${esc(inf.about)}</p>` : ""}
         <h3>🌤 Pogoda ${c ? `${esc(c.o.day)} ${DATES[dayIdx(c.o.day)]} – ${esc(c.b.day)} ${DATES[dayIdx(c.b.day)]}` : ""}</h3>
@@ -624,7 +676,8 @@
           <div><div class="muted">Powrót</div><ul>${d.back.map(f => fl(f, "back")).join("")}</ul></div></div>
         ${c ? `<p>Najtańsza para: <b>${zl(c.flight)}</b> dla ${S.persons} os. · ${hoursThere(c)} h na miejscu</p>` : ""}
         ${d.airport ? `<p>🚌 <b>${esc(d.airport)}</b> · ok. ${d.apKm} km do centrum${d.apMin ? `, ok. ${d.apMin} min` : ""}</p>` : ""}
-        ${inf.see ? `<h3>🏛 Co zobaczyć</h3><ul class="sh-list">${inf.see.map(x => `<li><a href="${gm(x)}" target="_blank" rel="noopener">${esc(x)}</a></li>`).join("")}</ul>` : ""}
+        ${inf.see ? `<h3>🏛 Co zobaczyć</h3><div class="att">${inf.see.map((x, k) => `<div class="att-i"><button class="att-ph" data-sh="lb" data-k="${k + 1}"><img alt="" data-att="${k}"></button>
+          <div><b>${esc(x)}</b><br><a href="${gm(x)}" target="_blank" rel="noopener">Pokaż na mapie ↗</a></div></div>`).join("")}</div>` : ""}
         ${inf.eat ? `<h3>🍝 Czego spróbować</h3><ul class="sh-list">${inf.eat.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
         ${d.note ? `<p class="note">📝 ${esc(d.note)}</p>` : ""}
         <div class="actions">
@@ -641,11 +694,32 @@
     sheet.dataset.id = id;
     sheet.showModal();
     sheet.querySelector(".sh-body").scrollTop = 0;
+    const gal = $("#gal");
+    gal.addEventListener("scroll", () => {
+      const k = Math.round(gal.scrollLeft / gal.clientWidth);
+      sheet.querySelectorAll(".gal-dots i").forEach((dot, n) => dot.classList.toggle("on", n === k));
+    }, { passive: true });
+    gal.addEventListener("click", e => { const sl = e.target.closest(".gal-s"); if (sl) openLb(d, inf, +sl.dataset.gi); });
+    (inf.see || []).forEach(async (x, k) => {
+      const src = await attractionPhoto(d, x);
+      sheet.querySelectorAll(`img[data-att="${k}"]`).forEach(img => {
+        if (sheet.dataset.id !== id) return;
+        if (src) img.src = src; else img.closest(".gal-s")?.remove();
+      });
+    });
     const w = c ? await loadWeather(d, c) : null;
     const box = $("#sh-wx"); if (box && sheet.dataset.id === id) box.innerHTML = weatherHTML(w).replace("${t}", d.temp ?? "?");
   }
+  function openLb(d, inf, start) {
+    const list = [{ src: photoOf(d), cap: d.name }, ...(inf.see || []).map(x => ({ src: d._att?.[x] || "", cap: x }))];
+    const ok = list.map((x, k) => ({ ...x, k })).filter(x => x.src);
+    if (!ok.length) return;
+    lightbox(ok, Math.max(0, ok.findIndex(x => x.k === start)));
+  }
   sheet.addEventListener("click", e => {
     if (e.target === sheet) return sheet.close();
+    const lbb = e.target.closest("[data-sh=lb]");
+    if (lbb) { const d = dest(sheet.dataset.id); return openLb(d, (window.CITY_INFO || {})[d.name] || {}, +lbb.dataset.k); }
     const b = e.target.closest("[data-sh]"); if (!b) return;
     const id = sheet.dataset.id, d = dest(id), a = b.dataset.sh;
     if (a === "close") return sheet.close();
@@ -674,14 +748,14 @@
   const hash = s => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
   function cardHTML(d) {
     const c = pairAny(d);
-    const fl = (f, dir, label) => `<div class="sw-row"><span>${label}</span><b>${esc(f.day)} ${DATES[dayIdx(f.day)] || ""} · ${esc(f.dep)}–${esc(f.arr)}</b><span>${hm(flightMin(f, dir, d.tz || 0))}</span><b class="pr">${f.price} zł</b></div>`;
+    const fl = (f, dir, label) => `<div class="sw-row"><span>${label}</span><b>${esc(f.day)} ${DATES[dayIdx(f.day)] || ""} ${esc(f.dep)}–${esc(f.arr)}</b><span>${hm(flightMin(f, dir, d.tz || 0)).replace(" min", "").replace(" h ", "h")}</span><b class="pr">${f.price} zł</b></div>`;
     const notes = c ? [c.o.note, c.b.note, d.note].filter(Boolean) : [d.note].filter(Boolean);
     return `<div class="sw-card" data-id="${d.id}">
       <div class="sw-photo"><span class="sw-fallback">✈</span>${photoImg(d, "sw-img")}<button class="sw-i" data-info="${d.id}" aria-label="Szczegóły">i</button></div>
       <div class="stamp yes">TAK</div><div class="stamp no">NIE</div>
       <div class="sw-info">
         <h2>${esc(d.name)} <small>${esc(d.country)} · ~${d.temp ?? "?"}°C</small></h2>
-        ${c ? `${fl(c.o, "out", "🛫 Tam")}${fl(c.b, "back", "🛬 Powrót")}
+        ${c ? `${fl(c.o, "out", "🛫")}${fl(c.b, "back", "🛬")}
         <div class="sw-tags">
           <span>✈ Loty dla ${S.persons}: <b>${zl(c.flight)}</b></span>
           <span>⏱ ${hoursThere(c)} h na miejscu · ${c.n} ${c.n === 1 ? "noc" : c.n < 5 ? "noce" : "nocy"}</span>

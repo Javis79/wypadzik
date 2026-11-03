@@ -1,5 +1,5 @@
 // Service worker: apka działa offline, mapy z cache
-const APP = "wypad-app-v6";
+const APP = "wypad-app-v7";
 const TILES = "tiles-v1";
 const SHELL = ["./", "index.html", "styles.css", "app.js", "data.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png",
   "vendor/leaflet.css", "vendor/leaflet.js"];
@@ -34,8 +34,9 @@ self.addEventListener("fetch", e => {
   }
   if (url.hostname.endsWith("openverse.org")) return;
   // reszta: sieć, a gdy jej brak, cache
-  e.respondWith(fetch(e.request).then(r => {
-    if (r.ok && (url.origin === location.origin)) { const cp = r.clone(); caches.open(APP).then(c => c.put(e.request, cp)); }
+  const same = url.origin === location.origin;
+  e.respondWith(fetch(same ? new Request(e.request.url, { cache: "no-cache", credentials: "same-origin" }) : e.request).then(r => {
+    if (r.ok && same) { const cp = r.clone(); caches.open(APP).then(c => c.put(e.request, cp)); }
     return r;
   }).catch(() => caches.match(e.request, { ignoreSearch: true }).then(r => r || caches.match("index.html"))));
 });
