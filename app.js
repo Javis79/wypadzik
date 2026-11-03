@@ -257,7 +257,7 @@
           out, back, selOut: flightsChanged ? null : d.selOut, selBack: flightsChanged ? null : d.selBack,
           stay: { name: v.sname, perNight: +v.snight || 0, link: v.slink },
         });
-        if (renamed) { nd.wiki = v.name; nd._img = null; }
+        if (renamed) { nd.wiki = v.name; nd._srcs = []; }
         if (!id) S.destinations.push(nd);
         if (!nd.lat || renamed) {
           const g = await geocode(`${v.name} ${v.country}`);
@@ -413,8 +413,8 @@
   }
   $("#reload-photos").addEventListener("click", async () => {
     if (!navigator.onLine) return toast("Potrzebny internet");
-    imgFail.clear(); await window.caches?.delete("img-v2");
-    S.destinations.forEach(d => { d._img = ""; d._imgOrig = ""; });
+    imgFail.clear(); photoLog.length = 0; await window.caches?.delete("img-v2");
+    S.destinations.forEach(d => { d._srcs = []; d._si = 0; d._ovTried = false; });
     await loadPhotos(true); toast("Zdjęcia odświeżone");
   });
   $("#clear-tiles").addEventListener("click", async () => {
@@ -467,53 +467,107 @@
   // ---------- zdjęcia z Wikipedii (po pobraniu zostają w cache, więc działają też offline) ----------
   // Jedno zapytanie do API Wikipedii o zdjęcia wszystkich miast. Rozmiar 960 px, bo Wikimedia
   // odrzuca miniatury w niestandardowych rozmiarach.
-  const photoOf = d => d.photo || d._img || "";
+  // Kolejne źródła: miniatura z Wikipedii → zdjęcie z Openverse (otwarte zdjęcia, m.in. z Flickra) → kolorowe tło.
+  // Przy każdej porażce zapisujemy powód, widać go w „Więcej” i na samej karcie.
+  const photoOf = d => d.photo || (d._srcs || [])[d._si || 0] || "";
   let photoBusy = false;
-  const imgFail = new Set();
+  const imgFail = new Set(), photoLog = [];
+  const plog = (msg) => { photoLog.push(new Date().toLocaleTimeString("pl-PL") + " " + msg); if (photoLog.length > 40) photoLog.shift(); updatePhotoInfo(); };
+  const EN = { Bukareszt: "Bucharest", Cypr: "Larnaca", "Gran Canaria": "Las Palmas", Katania: "Catania", Kopenhaga: "Copenhagen",
+    Lizbona: "Lisbon", Madryt: "Madrid", Mediolan: "Milan", Pafos: "Paphos", Piza: "Pisa", Rzym: "Rome", Saloniki: "Thessaloniki",
+    Sevilla: "Seville", Sztokholm: "Stockholm", Walencja: "Valencia", Wenecja: "Venice", Bolonia: "Bologna", Malta: "Valletta" };
+  async function openverse(d) {
+    if (d._ovTried) return false;
+    d._ovTried = true;
+    try {
+      const q = `${EN[d.name] || d.name} city`;
+      const r = await fetch(`https://api.openverse.org/v1/images/?q=${encodeURIComponent(q)}&page_size=5&aspect_ratio=wide&mature=false`);
+      if (!r.ok) { plog(`Openverse ${d.name}: HTTP ${r.status}`); return false; }
+      const j = await r.json();
+      const hit = (j.results || []).find(x => x.url);
+      if (!hit) { plog(`Openverse ${d.name}: brak wyników`); return false; }
+      d._srcs = [...(d._srcs || []), hit.url, hit.thumbnail].filter(Boolean);
+      return true;
+    } catch (e) { plog(`Openverse ${d.name}: ${e.message}`); return false; }
+  }
   async function loadPhotos(force = false) {
     if (photoBusy || !navigator.onLine) return;
-    const todo = S.destinations.filter(d => !d.photo && (force || !d._img));
+    const todo = S.destinations.filter(d => !d.photo && (force || !(d._srcs || []).length));
     if (!todo.length) return;
     photoBusy = true;
     try {
       const titles = todo.map(d => d.wiki || d.name);
       const url = "https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1" +
-        "&prop=pageimages&piprop=thumbnail|original&pithumbsize=960&pilimit=50&titles=" + encodeURIComponent(titles.join("|"));
-      const j = await (await fetch(url)).json();
-      // mapowanie tytułów po przekierowaniach i normalizacji
+        "&prop=pageimages&piprop=thumbnail&pithumbsize=1024&pilimit=50&titles=" + encodeURIComponent(titles.join("|"));
+      const r = await fetch(url);
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const j = await r.json();
       const alias = {};
       [...(j.query?.normalized || []), ...(j.query?.redirects || [])].forEach(x => { alias[x.from] = x.to; });
       const resolve = t => { let k = t.replace(/_/g, " "); for (let i = 0; i < 3 && alias[k]; i++) k = alias[k]; return k; };
       const pages = {};
       Object.values(j.query?.pages || {}).forEach(pg => { pages[pg.title] = pg; });
+      let n = 0;
       todo.forEach(d => {
-        const pg = pages[resolve(d.wiki || d.name)];
-        if (pg?.thumbnail?.source) { d._img = pg.thumbnail.source; d._imgOrig = pg.original?.source || ""; imgFail.delete(d.id); }
+        const src = pages[resolve(d.wiki || d.name)]?.thumbnail?.source;
+        d._srcs = src ? [src] : []; d._si = 0; d._ovTried = false; imgFail.delete(d.id);
+        if (src) n++;
       });
-      save();
-    } catch (e) { console.warn("zdjęcia", e); }
+      plog(`Wikipedia: ${n}/${todo.length} adresów zdjęć`);
+    } catch (e) {
+      plog(`Wikipedia nie odpowiada: ${e.message}`);
+      todo.forEach(d => { d._srcs = []; d._si = 0; d._ovTried = false; });
+    }
+    for (const d of todo) if (!d._srcs.length) await openverse(d);
+    save();
     photoBusy = false;
     paintPhotos(); updatePhotoInfo();
   }
   function paintPhotos() {
-    document.querySelectorAll("[data-photo]").forEach(img => {
+    document.querySelectorAll("img[data-photo]").forEach(img => {
       const d = dest(img.dataset.photo), src = photoOf(d);
-      if (src && img.getAttribute("src") !== src && !imgFail.has(d.id)) img.src = src;
+      if (src && img.getAttribute("src") !== src && !imgFail.has(d.id)) { img.classList.remove("broken"); img.src = src; }
     });
   }
-  // gdy miniatura się nie wczyta, spróbuj oryginału, a potem pokaż kolorowe tło
-  document.addEventListener("error", e => {
+  // gdy zdjęcie się nie wczyta: następne źródło, potem Openverse, na końcu kolorowe tło z opisem błędu
+  document.addEventListener("error", async e => {
     const img = e.target;
     if (!(img instanceof HTMLImageElement) || !img.dataset.photo) return;
-    const d = dest(img.dataset.photo);
-    if (d?._imgOrig && img.src !== d._imgOrig) { img.src = d._imgOrig; return; }
-    imgFail.add(d?.id); img.removeAttribute("src"); img.classList.add("broken");
+    const d = dest(img.dataset.photo); if (!d) return;
+    if (d.photo && img.getAttribute("src") === d.photo) { plog(`${d.name}: własne zdjęcie nie działa`); }
+    else {
+      plog(`${d.name}: nie wczytało się ${String(img.getAttribute("src")).slice(0, 60)}…`);
+      d._si = (d._si || 0) + 1;
+      if (d._si >= (d._srcs || []).length) await openverse(d);
+      if (d._si < (d._srcs || []).length) { save(); img.src = photoOf(d); return; }
+    }
+    imgFail.add(d.id); img.removeAttribute("src"); img.classList.add("broken"); updatePhotoInfo();
   }, true);
-  const photoImg = (d, cls) => `<img class="${cls}" data-photo="${d.id}" alt="" draggable="false" ${photoOf(d) ? `src="${esc(photoOf(d))}"` : ""}>`;
+  document.addEventListener("load", e => {
+    const img = e.target;
+    if (img instanceof HTMLImageElement && img.dataset.photo) img.closest(".sw-photo,.sh-hero")?.classList.add("has-img");
+  }, true);
+  const photoImg = (d, cls) => `<img class="${cls}" data-photo="${d.id}" alt="" draggable="false" ${photoOf(d) && !imgFail.has(d.id) ? `src="${esc(photoOf(d))}"` : ""}>`;
   function updatePhotoInfo() {
     const el = $("#photo-info"); if (!el) return;
-    const n = S.destinations.filter(d => photoOf(d)).length;
-    el.textContent = `Zdjęcia: ${n} z ${S.destinations.length} miast ma adres zdjęcia${imgFail.size ? `, ${imgFail.size} nie chce się wczytać` : ""}.`;
+    const n = S.destinations.filter(d => photoOf(d) && !imgFail.has(d.id)).length;
+    el.innerHTML = `Zdjęcia: ${n} z ${S.destinations.length} miast${imgFail.size ? `, ${imgFail.size} nie chce się wczytać` : ""}.` +
+      (photoLog.length ? `<details><summary>Szczegóły (do wysłania Claude'owi)</summary><pre class="plog">${esc(photoLog.join("\n"))}</pre></details>` : "");
+  }
+  // własne zdjęcie z galerii telefonu (zmniejszone do 960 px, zapisane w apce)
+  function pickPhoto(id) {
+    const inp = document.createElement("input");
+    inp.type = "file"; inp.accept = "image/*";
+    inp.onchange = async () => {
+      const file = inp.files[0]; if (!file) return;
+      const bmp = await createImageBitmap(file);
+      const k = Math.min(1, 960 / Math.max(bmp.width, bmp.height));
+      const cv = document.createElement("canvas"); cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+      cv.getContext("2d").drawImage(bmp, 0, 0, cv.width, cv.height);
+      const d = dest(id); d.photo = cv.toDataURL("image/jpeg", 0.75); imgFail.delete(id);
+      save(); toast("Zdjęcie ustawione"); renderSwipe(); if (sheet.open) openInfo(id);
+    };
+    inp.click();
   }
 
   // ---------- pogoda (Open-Meteo, bez klucza) ----------
@@ -576,6 +630,7 @@
         <div class="actions">
           ${c ? `<a class="btn small" href="${stayLink("booking", d, c)}" target="_blank" rel="noopener">Booking ↗</a><a class="btn small" href="${stayLink("airbnb", d, c)}" target="_blank" rel="noopener">Airbnb ↗</a>` : ""}
           <a class="btn small" href="https://pl.wikipedia.org/wiki/${encodeURIComponent(d.name)}" target="_blank" rel="noopener">Wikipedia ↗</a>
+          <button class="btn small" data-sh="photo">📷 Własne zdjęcie</button>
           <button class="btn small" data-sh="edit">✎ Edytuj</button>
         </div>
       </div>
@@ -595,6 +650,7 @@
     const id = sheet.dataset.id, d = dest(id), a = b.dataset.sh;
     if (a === "close") return sheet.close();
     if (a === "edit") { sheet.close(); return editDest(id); }
+    if (a === "photo") return pickPhoto(id);
     sheet.close();
     const v = a === "yes" ? 1 : -1;
     if (deck[0]?.id === id && $("#view-swipe").classList.contains("active")) return fling(v);

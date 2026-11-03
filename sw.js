@@ -1,5 +1,5 @@
 // Service worker: apka działa offline, mapy z cache
-const APP = "wypad-app-v5";
+const APP = "wypad-app-v6";
 const TILES = "tiles-v1";
 const SHELL = ["./", "index.html", "styles.css", "app.js", "data.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png",
   "vendor/leaflet.css", "vendor/leaflet.js"];
@@ -24,17 +24,15 @@ self.addEventListener("fetch", e => {
     return;
   }
   if (url.hostname === "nominatim.openstreetmap.org") return;
-  // zdjęcia miast: najpierw cache (działają offline po pierwszym obejrzeniu)
-  if (url.hostname.endsWith("wikipedia.org") || url.hostname.includes("open-meteo.com")) return;
-  if (url.hostname === "upload.wikimedia.org") {
-    e.respondWith(caches.open("img-v2").then(async c => {
-      const hit = await c.match(e.request);
-      if (hit) return hit;
-      try { const r = await fetch(e.request); if (r.ok || r.type === "opaque") c.put(e.request, r.clone()); return r; }
-      catch { return new Response("", { status: 504 }); }
-    }));
+  // zdjęcia miast (Wikipedia, Openverse, Flickr...): najpierw sieć, a bez internetu wersja z cache
+  if (e.request.destination === "image" && url.origin !== location.origin) {
+    e.respondWith(fetch(e.request).then(r => {
+      if (r.ok || r.type === "opaque") { const cp = r.clone(); caches.open("img-v2").then(c => c.put(e.request, cp)).catch(() => {}); }
+      return r;
+    }).catch(() => caches.match(e.request).then(r => r || Response.error())));
     return;
   }
+  if (url.hostname.endsWith("openverse.org")) return;
   // reszta: sieć, a gdy jej brak, cache
   e.respondWith(fetch(e.request).then(r => {
     if (r.ok && (url.origin === location.origin)) { const cp = r.clone(); caches.open(APP).then(c => c.put(e.request, cp)); }
