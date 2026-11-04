@@ -118,10 +118,12 @@
 </section>
 
 <header class="top">
-  <h1 class="wordmark">Wypad <span>we dwoje</span></h1>
+  <div class="top-l">
+    <button type="button" id="back" class="back" aria-label="Moje wypady" title="Moje wypady"><svg class="ic"><use href="#i-left"/></svg></button>
+    <h1 class="trip-t" id="trip-title"></h1>
+  </div>
   <div class="top-r">
     <span id="net" class="net"></span>
-    <button id="who" class="who" title="Przełącz, kto głosuje" aria-label="Kto głosuje"><b data-p="K">K</b><b data-p="Z">Z</b><span id="who-label" class="sr"></span></button>
   </div>
 </header>
 
@@ -141,14 +143,14 @@
 
   <!-- TABELA -->
   <section id="view-table" class="view">
-    <p class="muted lede">Wpisujcie ceny prosto w tabeli, zapisuje się samo. Nocleg i dojazdy liczone dla dwojga.</p>
+    <p class="muted lede">Wpisujcie ceny prosto w tabeli, zapisuje się samo. Nocleg i dojazdy liczone dla całej grupy.</p>
     <div id="table" class="tbl-wrap"></div>
   </section>
 
   <!-- PORÓWNANIE -->
   <section id="view-compare" class="view">
     <div class="filters">
-      <label>Budżet na dwoje (zł)
+      <label>Budżet na wszystkich (zł)
         <input id="budget" type="number" inputmode="numeric" min="0" step="50">
       </label>
       <label>Osoby
@@ -156,7 +158,7 @@
       </label>
       <label>Sortuj<select id="sort"></select></label>
       <label>Powrót najpóźniej
-        <select id="maxBack"><option value="ndz">ndz 22.11</option><option value="pon">pon 23.11</option><option value="wt">wt 24.11</option></select>
+        <select id="maxBack"></select>
       </label>
       <label class="check"><input type="checkbox" id="hideRej"> Ukryj odrzucone</label>
       <label class="check"><input type="checkbox" id="onlyFav"> Tylko te na tak</label>
@@ -190,17 +192,40 @@
   <!-- USTAWIENIA -->
   <section id="view-more" class="view">
     <div class="panel">
-      <h2>Razem na dwóch telefonach</h2>
-      <div id="pair"></div>
+      <h2>Wypad</h2>
+      <form id="tp-form" class="tp-form" novalidate>
+        <label>Tytuł<input id="tp-title" maxlength="120" required></label>
+        <div class="grid2"><label>Od<input id="tp-start" type="date"></label><label>Do<input id="tp-end" type="date"></label></div>
+        <p class="wz-ferr" id="tp-err" role="alert"></p>
+        <button type="submit" class="btn wide" id="tp-save">Zapisz zmiany</button>
+      </form>
     </div>
     <div class="panel">
-      <h2>Konto</h2>
-      <p class="muted" id="acct-info">…</p>
-      <button class="btn wide" id="signout">Wyloguj</button>
+      <h2>Osoby</h2>
+      <ul class="tp-people" id="tp-people" aria-live="polite"></ul>
+      <form id="tp-add-f" novalidate>
+        <label for="tp-login">Dodaj po loginie</label>
+        <div class="wz-row">
+          <div class="wz-combo">
+            <input id="tp-login" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="tp-sugg" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="20" placeholder="login">
+            <ul class="wz-sugg" id="tp-sugg" role="listbox" aria-label="Osoby" hidden></ul>
+          </div>
+          <button type="submit" class="btn" id="tp-add"><svg class="ic"><use href="#i-plus"/></svg>Dodaj</button>
+        </div>
+        <p class="wz-ferr" id="tp-e-login" role="alert"></p>
+      </form>
+      <button type="button" class="btn wide" id="tp-invite"><svg class="ic"><use href="#i-ext"/></svg>Wyślij link osobom z wypadu</button>
+      <button type="button" class="btn wide danger" id="tp-leave">Opuść wypad</button>
+      <button type="button" class="btn wide danger" id="tp-remove" hidden>Usuń wypad</button>
+    </div>
+    <div class="panel">
+      <h2>Dodaj kierunki</h2>
+      <p class="muted">Najtańsze loty z Ryanaira na daty tego wypadu albo miasto dodane ręcznie.</p>
+      <button type="button" class="btn wide" id="tp-dests"><svg class="ic"><use href="#i-plus"/></svg>Dokąd tanio?</button>
     </div>
     <div class="panel">
       <h2>Kopia zapasowa</h2>
-      <p class="muted">Plik z wszystkimi danymi z tego telefonu. Import zastępuje dane na tym telefonie.</p>
+      <p class="muted">Plik z danymi tego wypadu. Import zastępuje kierunki, głosy i miejsca tego wypadu u wszystkich.</p>
       <button class="btn wide" id="export"><svg class="ic"><use href="#i-down"/></svg>Eksportuj (plik .json)</button>
       <label class="btn wide filebtn">Importuj z pliku<input type="file" id="import" accept="application/json,.json" hidden></label>
       <button class="btn wide" id="share">Udostępnij…</button>
@@ -214,10 +239,6 @@
       <h2>Mapy offline</h2>
       <p class="muted" id="cache-info">…</p>
       <button class="btn wide danger" id="clear-tiles">Wyczyść zapisane mapy</button>
-    </div>
-    <div class="panel">
-      <h2>Reset</h2>
-      <button class="btn wide danger" id="reset">Przywróć przykładowe dane</button>
     </div>
   </section>
 </main>
@@ -335,6 +356,8 @@
 <script src="data.js"></script>
 <script src="info.js"></script>
 <script src="motion.js"></script>
+<script src="group.js"></script>
+<script src="flights.js"></script>
 <script src="auth.js"></script>
 <script src="sync.js"></script>
 <script src="trips.js"></script>

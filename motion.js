@@ -103,7 +103,7 @@
   }
 
   // match: błysk, odbitka wysuwa się z aparatu i wywołuje, taśma, dopisek markerem
-  function celebrate({ name, photo, line, onCompare }) {
+  function celebrate({ name, photo, line, marks = [], onCompare }) {
     document.getElementById("match")?.remove();
     const el = document.createElement("div");
     el.id = "match"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", `Match: ${name}`); el.setAttribute("aria-modal", "true");
@@ -112,7 +112,7 @@
         <div class="m-slot" aria-hidden="true"></div>
         <figure class="m-print">
           <span class="m-tape a"></span><span class="m-tape b"></span>
-          <div class="m-photo">${photo ? `<img alt="" src="${esc(photo)}">` : ""}<span class="m-k">K ✓</span><span class="m-z">Z ✓</span></div>
+          <div class="m-photo">${photo ? `<img alt="" src="${esc(photo)}">` : ""}${marks.length ? `<span class="m-marks">${marks.map(m => `<span class="m-mk">${esc(m)}${String(m)[0] === "+" ? "" : " ✓"}</span>`).join("")}</span>` : ""}</div>
           <figcaption><span class="m-write">${esc(name)}!</span><small>${esc(line)}</small></figcaption>
         </figure>
         <div class="m-acts"><button class="btn" data-m="close">Głosujemy dalej</button><button class="btn primary" data-m="cmp">Zobacz w Porównaj</button></div>
@@ -154,7 +154,7 @@
     ], { duration: 260, delay: 1150 + i * 140, easing: "cubic-bezier(.7,0,.84,0)", fill: "both" }));
     el.querySelector(".m-write").animate([{ clipPath: "inset(-20% 100% -20% 0)" }, { clipPath: "inset(-20% 0 -20% 0)" }],
       { duration: 820, delay: 1450, easing: "cubic-bezier(.45,.05,.4,1)", fill: "both" });
-    el.querySelectorAll(".m-k,.m-z").forEach((t, i) => t.animate([{ transform: "scale(0) rotate(-20deg)" }, { transform: "scale(1) rotate(-4deg)" }],
+    el.querySelectorAll(".m-mk").forEach((t, i) => t.animate([{ transform: "scale(0) rotate(-20deg)" }, { transform: "scale(1) rotate(-4deg)" }],
       { duration: 320, delay: 1800 + i * 160, easing: "cubic-bezier(.16,1,.3,1)", fill: "both" }));
     el.querySelectorAll(".m-acts, figcaption small").forEach(t => t.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }],
       { duration: 400, delay: 2100, easing: EASE, fill: "both" }));
