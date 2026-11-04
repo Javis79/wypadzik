@@ -152,7 +152,7 @@
     }
   });
   $("#tr-new").addEventListener("click", () => {
-    if (window.WypadWizard && window.WypadWizard.open) window.WypadWizard.open({ onCreated: () => { api.refresh().then(render); } });
+    if (window.WypadWizard && window.WypadWizard.open) window.WypadWizard.open({ onDone: () => { render(); api.refresh().then(render); } });
     else toast("Kreator wkrótce");
   });
   $("#tr-out").addEventListener("click", () => { if (confirm("Wylogować z tego telefonu?")) WypadAuth.signOut(); });

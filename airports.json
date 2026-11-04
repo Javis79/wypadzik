@@ -207,7 +207,7 @@
   "countryCode": "fr",
   "lat": 43.3235,
   "lng": 3.3539,
-  "metro": "Beziers"
+  "metro": "Béziers"
  },
  {
   "code": "BIQ",
@@ -457,7 +457,7 @@
   "countryCode": "dk",
   "lat": 55.6181,
   "lng": 12.6561,
-  "metro": "Copenhagen"
+  "metro": "Kopenhaga"
  },
  {
   "code": "ORK",
@@ -537,7 +537,7 @@
   "countryCode": "hr",
   "lat": 42.5614,
   "lng": 18.2683,
-  "metro": "Dubrovnik"
+  "metro": "Dubrownik"
  },
  {
   "code": "NRN",
@@ -767,7 +767,7 @@
   "countryCode": "de",
   "lat": 53.8054,
   "lng": 10.7192,
-  "metro": "Hamburg"
+  "metro": "Lubeka"
  },
  {
   "code": "HEL",
@@ -797,7 +797,7 @@
   "countryCode": "ro",
   "lat": 47.17889,
   "lng": 27.617,
-  "metro": "IASI"
+  "metro": "Iasi"
  },
  {
   "code": "IBZ",
@@ -917,7 +917,7 @@
   "countryCode": "sk",
   "lat": 48.6631,
   "lng": 21.2411,
-  "metro": "Kosice"
+  "metro": "Koszyce"
  },
  {
   "code": "KUN",
@@ -1107,7 +1107,7 @@
   "countryCode": "lu",
   "lat": 49.6233,
   "lng": 6.2044,
-  "metro": "Luxembourg"
+  "metro": "Luksemburg"
  },
  {
   "code": "LCJ",
@@ -1327,7 +1327,7 @@
   "countryCode": "fr",
   "lat": 43.7574,
   "lng": 4.41635,
-  "metro": "Nimes"
+  "metro": "Nîmes"
  },
  {
   "code": "NWI",

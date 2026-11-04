@@ -14,7 +14,11 @@ const raw = (await res.json()).map(a => ({
 }));
 // metro: miasto zbiorcze (np. "Mediolan-Bergamo" -> Mediolan), żeby lotniska jednego miasta się grupowały
 const known = new Set(raw.map(a => a.city));
+// Ryanair podaje czasem miasto po angielsku, a po polsku tylko w nazwie lotniska (CPH: name „Kopenhaga”, city „Copenhagen”).
+// Reguła po języku nie działa (bywa też odwrotnie: name „Lisbon”, city „Lizbona”), więc wyjątki są wypisane ręcznie.
+const METRO = { CPH: "Kopenhaga", DBV: "Dubrownik", LUX: "Luksemburg", KSC: "Koszyce", LBC: "Lubeka", IAS: "Iasi", BZR: "Béziers", FNI: "Nîmes" };
 const metroOf = a => {
+  if (METRO[a.code]) return METRO[a.code];
   if (a.name.startsWith(a.city)) return a.city;
   const dash = a.name.split(/[-\/]/)[0].trim();
   if (dash && dash !== a.name && (!dash.includes(" ") || known.has(dash))) return dash;
@@ -26,4 +30,5 @@ const list = raw.map(a => ({ ...a, metro: metroOf(a) }));
 list.sort((a, b) => a.city.localeCompare(b.city, "pl") || a.code.localeCompare(b.code));
 fs.writeFileSync(out, JSON.stringify(list, null, 1) + "\n");
 for (const a of list) if (a.metro !== a.city) console.log(`${a.code}: "${a.name}" city=${a.city} -> metro=${a.metro}`);
+for (const a of list) if (!a.name.includes(a.metro)) console.log(`metro spoza nazwy ${a.code}: "${a.name}" -> ${a.metro}`);
 console.log(list.length + " lotnisk -> " + out);

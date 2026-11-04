@@ -25,15 +25,24 @@
     Tirana: [0, "Tirana", "Tirana (TIA)", 17, 30], Walencja: [0, "Valencia", "Walencja (VLC)", 9, 25],
     Wenecja: [0, "Venice", "Treviso (TSF) lub Marco Polo (VCE)", 40, 60],
   };
+  // kierunek w formacie apki; brakujące pola dostają wartości domyślne (używa tego też kreator wypadu)
+  const pick = (v, d) => (v === undefined ? d : v);
+  const makeDestination = (f = {}) => {
+    const name = pick(f.name, "");
+    return {
+      id: pick(f.id, name.toLowerCase().normalize("NFD").replace(/[^a-z]/g, "")),
+      name, country: pick(f.country, ""), lat: pick(f.lat, null), lng: pick(f.lng, null), temp: pick(f.temp, null),
+      note: pick(f.note, ""), tz: pick(f.tz, 0), wiki: pick(f.wiki, name), photo: pick(f.photo, ""), airport: pick(f.airport, ""),
+      apKm: pick(f.apKm, null), apMin: pick(f.apMin, null),
+      out: pick(f.out, []), back: pick(f.back, []), selOut: pick(f.selOut, null), selBack: pick(f.selBack, null),
+      stay: pick(f.stay, { name: "", perNight: 0, link: "" }), dailySpend: pick(f.dailySpend, 0), transferCost: pick(f.transferCost, 0),
+      votes: pick(f.votes, {}), pros: pick(f.pros, ""), cons: pick(f.cons, ""), places: pick(f.places, []),
+    };
+  };
+  window.makeDestination = makeDestination;
   const D = (name, country, lat, lng, temp, _s, _d, _t, out, back, note = "") => {
     const [tz, wiki, airport, apKm, apMin] = X[name] || [0, name, "", null, null];
-    return {
-      id: name.toLowerCase().normalize("NFD").replace(/[^a-z]/g, ""),
-      name, country, lat, lng, temp, note, tz, wiki, photo: "", airport, apKm, apMin,
-      out: out.map(fl), back: back.map(fl), selOut: null, selBack: null,
-      stay: { name: "", perNight: 0, link: "" }, dailySpend: 0, transferCost: 0,
-      votes: {}, pros: "", cons: "", places: [],
-    };
+    return makeDestination({ name, country, lat, lng, temp, note, tz, wiki, airport, apKm, apMin, out: out.map(fl), back: back.map(fl) });
   };
 
   window.SAMPLE_DATA = {

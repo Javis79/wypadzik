@@ -232,6 +232,102 @@
 </nav>
 
 <dialog id="sheet" class="sheet"></dialog>
+<dialog id="wizard" class="sheet" aria-labelledby="wz-h">
+  <div class="wz">
+    <header class="wz-top">
+      <button type="button" class="wz-ib" id="wz-back" aria-label="Wstecz"><svg class="ic"><use href="#i-left"/></svg></button>
+      <div class="wz-ttl"><span id="wz-n">Krok 1 z 3</span><h2 id="wz-h">Kiedy i skąd</h2></div>
+      <button type="button" class="wz-ib" id="wz-x" aria-label="Zamknij kreator"><svg class="ic"><use href="#i-x"/></svg></button>
+    </header>
+    <div class="wz-body" id="wz-body">
+      <section class="wz-step" id="wz-s1">
+        <form id="wz-f1" novalidate>
+          <div class="wz-2">
+            <div><label for="wz-start">Wylot</label><input id="wz-start" type="date" required></div>
+            <div><label for="wz-end">Powrót</label><input id="wz-end" type="date" required></div>
+          </div>
+          <p class="wz-ferr" id="wz-e-dates" role="alert"></p>
+          <label for="wz-title">Tytuł</label>
+          <input id="wz-title" maxlength="60" autocomplete="off" placeholder="podpowie się z dat">
+          <p class="wz-ferr" id="wz-e-title" role="alert"></p>
+          <label for="wz-origin">Lotnisko wylotu</label>
+          <div class="wz-combo">
+            <input id="wz-origin" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="wz-ap-list" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="miasto albo kod, np. KRK">
+            <ul class="wz-sugg" id="wz-ap-list" role="listbox" aria-label="Lotniska" hidden></ul>
+          </div>
+          <p class="wz-ferr" id="wz-e-origin" role="alert"></p>
+          <fieldset class="wz-flex"><legend>Wylot</legend>
+            <label class="chip"><input type="radio" name="wz-fout" value="0" checked>dokładnie</label>
+            <label class="chip"><input type="radio" name="wz-fout" value="1">±1 dzień</label>
+            <label class="chip"><input type="radio" name="wz-fout" value="2">±2 dni</label>
+          </fieldset>
+          <fieldset class="wz-flex"><legend>Powrót</legend>
+            <label class="chip"><input type="radio" name="wz-fback" value="0" checked>dokładnie</label>
+            <label class="chip"><input type="radio" name="wz-fback" value="1">±1 dzień</label>
+            <label class="chip"><input type="radio" name="wz-fback" value="2">±2 dni</label>
+          </fieldset>
+          <p class="wz-err" id="wz-e1" role="alert"></p>
+          <button type="submit" hidden></button>
+        </form>
+      </section>
+      <section class="wz-step" id="wz-s2" hidden>
+        <p class="wz-lede">Dodaj znajomych po loginie albo wyślij im link. Możesz to zrobić też później.</p>
+        <form id="wz-f2" novalidate>
+          <label for="wz-login">Login</label>
+          <div class="wz-row">
+            <div class="wz-combo">
+              <input id="wz-login" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="wz-pp-list" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="20" placeholder="np. zuzia">
+              <ul class="wz-sugg" id="wz-pp-list" role="listbox" aria-label="Osoby" hidden></ul>
+            </div>
+            <button type="submit" class="btn" id="wz-add"><svg class="ic"><use href="#i-plus"/></svg>Dodaj</button>
+          </div>
+          <p class="wz-ferr" id="wz-e-login" role="alert"></p>
+        </form>
+        <div class="wz-people" id="wz-people" aria-live="polite"></div>
+        <button type="button" class="btn wide" id="wz-invite"><svg class="ic"><use href="#i-ext"/></svg>Wyślij link-zaproszenie</button>
+      </section>
+      <section class="wz-step" id="wz-s3" hidden>
+        <p class="wz-err" id="wz-e3" role="alert" hidden></p>
+        <p class="wz-load" id="wz-load" hidden>Szukam tanich lotów…</p>
+        <div class="filters wz-filters" id="wz-filters" hidden>
+          <div><label for="wz-max">do <b id="wz-max-v"></b></label><input id="wz-max" type="range"></div>
+          <div><label for="wz-country">Kraj</label><select id="wz-country"></select></div>
+        </div>
+        <p class="muted wz-note" id="wz-note" hidden>Ceny za osobę, tam i z powrotem. Stuknij, żeby wybrać.</p>
+        <div class="wz-grid" id="wz-grid"></div>
+        <p class="muted" id="wz-none" hidden>Nic w tej cenie. Przesuń suwak albo zmień kraj.</p>
+        <div id="wz-extra-wrap" hidden>
+          <h3 class="wz-sub">Dodane przez was</h3>
+          <div class="wz-grid" id="wz-extra"></div>
+        </div>
+        <div class="wz-more">
+          <button type="button" class="btn wide" id="wz-man-b" aria-expanded="false" aria-controls="wz-man"><svg class="ic"><use href="#i-plus"/></svg>Dodaj miasto ręcznie</button>
+          <form id="wz-man" class="wz-box" novalidate hidden>
+            <label for="wz-man-in">Miasto</label>
+            <div class="wz-row">
+              <input id="wz-man-in" autocomplete="off" placeholder="np. Neapol">
+              <button type="submit" class="btn" id="wz-man-go">Dodaj</button>
+            </div>
+            <p class="wz-ferr" id="wz-e-man" role="alert"></p>
+          </form>
+          <button type="button" class="btn wide" id="wz-copy-b" aria-expanded="false" aria-controls="wz-copy"><svg class="ic"><use href="#i-swap"/></svg>Skopiuj z poprzedniego wypadu</button>
+          <p class="muted" id="wz-copy-hint" hidden>Nie masz jeszcze innych wypadów z kierunkami.</p>
+          <div id="wz-copy" class="wz-box" hidden>
+            <label for="wz-copy-sel">Wypad</label>
+            <div class="wz-row"><select id="wz-copy-sel"></select><button type="button" class="btn" id="wz-copy-go">Skopiuj</button></div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <footer class="wz-foot">
+      <span id="wz-status" aria-live="polite">Krok 1 z 3</span>
+      <div class="wz-acts">
+        <button type="button" class="btn" id="wz-skip" hidden>Pomiń</button>
+        <button type="button" class="btn wz-go" id="wz-next">Dalej</button>
+      </div>
+    </footer>
+  </div>
+</dialog>
 <dialog id="dlg"><form method="dialog" id="dlg-form"></form></dialog>
 <div id="toast" role="status"></div>
 
@@ -243,6 +339,7 @@
 <script src="sync.js"></script>
 <script src="trips.js"></script>
 <script src="fares.js"></script>
+<script src="wizard.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
