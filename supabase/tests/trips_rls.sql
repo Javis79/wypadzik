@@ -7,6 +7,29 @@ values (gen_random_uuid(), 't_ala@wypad.app', '{"login":"t_ala","name":"Ala"}'),
        (gen_random_uuid(), 't_ewa@wypad.app', '{"login":"t_ewa","name":"Ewa"}');
 
 do $$
+declare msg text;
+begin
+  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 't_zly@wypad.app', '{"login":"t_inny","name":"X"}'); msg := 'brak błędu';
+  exception when others then msg := sqlerrm; end;
+  assert msg = 'bad_email', 'login/email niezgodne: ' || msg;
+  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 'ab@wypad.app', '{"login":"ab","name":"X"}'); msg := 'brak błędu';
+  exception when others then msg := sqlerrm; end;
+  assert msg = 'bad_login', 'za krótki login: ' || msg;
+  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 't_a b@wypad.app', '{"login":"t_a b","name":"X"}'); msg := 'brak błędu';
+  exception when others then msg := sqlerrm; end;
+  assert msg = 'bad_login', 'login ze spacją: ' || msg;
+  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 't_ąla@wypad.app', '{"login":"t_ąla","name":"X"}'); msg := 'brak błędu';
+  exception when others then msg := sqlerrm; end;
+  assert msg = 'bad_login', 'login z Unicode: ' || msg;
+  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 't_obcy@gmail.com', '{"login":"t_obcy","name":"X"}'); msg := 'brak błędu';
+  exception when others then msg := sqlerrm; end;
+  assert msg = 'bad_email', 'obca domena: ' || msg;
+  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 't_dluga_nazwa_loginu_xx@wypad.app', '{"login":"t_dluga_nazwa_loginu_xx"}'); msg := 'brak błędu';
+  exception when others then msg := sqlerrm; end;
+  assert msg = 'bad_login', 'za długi login: ' || msg;
+end $$;
+
+do $$
 declare
   ala uuid; ola uuid; ewa uuid; trip uuid; n int; tok text; msg text; r record;
 begin
@@ -50,8 +73,9 @@ begin
   assert n = 0, 'ola widzi trips przez RLS';
   select count(*) into n from public.trip_members;
   assert n = 0, 'ola widzi trip_members przez RLS';
-  select count(*) into n from public.trip_items;
-  assert n = 0, 'ola widzi trip_items';
+  begin perform 1 from public.trip_items; msg := 'brak błędu';
+  exception when insufficient_privilege then msg := 'denied'; end;
+  assert msg = 'denied', 'trip_items dostępne bezpośrednio: ' || msg;
   begin perform * from public.trip_pull(trip, null); msg := 'brak błędu';
   exception when others then msg := sqlerrm; end;
   assert msg = 'not_member', 'trip_pull: ' || msg;
@@ -182,6 +206,22 @@ begin
   perform public.delete_trip(current_setting('t.trip')::uuid);
   select count(*) into n from public.my_trips();
   assert n = 0, 'delete_trip przez właściciela';
+end $$;
+
+set local role authenticated;
+select set_config('request.jwt.claims', json_build_object('sub', current_setting('t.ewa'))::text, true);
+do $$
+declare t public.trips;
+begin
+  t := public.create_trip('Sam', null, null, 'KRK');
+  perform set_config('t.trip2', t.id::text, true);
+  perform public.leave_trip(t.id);
+end $$;
+
+reset role;
+do $$ begin
+  assert (select count(*) from public.trips where id = current_setting('t.trip2')::uuid) = 0, 'wypad nie zniknął po wyjściu ostatniej osoby';
+  assert (select count(*) from public.trip_members where trip_id = current_setting('t.trip2')::uuid) = 0, 'członkowie zostali';
 end $$;
 
 rollback;
