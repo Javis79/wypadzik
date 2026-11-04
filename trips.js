@@ -3,13 +3,15 @@
    żeby działała bez sieci. Klucz w WypadAuth to publiczny klucz „publishable”, przeznaczony do przeglądarki. */
 (() => {
   const URL_ = WypadAuth.URL, KEY = WypadAuth.KEY;
-  const LS = "wypad-trips";
+  const LS = "wypad-trips";          // lista każdego konta leży pod „wypad-trips:<id>”; stary globalny klucz ignorujemy
+  const lsKey = () => WypadAuth.user ? `${LS}:${WypadAuth.user.id}` : null;
   const MON = ["sty", "lut", "mar", "kwi", "maj", "cze", "lip", "sie", "wrz", "paź", "lis", "gru"];
 
   const toTrip = r => ({ id: r.id, title: r.title, start: r.start_date, end: r.end_date, origin: r.origin, createdBy: r.created_by, members: r.members || [] });
 
-  const readList = () => { try { const l = JSON.parse(localStorage.getItem(LS)); return Array.isArray(l) ? l : []; } catch { return []; } };
-  const writeList = l => { try { localStorage.setItem(LS, JSON.stringify(l)); } catch {} };
+  const readList = () => { const k = lsKey(); if (!k) return []; try { const l = JSON.parse(localStorage.getItem(k)); return Array.isArray(l) ? l : []; } catch { return []; } };
+  const writeList = l => { const k = lsKey(); if (k) try { localStorage.setItem(k, JSON.stringify(l)); } catch {} };
+  try { localStorage.removeItem(LS); } catch {}
   const upsert = t => { const l = readList(), i = l.findIndex(x => x.id === t.id); if (i >= 0) l[i] = t; else l.unshift(t); writeList(l); };
   const drop = id => writeList(readList().filter(t => t.id !== id));
 
@@ -89,12 +91,16 @@
     if (!m || !WypadAuth.user) return null;        // bez konta hash zostaje do czasu zalogowania
     const clear = () => { try { window.history.replaceState(null, "", window.location.pathname + (window.location.search || "")); } catch {} };
     try {
-      const id = await rpc("accept_invite", { p_token: decodeURIComponent(m[1]) });
+      let tok;
+      try { tok = decodeURIComponent(m[1]); } catch { const e = new Error("invalid_invite"); e.code = "invalid_invite"; throw e; }
+      const id = await rpc("accept_invite", { p_token: tok });
       clear();
       await api.refresh();
       return id;
     } catch (e) {
-      if (e.code === "invite_expired") clear();
+      // hash zostaje tylko przy błędzie sieci albo serwera (5xx); każdy inny błąd oznacza zaproszenie nie do użycia
+      const transient = (e.status == null && e.code !== "invalid_invite") || e.status >= 500;
+      if (!transient) clear();
       throw e;
     }
   };
@@ -165,7 +171,7 @@
       const id = await api.acceptFromHash();
       if (id && my === gen) { render(); toast("Dołączono do wypadu"); }
     } catch (e) {
-      toast(e.code === "invite_expired" ? "To zaproszenie wygasło" : "Nie udało się przyjąć zaproszenia");
+      toast(e.code === "invite_expired" ? "Zaproszenie wygasło" : (e.status == null || e.status >= 500) && e.code !== "invalid_invite" ? "Nie udało się przyjąć zaproszenia, spróbuj z internetem" : "To zaproszenie nie działa");
     }
   }
   const sync = () => { if (WypadAuth.user) enter(); else { gen++; html.classList.remove("in-trips"); } };

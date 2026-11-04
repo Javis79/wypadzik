@@ -50,7 +50,7 @@ test("refresh mapuje wiersze, zapisuje w pamięci i wysyła token", async () => 
   assert.equal(calls[0].fn, "my_trips");
   assert.equal(calls[0].h.Authorization, "Bearer A1");
   assert.deepEqual(plain(T.list()), out);
-  assert.deepEqual(JSON.parse(w.localStorage.getItem("wypad-trips")), out);
+  assert.deepEqual(JSON.parse(w.localStorage.getItem("wypad-trips:u1")), out);
 });
 
 test("refresh offline zwraca listę z pamięci", async () => {
@@ -122,4 +122,40 @@ test("leader: zdjęcie kierunku z największą liczbą głosów tak", () => {
   assert.equal(T.leaderPhoto(T1), "b.jpg");
   w.localStorage.setItem("wypad-trip-" + T1, "{zepsute");
   assert.equal(T.leaderPhoto(T1), null);
+});
+
+test("lista jest osobna dla każdego konta", async () => {
+  const w0 = load([]);
+  w0.localStorage.setItem("wypad-auth", JSON.stringify(sess()));
+  w0.localStorage.setItem("wypad-trips", JSON.stringify([{ id: "stary" }]));     // dawny globalny klucz
+  let fail = false;
+  const w = load(["auth.js", "trips.js"], { localStorage: w0.localStorage, fetch: async () => { if (fail) throw new TypeError("offline"); return res(200, [row()]); } });
+  assert.equal(w.WypadTrips.list().length, 0);
+  await w.WypadTrips.refresh();
+  assert.equal(w.WypadTrips.list().length, 1);
+  const b = sess(); b.user = { id: "u2", email: "kuba@wypad.app", user_metadata: { login: "kuba", name: "Kuba" } };
+  w.localStorage.setItem("wypad-auth", JSON.stringify(b));
+  const w2 = load(["auth.js", "trips.js"], { localStorage: w.localStorage, fetch: async () => { throw new TypeError("offline"); } });
+  assert.equal(w2.WypadTrips.list().length, 0);
+  assert.equal(plain(await w2.WypadTrips.refresh()).length, 0);
+  assert.equal(w2.localStorage.getItem("wypad-trips"), null);
+});
+
+test("nieprawidłowy token zaproszenia czyści hash", async () => {
+  const replaced = [];
+  const { T } = setup(() => res(400, { message: "invalid_invite" }),
+    { location: { origin: "https://x", pathname: "/", search: "", hash: "#zaproszenie=ZLY" }, history: { replaceState: (...a) => replaced.push(a) } });
+  await assert.rejects(T.acceptFromHash(), e => e.code === "invalid_invite");
+  assert.equal(replaced.length, 1);
+  const r2 = [];
+  const b = setup(() => res(200, T1), { location: { origin: "https://x", pathname: "/", search: "", hash: "#zaproszenie=%E0%A4%A" }, history: { replaceState: (...a) => r2.push(a) } });
+  await assert.rejects(b.T.acceptFromHash());
+  assert.equal(r2.length, 1);
+  assert.equal(b.calls.length, 0);
+});
+
+test("błąd sieci zostawia hash zaproszenia", async () => {
+  const { T } = setup(() => { throw new TypeError("Failed to fetch"); },
+    { location: { origin: "https://x", pathname: "/", search: "", hash: "#zaproszenie=ABC" }, history: { replaceState() { throw new Error("nie czyścić"); } } });
+  await assert.rejects(T.acceptFromHash());
 });
