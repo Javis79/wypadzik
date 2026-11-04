@@ -1054,5 +1054,35 @@
   renderSync();
   joinFromLink();
   addEventListener("hashchange", joinFromLink);
+
+  // ---------- konto: ekran logowania i wylogowanie ----------
+  {
+    let mode = "in", busy = false;
+    const f = $("#lg-form"), err = $("#lg-err"), go = $("#lg-go");
+    const setMode = m => {
+      mode = m;
+      $("#lg-t-in").setAttribute("aria-selected", m === "in"); $("#lg-t-up").setAttribute("aria-selected", m === "up");
+      $("#lg-name-row").hidden = m === "in"; $("#lg-hint").hidden = m === "in";
+      $("#lg-pass").autocomplete = m === "in" ? "current-password" : "new-password";
+      go.textContent = m === "in" ? "Zaloguj" : "Załóż konto"; err.textContent = "";
+    };
+    document.querySelectorAll("#login [data-mode]").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
+    f.addEventListener("submit", async e => {
+      e.preventDefault();
+      if (busy) return;
+      const v = { login: $("#lg-login").value, name: $("#lg-name").value, password: $("#lg-pass").value };
+      err.textContent = "";
+      busy = true; go.disabled = true; go.textContent = "Chwileczkę…";
+      try {
+        await (mode === "in" ? WypadAuth.signIn(v) : WypadAuth.signUp(v));
+        $("#lg-pass").value = "";
+      } catch (x) { err.textContent = x.message || "Coś poszło nie tak"; }
+      busy = false; go.disabled = false; go.textContent = mode === "in" ? "Zaloguj" : "Załóż konto";
+    });
+    const acct = () => { $("#acct-info").textContent = WypadAuth.user ? `Zalogowano jako ${WypadAuth.user.name || WypadAuth.user.login} (${WypadAuth.user.login}).` : ""; };
+    $("#signout").addEventListener("click", () => { if (confirm("Wylogować z tego telefonu?")) WypadAuth.signOut(); });
+    WypadAuth.onChange(u => { acct(); if (u) show("swipe"); else { setMode("in"); $("#lg-login").value = ""; } });
+    acct();
+  }
   addEventListener("online", loadPhotos);
 })();

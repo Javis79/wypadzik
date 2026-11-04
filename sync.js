@@ -3,8 +3,7 @@
    Tabela jest zamknięta; dostęp tylko przez funkcje wypad_pull / wypad_push z tajnym kodem pary.
    Klucz poniżej to publiczny klucz „publishable”, przeznaczony do kodu w przeglądarce. */
 (() => {
-  const URL_ = "https://zyvjjqucfidnbzoevqlr.supabase.co";
-  const KEY = "sb_publishable_EVB-jO0lqjj_hB49t7M7fA_wNh42fWX";
+  const URL_ = WypadAuth.URL, KEY = WypadAuth.KEY;
   const LS = "wypad-sync";
 
   const load = () => { try { return JSON.parse(localStorage.getItem(LS)) || {}; } catch { return {}; } };

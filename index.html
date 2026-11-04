@@ -60,6 +60,32 @@
   </defs>
 </svg>
 
+<section id="login" aria-labelledby="lg-title">
+  <div class="lg-shell">
+    <h1 class="wordmark" id="lg-title">Wypad <span>we dwoje</span></h1>
+    <div class="lg-print">
+      <div class="lg-tabs" role="tablist">
+        <button type="button" role="tab" id="lg-t-in" data-mode="in" aria-selected="true">Zaloguj</button>
+        <button type="button" role="tab" id="lg-t-up" data-mode="up" aria-selected="false">Załóż konto</button>
+      </div>
+      <form id="lg-form" novalidate>
+        <label>Login
+          <input id="lg-login" name="login" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="20" placeholder="np. zuzia">
+        </label>
+        <label id="lg-name-row" hidden>Imię
+          <input id="lg-name" name="name" autocomplete="given-name" maxlength="30" placeholder="jak ma się wyświetlać">
+        </label>
+        <label>Hasło
+          <input id="lg-pass" name="password" type="password" autocomplete="current-password" placeholder="co najmniej 6 znaków">
+        </label>
+        <p id="lg-err" class="lg-err" role="alert"></p>
+        <button class="btn primary wide" id="lg-go" type="submit">Zaloguj</button>
+        <p class="muted" id="lg-hint">Login: 3–20 znaków, małe litery, cyfry, _ lub .</p>
+      </form>
+    </div>
+  </div>
+</section>
+
 <header class="top">
   <h1 class="wordmark">Wypad <span>we dwoje</span></h1>
   <div class="top-r">
@@ -137,6 +163,11 @@
       <div id="pair"></div>
     </div>
     <div class="panel">
+      <h2>Konto</h2>
+      <p class="muted" id="acct-info">…</p>
+      <button class="btn wide" id="signout">Wyloguj</button>
+    </div>
+    <div class="panel">
       <h2>Kopia zapasowa</h2>
       <p class="muted">Plik z wszystkimi danymi z tego telefonu. Import zastępuje dane na tym telefonie.</p>
       <button class="btn wide" id="export"><svg class="ic"><use href="#i-down"/></svg>Eksportuj (plik .json)</button>
@@ -177,6 +208,7 @@
 <script src="data.js"></script>
 <script src="info.js"></script>
 <script src="motion.js"></script>
+<script src="auth.js"></script>
 <script src="sync.js"></script>
 <script src="app.js"></script>
 </body>

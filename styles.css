@@ -480,3 +480,28 @@ main{view-transition-name:main}
   .dest,.dest:hover{transform:none !important}
   .btn:active,.vbtn:active{transform:none}
 }
+
+/* ---------- logowanie ---------- */
+#login{display:none}
+html.signed-out #login{display:grid}
+html.signed-out .top,html.signed-out main,html.signed-out .tabs{display:none}
+html.signed-out body{padding-bottom:0}
+#login{min-height:100vh;min-height:100dvh;background:var(--shell);color:var(--shell-ink);place-items:center;
+  padding:calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))}
+.lg-shell{width:100%;max-width:380px}
+.lg-shell .wordmark{font-size:40px;margin:0 0 16px}
+.lg-shell .wordmark span{font-size:28px}
+.lg-print{background:#fff;color:#1d1a22;border:2px solid #1d1a22;box-shadow:var(--shadow)}
+.lg-tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #1d1a22}
+.lg-tabs button{border:0;background:#e6dee4;color:#4f4854;padding:12px 8px;min-height:44px;font:700 15px/1 var(--f-ui);font-stretch:88%;cursor:pointer;border-radius:0}
+.lg-tabs button + button{border-left:2px solid #1d1a22}
+.lg-tabs button[aria-selected="true"]{background:#fff;color:#1d1a22;box-shadow:inset 0 -3px 0 var(--shell)}
+#lg-form{padding:16px;display:grid;gap:12px}
+#lg-form label{display:block;color:#1d1a22;font-weight:700;font-stretch:90%;font-size:14px}
+#lg-form label[hidden]{display:none}
+#lg-form input{background:#fff;color:#1d1a22;border-color:#1d1a22;font-weight:400;font-size:16px}
+#lg-form input::placeholder{color:#6a6270}
+.lg-err{margin:0;min-height:0;font-weight:700;color:#b3261e;font-size:14px}
+.lg-err:empty{display:none}
+#lg-form .btn.primary{background:#1d1a22;color:#fff}
+#lg-form .muted{margin:0;color:#6a6270}
