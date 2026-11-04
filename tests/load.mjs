@@ -19,6 +19,15 @@ function makeStorage() {
   };
 }
 
+// Obiekty z vm mają inne prototypy niż hostowe; plain() czyni je porównywalnymi w deepEqual.
+export const plain = x => JSON.parse(JSON.stringify(x));
+
+class FakeWebSocket {
+  constructor(url) { this.url = url; this.readyState = 0; this.onopen = this.onmessage = this.onclose = null; }
+  send() {}
+  close() {}
+}
+
 export function load(files, extra = {}) {
   const window = {
     localStorage: makeStorage(),
@@ -33,9 +42,9 @@ export function load(files, extra = {}) {
     crypto: webcrypto,
     setTimeout, clearTimeout, clearInterval,
     setInterval: (...a) => { const h = setInterval(...a); h?.unref?.(); return h; },
+    WebSocket: FakeWebSocket,
     fetch: () => Promise.reject(new Error("no fetch stub")),
     URL, AbortController, TextEncoder, TextDecoder, structuredClone, console,
-    Date, Promise, JSON, Math,
     ...extra,
   };
   window.window = window;
