@@ -99,7 +99,7 @@
       return id;
     } catch (e) {
       // hash zostaje tylko przy błędzie sieci albo serwera (5xx); każdy inny błąd oznacza zaproszenie nie do użycia
-      const transient = (e.status == null && e.code !== "invalid_invite") || e.status >= 500;
+      const transient = (e.status == null && e.code !== "invalid_invite") || e.status >= 500 || e.status === 401;
       if (!transient) clear();
       throw e;
     }
@@ -171,7 +171,7 @@
       const id = await api.acceptFromHash();
       if (id && my === gen) { render(); toast("Dołączono do wypadu"); }
     } catch (e) {
-      toast(e.code === "invite_expired" ? "Zaproszenie wygasło" : (e.status == null || e.status >= 500) && e.code !== "invalid_invite" ? "Nie udało się przyjąć zaproszenia, spróbuj z internetem" : "To zaproszenie nie działa");
+      toast(e.code === "invite_expired" ? "Zaproszenie wygasło" : (e.status == null || e.status >= 500 || e.status === 401) && e.code !== "invalid_invite" ? "Nie udało się przyjąć zaproszenia. Spróbujemy ponownie przy następnym otwarciu." : "To zaproszenie nie działa");
     }
   }
   const sync = () => { if (WypadAuth.user) enter(); else { gen++; html.classList.remove("in-trips"); } };

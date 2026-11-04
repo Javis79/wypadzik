@@ -154,8 +154,13 @@ test("nieprawidłowy token zaproszenia czyści hash", async () => {
   assert.equal(b.calls.length, 0);
 });
 
-test("błąd sieci zostawia hash zaproszenia", async () => {
-  const { T } = setup(() => { throw new TypeError("Failed to fetch"); },
-    { location: { origin: "https://x", pathname: "/", search: "", hash: "#zaproszenie=ABC" }, history: { replaceState() { throw new Error("nie czyścić"); } } });
+const keeps = (name, impl) => test(name, async () => {
+  const replaced = [];
+  const { T } = setup(impl, { location: { origin: "https://x", pathname: "/", search: "", hash: "#zaproszenie=ABC" }, history: { replaceState: (...a) => replaced.push(a) } });
   await assert.rejects(T.acceptFromHash());
+  assert.equal(replaced.length, 0);
 });
+keeps("błąd sieci zostawia hash zaproszenia", () => { throw new TypeError("Failed to fetch"); });
+keeps("błąd serwera 5xx zostawia hash zaproszenia", () => res(503, { message: "oops" }));
+keeps("401 po wymuszonym odświeżeniu zostawia hash zaproszenia", c =>
+  c.u.includes("/auth/v1/token") ? res(200, { ...sess(), access_token: "A2", refresh_token: "R2", user: sess().user }) : res(401, { message: "JWT expired" }));
