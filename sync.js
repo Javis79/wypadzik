@@ -19,7 +19,7 @@
     ? Object.fromEntries(Object.keys(v).sort().map(k => [k, canon(v[k])])) : v;
   const J = v => JSON.stringify(canon(v ?? null));
 
-  let hooks = {}, ws = null, wsRef = 1, beat = null, retry = 0, pushT = null, retryT = null, pollT = null, busy = false, again = false;
+  let hooks = {}, ws = null, wsRef = 1, beat = null, retry = 0, pushT = null, retryT = null, expT = null, lastKick = 0, pollT = null, busy = false, again = false;
   const status = (s, extra) => { hooks.onStatus && hooks.onStatus(s, extra); };
 
   async function post(fn, body, token) {
@@ -50,9 +50,8 @@
     for (const k in st.shadow) if (!(k in items)) out[k] = null;
     return out;
   }
-  async function push() {
-    if (!trip || !navigator.onLine) return;
-    const s = st, id = trip;
+  async function push(s, id) {
+    if (trip !== id || st !== s || !navigator.onLine) return;
     const out = diff(), keys = Object.keys(out);
     if (!keys.length) return;
     for (let i = 0; i < keys.length; i += 400) {
@@ -70,9 +69,8 @@
   }
 
   // ---------- pobieranie: wpisy nowsze niż te, które już znamy ----------
-  async function pull() {
-    if (!trip || !navigator.onLine) return;
-    const s = st, id = trip;
+  async function pull(s, id) {
+    if (trip !== id || st !== s || !navigator.onLine) return;
     // mały zapas czasu, bo wpisy z równoległych transakcji mogą mieć wcześniejszy znacznik
     const since = s.last ? new Date(new Date(s.last).getTime() - 15000).toISOString() : null;
     const rows = await rpc("trip_pull", { p_trip: id, p_since: since });
@@ -94,11 +92,11 @@
     if (!trip) return;
     if (busy) { again = true; return; }
     busy = true; status("busy");
-    const id = trip;
-    try { await pull(); await push(); if (trip === id) status("ok", { at: new Date() }); }
+    const id = trip, s = st;
+    try { await pull(s, id); await push(s, id); if (st === s) status("ok", { at: new Date() }); }
     catch (e) {
-      if (e.notMember && trip === id) { close(); hooks.onGone && hooks.onGone(id); }
-      else if (trip === id) status(navigator.onLine ? "error" : "offline", { error: String(e.message || e) });
+      if (e.notMember && st === s) { close(); hooks.onGone && hooks.onGone(id); }
+      else if (st === s) status(navigator.onLine ? "error" : "offline", { error: String(e.message || e) });
     }
     finally { busy = false; if (again) { again = false; sync(); } }
   }
@@ -115,27 +113,51 @@
     if (!trip || !navigator.onLine || !("WebSocket" in window)) return;
     const id = trip;
     let token;
-    try { token = await WypadAuth.token(); } catch { return; }
+    try { token = await WypadAuth.token(); }
+    catch (e) {
+      if (e.code !== "not_signed_in" && trip === id && !ws) { clearTimeout(retryT); retryT = setTimeout(connect, Math.min(30000, 1000 * 2 ** retry++)); }
+      return;
+    }
     if (trip !== id || ws) return;       // w czasie czekania zmienił się wypad albo ktoś inny już połączył
     const sock = new WebSocket(`${URL_.replace("https", "wss")}/realtime/v1/websocket?apikey=${KEY}&vsn=1.0.0&access_token=${encodeURIComponent(token)}`);
     ws = sock;
+    let hb = null;
+    // token w URL ważny tylko do wygaśnięcia; odnów kanał zanim serwer go zamknie
+    clearTimeout(expT);
+    expT = setTimeout(kick, Math.max(5000, (tokenExp() - Math.floor(Date.now() / 1000) - 50) * 1000));
+    if (expT && expT.unref) expT.unref();
     sock.onopen = () => {
       retry = 0;
       sock.send(JSON.stringify({ topic: topic(), event: "phx_join", payload: { config: { broadcast: { self: false }, presence: { key: "" }, private: false } }, ref: "1", join_ref: "1" }));
-      beat = setInterval(() => sock.readyState === 1 && sock.send(JSON.stringify({ topic: "phoenix", event: "heartbeat", payload: {}, ref: String(++wsRef) })), 25000);
+      hb = beat = setInterval(() => sock.readyState === 1 && sock.send(JSON.stringify({ topic: "phoenix", event: "heartbeat", payload: {}, ref: String(++wsRef) })), 25000);
     };
     sock.onmessage = m => {
-      try { const d = JSON.parse(m.data); if (d.event === "broadcast" && d.payload?.event === "sync") sync(); } catch {}
+      try {
+        const d = JSON.parse(m.data);
+        if (d.event === "broadcast" && d.payload?.event === "sync") sync();
+        else if (d.topic === topic() && (d.event === "phx_close" || d.event === "phx_error" || (d.event === "system" && d.payload?.status === "error"))) kick();
+      } catch {}
     };
     sock.onclose = () => {
-      clearInterval(beat);
+      clearInterval(hb);
       if (ws !== sock || trip !== id) return;
       ws = null;
       clearTimeout(retryT);
       retryT = setTimeout(connect, Math.min(30000, 1000 * 2 ** retry++));
     };
   }
-  function disconnect() { clearInterval(beat); clearTimeout(retryT); if (ws) { const s = ws; ws = null; try { s.close(); } catch {} } }
+  // ponowne połączenie z nowym tokenem; nie częściej niż co 5 s, żeby błąd serwera nie robił pętli
+  function kick() {
+    if (!trip) return;
+    disconnect();
+    const wait = Date.now() - lastKick < 5000 ? 5000 : 0;
+    lastKick = Date.now();
+    retryT = setTimeout(connect, wait);
+  }
+  function tokenExp() {
+    try { return JSON.parse(localStorage.getItem("wypad-auth")).expires_at || 0; } catch { return 0; }
+  }
+  function disconnect() { clearInterval(beat); clearTimeout(retryT); clearTimeout(expT); if (ws) { const s = ws; ws = null; try { s.close(); } catch {} } }
 
   // ---------- wypad ----------
   function close() {

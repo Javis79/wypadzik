@@ -120,3 +120,106 @@ test("pull stosuje zdalne wpisy i pomija znane", async () => {
   assert.equal(S.last, "2026-02-01T00:00:00Z");
   S.close();
 });
+
+const tick = async () => { for (let i = 0; i < 6; i++) await new Promise(r => setTimeout(r, 0)); };
+
+test("phx_error / system error na naszym temacie otwiera nowy kanał ze świeżym tokenem", async () => {
+  const { S, w } = setup(c => c.u.includes("grant_type=refresh_token") ? res(200, sess({ access_token: "A2", refresh_token: "R2" })) : ok(c));
+  S.init(hooks({}));
+  await S.open(A); await tick();
+  assert.equal(FakeWS.all.length, 1);
+  await w.WypadAuth.token({ force: true });
+  FakeWS.all[0].onmessage({ data: JSON.stringify({ topic: "realtime:trip-" + B, event: "phx_error", payload: {} }) });   // cudzy temat: ignoruj
+  await tick();
+  assert.equal(FakeWS.all.length, 1);
+  FakeWS.all[0].onmessage({ data: JSON.stringify({ topic: "realtime:trip-" + A, event: "system", payload: { status: "error", message: "Token has expired" } }) });
+  await tick();
+  assert.equal(FakeWS.all.length, 2);
+  assert.match(FakeWS.all[1].url, /access_token=A2$/);
+  FakeWS.all[1].onmessage({ data: JSON.stringify({ topic: "realtime:trip-" + A, event: "phx_close", payload: {} }) });
+  S.close();
+});
+
+test("kanał odnawia się przed wygaśnięciem tokenu", async () => {
+  const timers = [];
+  const { S, w } = setup(c => c.u.includes("grant_type=refresh_token") ? res(200, sess({ access_token: "A2", refresh_token: "R2" })) : ok(c));
+  w.localStorage.setItem("wypad-auth", JSON.stringify(sess({ expires_at: now() + 120 })));
+  const w2 = load(["auth.js", "sync.js"], {
+    localStorage: w.localStorage, WebSocket: FakeWS,
+    setTimeout: (f, ms) => { timers.push({ f, ms }); return setTimeout(f, 1e6).unref(); },
+    fetch: async u => u.includes("grant_type=refresh_token") ? res(200, sess({ access_token: "A2", refresh_token: "R2" })) : res(200, []),
+  });
+  FakeWS.all = [];
+  w2.WypadSync.init(hooks({}));
+  await w2.WypadSync.open(A); await tick();
+  const t = timers.find(x => x.ms > 60000 && x.ms < 80000);
+  assert.ok(t, "brak zegara odnowienia");
+  t.f();
+  timers.filter(x => x.ms === 0).pop().f(); await tick();
+  assert.equal(FakeWS.all.length, 2);
+  w2.WypadSync.close();
+});
+
+test("błąd tokenu przy łączeniu nie zatrzymuje ponawiania", async () => {
+  const timers = [];
+  FakeWS.all = [];
+  const w0 = load([]);
+  w0.localStorage.setItem("wypad-auth", JSON.stringify(sess({ expires_at: now() + 10 })));
+  let fail = true;
+  const w = load(["auth.js", "sync.js"], {
+    localStorage: w0.localStorage, WebSocket: FakeWS,
+    setTimeout: (f, ms) => { timers.push({ f, ms }); return setTimeout(f, 1e6).unref(); },
+    fetch: async u => { if (u.includes("grant_type=refresh_token")) { if (fail) throw new Error("net"); return res(200, sess({ access_token: "A2" })); } return res(200, []); },
+  });
+  w.WypadSync.init(hooks({}));
+  await w.WypadSync.open(A); await tick();
+  assert.equal(FakeWS.all.length, 0);
+  const t = timers.find(x => x.ms === 1000);
+  assert.ok(t, "brak ponowienia");
+  fail = false; t.f(); await tick();
+  assert.equal(FakeWS.all.length, 1);
+  w.WypadSync.close();
+});
+
+test("zamknięcie starego gniazda nie zatrzymuje heartbeatu nowego", async () => {
+  FakeWS.all = [];
+  const w0 = load([]);
+  w0.localStorage.setItem("wypad-auth", JSON.stringify(sess()));
+  const cleared = [], started = [];
+  const w = load(["auth.js", "sync.js"], {
+    localStorage: w0.localStorage, WebSocket: FakeWS,
+    setInterval: () => { const h = { id: started.length }; started.push(h); return h; },
+    clearInterval: h => { cleared.push(h); },
+    fetch: async () => res(200, []),
+  });
+  const S = w.WypadSync;
+  S.init(hooks({}));
+  await S.open(A); await tick();
+  const old = FakeWS.all[0]; old.readyState = 1; old.onopen();
+  S.close(); await S.open(B); await tick();
+  const fresh = FakeWS.all[1]; fresh.readyState = 1; fresh.onopen();
+  const freshBeat = started[started.length - 1];
+  cleared.length = 0;
+  old.onclose();
+  assert.ok(!cleared.includes(freshBeat), "stary onclose skasował heartbeat nowego gniazda");
+  S.close();
+});
+
+test("sync wypadu A nie wysyła B przed jego pobraniem", async () => {
+  let release;
+  const gate = new Promise(r => { release = r; });
+  const { calls, S } = setup(async c => {
+    if (c.fn === "trip_pull" && c.body.p_trip === A) { await gate; return res(200, []); }
+    return ok(c);
+  });
+  S.init(hooks({ k: 1 }));
+  const pa = S.open(A);
+  await tick();
+  const pb = S.open(B);
+  release();
+  await Promise.all([pa, pb]); await tick();
+  const seq = calls.filter(c => c.fn).map(c => c.fn + ":" + c.body.p_trip);
+  assert.ok(!seq.includes("trip_push:" + A), "A nie powinien wysłać po zmianie wypadu");
+  assert.ok(seq.indexOf("trip_pull:" + B) < seq.indexOf("trip_push:" + B));
+  S.close();
+});
