@@ -430,3 +430,66 @@ test("cleanCfg: legacy przechodzi przez sito i wraca w obie strony", () => {
   assert.equal("legacy" in g.cleanCfg({ budget: 1 }), false);
   assert.equal("legacy" in g.cleanCfg({ legacy: [1] }), false);
 });
+
+// ---------- okno pytania: udawany DOM (dialog, klasa in-trips, MutationObserver, sessionStorage) ----------
+function dialogSetup(session) {
+  const observers = [];
+  const classes = new Set(["in-trips"]);
+  const btn = mv => ({ dataset: { mv }, disabled: false, focus() {}, closest: () => btn(mv) });
+  const body = { innerHTML: "", querySelector: s => ({ focus() {}, textContent: "", classList: { toggle() {} } }), querySelectorAll: () => [] };
+  const listeners = {};
+  const dlg = {
+    open: false, shown: 0,
+    querySelector: () => body,
+    setAttribute() {},
+    showModal() { this.open = true; this.shown++; },
+    close() { this.open = false; },
+    addEventListener(t, fn) { listeners[t] = fn; },
+  };
+  const root = { classList: { contains: c => classes.has(c), add: c => classes.add(c), remove: c => classes.delete(c) } };
+  const store = new Map();
+  const sessionStorage = session || { getItem: k => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: k => store.delete(k) };
+  const w = load(["group.js", "legacy.js"], {
+    document: { hidden: false, addEventListener() {}, removeEventListener() {}, documentElement: root, getElementById: id => (id === "legacy" ? dlg : null) },
+    MutationObserver: class { constructor(fn) { observers.push(fn); } observe() {} },
+    sessionStorage,
+    WypadAuth: { URL: "https://x.supabase.co", KEY: "pk", user: { id: U1 }, onChange() {} },
+    WypadTrips: { list: () => [], refresh: async () => [] },
+  });
+  w.localStorage.setItem("wypad-v3", JSON.stringify(oldState()));
+  const tick = () => new Promise(r => setTimeout(r, 5));
+  const leave = () => { classes.delete("in-trips"); observers.forEach(f => f()); };
+  const enter = () => { classes.add("in-trips"); observers.forEach(f => f()); };
+  return { w, dlg, listeners, tick, leave, enter, store };
+}
+
+test("okno: każde wejście na listę pyta znowu, dopóki nikt nie wybrał „Nie teraz”", async () => {
+  const { w, dlg, tick, leave, enter } = dialogSetup();
+  w.WypadLegacy.ask();
+  assert.equal(dlg.shown, 1);
+  dlg.close();                                   // zamknięte bez decyzji (np. wylogowanie)
+  leave(); enter(); await tick();
+  assert.equal(dlg.shown, 2);
+});
+
+test("okno: po „Nie teraz” ponowne wejście na listę nie otwiera pytania do końca sesji", async () => {
+  const { w, dlg, listeners, tick, leave, enter, store } = dialogSetup();
+  w.WypadLegacy.ask();
+  assert.equal(dlg.shown, 1);
+  await listeners.click({ target: { closest: () => ({ dataset: { mv: "later" } }) } });
+  assert.equal(dlg.open, false);
+  leave(); enter(); await tick();
+  w.WypadLegacy.ask();
+  assert.equal(dlg.shown, 1);
+  assert.ok([...store.keys()].length);           // zapisane w sessionStorage
+});
+
+test("okno: Escape liczy się jak „Nie teraz”, także bez działającego sessionStorage", async () => {
+  const broken = { getItem() { throw new Error("blocked"); }, setItem() { throw new Error("blocked"); } };
+  const { w, dlg, listeners, tick, leave, enter } = dialogSetup(broken);
+  w.WypadLegacy.ask();
+  listeners.cancel({ preventDefault() {} });
+  dlg.close();
+  leave(); enter(); await tick();
+  assert.equal(dlg.shown, 1);
+});

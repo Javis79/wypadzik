@@ -219,7 +219,11 @@
   if (!dlg) return;
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const toast = msg => { const t = document.getElementById("toast"); if (!t) return; t.textContent = msg; t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 3200); };
-  let later = false, busy = false;
+  // „Nie teraz” (albo Escape) ukrywa pytanie do końca sesji; sessionStorage przeżywa przeładowanie strony, pamięć to zapas
+  const LATER = "wypad-legacy-later";
+  let laterMem = false, busy = false;
+  const isLater = () => { if (laterMem) return true; try { return sessionStorage.getItem(LATER) === "1"; } catch { return false; } };
+  const setLater = () => { laterMem = true; try { sessionStorage.setItem(LATER, "1"); } catch {} };
   const body = dlg.querySelector(".mv-body");
 
   function ask() {
@@ -268,7 +272,7 @@
     const b = e.target.closest("[data-mv]");
     if (!b || busy) return;
     const a = b.dataset.mv;
-    if (a === "later") { later = true; dlg.close(); return; }
+    if (a === "later") { setLater(); dlg.close(); return; }
     if (a === "into") { const t = existing(); return start(b.dataset.l, t || undefined); }
     if (a === "new") return start(b.dataset.l);
     // wybrana litera: najpierw sprawdź, czy ten wypad nie jest już na liście (przeniesiony z drugiego telefonu)
@@ -279,23 +283,24 @@
     if (t) offerTwin(a, t); else start(a);
   });
   // Escape = „Nie teraz”; w trakcie przenoszenia okno zostaje
-  dlg.addEventListener("cancel", e => { if (busy) e.preventDefault(); else later = true; });
+  dlg.addEventListener("cancel", e => { if (busy) e.preventDefault(); else setLater(); });
 
   function maybeAsk() {
-    if (later || dlg.open || !window.WypadAuth.user || !pending()) return;
+    if (isLater() || dlg.open || !window.WypadAuth.user || !pending()) return;
     if (!document.documentElement.classList.contains("in-trips")) return;
     ask();
     dlg.showModal();
     body.querySelector("[data-mv=K]").focus();
   }
   window.WypadAuth.onChange(u => { if (u) setTimeout(maybeAsk, 0); else if (dlg.open) { busy = false; dlg.close(); } });
-  // każde wejście na listę wypadów pyta jeszcze raz, dopóki stary wyjazd czeka, a nie ma rozpoczętego przeniesienia
+  // każde wejście na listę wypadów pyta jeszcze raz, dopóki stary wyjazd czeka, nie było „Nie teraz” w tej sesji
+  // i nie ma rozpoczętego przeniesienia
   // (rozpoczęte kończy się samo przy pierwszej udanej synchronizacji tego wypadu)
   const root = document.documentElement;
   let inList = root.classList.contains("in-trips");
   if (typeof MutationObserver === "function") new MutationObserver(() => {
     const now = root.classList.contains("in-trips");
-    if (now && !inList && !get(MINE)) { later = false; setTimeout(maybeAsk, 0); }
+    if (now && !inList && !get(MINE)) setTimeout(maybeAsk, 0);
     inList = now;
   }).observe(root, { attributes: true, attributeFilter: ["class"] });
   window.WypadLegacy.ask = maybeAsk;
