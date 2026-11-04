@@ -14,17 +14,22 @@
     return { day: dayOf(date), dep: dep.slice(0, 5), arr: f.arrivalDate.split("T")[1].slice(0, 5), price, date };
   };
 
-  function parse(json) {
+  function parse(json, airports = []) {
+    const byCode = new Map(airports.map(a => [a.code, a]));
     const out = [];
     for (const f of (json && json.fares) || []) {
-      const o = f.outbound, i = f.inbound;
-      if (!o || !i) continue;
-      const a = o.arrivalAirport;
-      const total = f.summary.price.value;
-      out.push({
-        code: a.iataCode, city: a.city.name, cityCode: a.city.code || "", country: a.countryName, countryCode: a.city.countryCode,
-        out: leg(o, o.price.value), back: leg(i, i.price.value), total,
-      });
+      try {
+        const o = f.outbound, i = f.inbound;
+        const a = o.arrivalAirport;
+        const total = f.summary.price.value;
+        if (!i || typeof total !== "number" || !a.iataCode || !a.city.name) continue;
+        const known = byCode.get(a.iataCode);
+        out.push({
+          code: a.iataCode, city: known ? known.metro || known.city : a.city.name,
+          country: known ? known.country : a.countryName, countryCode: known ? known.countryCode : a.city.countryCode,
+          out: leg(o, o.price.value), back: leg(i, i.price.value), total,
+        });
+      } catch { /* pominięty uszkodzony przelot */ }
     }
     return out;
   }
@@ -32,7 +37,7 @@
   function groupByCity(offers) {
     const map = new Map();
     for (const o of offers) {
-      const key = o.cityCode || o.city;
+      const key = o.city;
       let g = map.get(key);
       if (!g) map.set(key, g = { city: o.city, country: o.country, countryCode: o.countryCode, cheapest: o, offers: [] });
       g.offers.push(o);
@@ -47,7 +52,7 @@
     const key = cacheKey(p);
     try {
       const c = JSON.parse(localStorage.getItem(key));
-      if (c && Date.now() - c.at < TTL) return c.offers;
+      if (c && Array.isArray(c.offers) && Date.now() - c.at < TTL) return c.offers;
     } catch {}
     const q = {
       departureAirportIataCode: p.origin,
@@ -68,15 +73,22 @@
       if (timedOut) throw new Error("timeout");
       throw e;
     } finally { clearTimeout(timer); }
-    const offers = parse(json);
+    let ap = [];
+    try { ap = await airports(); } catch {}
+    const offers = parse(json, ap);
     try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), offers })); } catch {}
     return offers;
   }
 
-  async function airports() {
-    const res = await fetch("airports.json");
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return res.json();
+  let airportsP = null;
+  function airports() {
+    if (!airportsP) {
+      airportsP = fetch("airports.json").then(res => {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      }).then(l => Array.isArray(l) ? l : []).catch(e => { airportsP = null; throw e; });
+    }
+    return airportsP;
   }
 
   const WypadFares = { airports, search, parse, groupByCity, _timeout: 8000 };

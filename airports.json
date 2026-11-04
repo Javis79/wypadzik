@@ -6,7 +6,8 @@
   "country": "Dania",
   "countryCode": "dk",
   "lat": 56.3,
-  "lng": 10.619
+  "lng": 10.619,
+  "metro": "Aarhus"
  },
  {
   "code": "ABZ",
@@ -15,7 +16,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 57.2019,
-  "lng": -2.19778
+  "lng": -2.19778,
+  "metro": "Aberdeen"
  },
  {
   "code": "AGA",
@@ -24,7 +26,8 @@
   "country": "Maroko",
   "countryCode": "ma",
   "lat": 30.325,
-  "lng": -9.41307
+  "lng": -9.41307,
+  "metro": "Agadir"
  },
  {
   "code": "AHO",
@@ -33,7 +36,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 40.6321,
-  "lng": 8.29077
+  "lng": 8.29077,
+  "metro": "Alghero"
  },
  {
   "code": "ALC",
@@ -42,7 +46,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 38.2822,
-  "lng": -0.558156
+  "lng": -0.558156,
+  "metro": "Alicante"
  },
  {
   "code": "LEI",
@@ -51,16 +56,18 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 36.8439,
-  "lng": -2.3701
+  "lng": -2.3701,
+  "metro": "Almeria"
  },
  {
   "code": "AMM",
-  "name": " Amman Jordania",
+  "name": "Amman Jordania",
   "city": "Amman",
   "country": "Jordania",
   "countryCode": "jo",
   "lat": 31.5659,
-  "lng": 35.5558
+  "lng": 35.5558,
+  "metro": "Amman"
  },
  {
   "code": "AMS",
@@ -69,7 +76,8 @@
   "country": "Holandia",
   "countryCode": "nl",
   "lat": 52.3105,
-  "lng": 4.76827
+  "lng": 4.76827,
+  "metro": "Amsterdam"
  },
  {
   "code": "AOI",
@@ -78,7 +86,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 43.6163,
-  "lng": 13.3623
+  "lng": 13.3623,
+  "metro": "Ankona"
  },
  {
   "code": "ESU",
@@ -87,7 +96,8 @@
   "country": "Maroko",
   "countryCode": "ma",
   "lat": 31.3918,
-  "lng": -9.6757
+  "lng": -9.6757,
+  "metro": "As-Sawira"
  },
  {
   "code": "ATH",
@@ -96,7 +106,8 @@
   "country": "Grecja",
   "countryCode": "gr",
   "lat": 37.9364,
-  "lng": 23.9445
+  "lng": 23.9445,
+  "metro": "Ateny"
  },
  {
   "code": "BNX",
@@ -105,7 +116,8 @@
   "country": "Bośnia i Hercegowina",
   "countryCode": "ba",
   "lat": 44.4621,
-  "lng": 17.1133
+  "lng": 17.1133,
+  "metro": "Banja Luka"
  },
  {
   "code": "BCN",
@@ -114,7 +126,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 41.2971,
-  "lng": 2.07846
+  "lng": 2.07846,
+  "metro": "Barcelona"
  },
  {
   "code": "BRI",
@@ -123,7 +136,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 41.1389,
-  "lng": 16.7606
+  "lng": 16.7606,
+  "metro": "Bari"
  },
  {
   "code": "BSL",
@@ -132,7 +146,8 @@
   "country": "Szwajcaria",
   "countryCode": "ch",
   "lat": 47.5896,
-  "lng": 7.52991
+  "lng": 7.52991,
+  "metro": "Bazylea"
  },
  {
   "code": "BFS",
@@ -141,7 +156,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 54.6575,
-  "lng": -6.2158
+  "lng": -6.2158,
+  "metro": "Belfast"
  },
  {
   "code": "BEM",
@@ -150,7 +166,8 @@
   "country": "Maroko",
   "countryCode": "ma",
   "lat": 32.2022,
-  "lng": 6.2139
+  "lng": 6.2139,
+  "metro": "Beni Mellal"
  },
  {
   "code": "BGY",
@@ -159,7 +176,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 45.6739,
-  "lng": 9.70417
+  "lng": 9.70417,
+  "metro": "Mediolan"
  },
  {
   "code": "EGC",
@@ -168,7 +186,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 44.8253,
-  "lng": 0.518611
+  "lng": 0.518611,
+  "metro": "Bergerac"
  },
  {
   "code": "BER",
@@ -177,7 +196,8 @@
   "country": "Niemcy",
   "countryCode": "de",
   "lat": 52.3667,
-  "lng": 13.5033
+  "lng": 13.5033,
+  "metro": "Berlin"
  },
  {
   "code": "BZR",
@@ -186,7 +206,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 43.3235,
-  "lng": 3.3539
+  "lng": 3.3539,
+  "metro": "Beziers"
  },
  {
   "code": "BIQ",
@@ -195,7 +216,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 43.4684,
-  "lng": -1.52332
+  "lng": -1.52332,
+  "metro": "Biarritz"
  },
  {
   "code": "BHX",
@@ -204,7 +226,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 52.4539,
-  "lng": -1.74803
+  "lng": -1.74803,
+  "metro": "Birmingham"
  },
  {
   "code": "BLQ",
@@ -213,7 +236,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 44.5354,
-  "lng": 11.2887
+  "lng": 11.2887,
+  "metro": "Bolonia"
  },
  {
   "code": "FRL",
@@ -222,7 +246,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 44.1948,
-  "lng": 12.0701
+  "lng": 12.0701,
+  "metro": "Bolonia"
  },
  {
   "code": "BOH",
@@ -231,7 +256,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 50.78,
-  "lng": -1.8425
+  "lng": -1.8425,
+  "metro": "Bournemouth"
  },
  {
   "code": "BTS",
@@ -240,7 +266,8 @@
   "country": "Słowacja",
   "countryCode": "sk",
   "lat": 48.1702,
-  "lng": 17.2127
+  "lng": 17.2127,
+  "metro": "Bratysława"
  },
  {
   "code": "BRE",
@@ -249,7 +276,8 @@
   "country": "Niemcy",
   "countryCode": "de",
   "lat": 53.0475,
-  "lng": 8.78667
+  "lng": 8.78667,
+  "metro": "Brema"
  },
  {
   "code": "BDS",
@@ -258,7 +286,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 40.6576,
-  "lng": 17.947
+  "lng": 17.947,
+  "metro": "Brindisi"
  },
  {
   "code": "BRS",
@@ -267,7 +296,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 51.3827,
-  "lng": -2.71909
+  "lng": -2.71909,
+  "metro": "Bristol"
  },
  {
   "code": "BVE",
@@ -276,7 +306,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 45.0223,
-  "lng": 1.2908
+  "lng": 1.2908,
+  "metro": "Brive"
  },
  {
   "code": "BRQ",
@@ -285,7 +316,8 @@
   "country": "Czechy",
   "countryCode": "cz",
   "lat": 49.1513,
-  "lng": 16.6944
+  "lng": 16.6944,
+  "metro": "Brno"
  },
  {
   "code": "BRU",
@@ -294,7 +326,8 @@
   "country": "Belgia",
   "countryCode": "be",
   "lat": 50.9014,
-  "lng": 4.48444
+  "lng": 4.48444,
+  "metro": "Bruksela"
  },
  {
   "code": "BUD",
@@ -303,16 +336,18 @@
   "country": "Węgry",
   "countryCode": "hu",
   "lat": 47.4369,
-  "lng": 19.2556
+  "lng": 19.2556,
+  "metro": "Budapeszt"
  },
  {
   "code": "BBU",
-  "name": "Bucharest Baneasa ",
+  "name": "Bucharest Baneasa",
   "city": "Bukareszt",
   "country": "Rumunia",
   "countryCode": "ro",
   "lat": 44.502164658,
-  "lng": 26.102166258
+  "lng": 26.102166258,
+  "metro": "Bukareszt"
  },
  {
   "code": "OTP",
@@ -321,7 +356,8 @@
   "country": "Rumunia",
   "countryCode": "ro",
   "lat": 44.5722,
-  "lng": 26.1022
+  "lng": 26.1022,
+  "metro": "Bukareszt"
  },
  {
   "code": "BOJ",
@@ -330,7 +366,8 @@
   "country": "Bułgaria",
   "countryCode": "bg",
   "lat": 42.301,
-  "lng": 27.2812
+  "lng": 27.2812,
+  "metro": "Burgas"
  },
  {
   "code": "BZG",
@@ -339,7 +376,8 @@
   "country": "Polska",
   "countryCode": "pl",
   "lat": 53.0968,
-  "lng": 17.9777
+  "lng": 17.9777,
+  "metro": "Bydgoszcz"
  },
  {
   "code": "CAG",
@@ -348,7 +386,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 39.2515,
-  "lng": 9.05428
+  "lng": 9.05428,
+  "metro": "Cagliari"
  },
  {
   "code": "CCF",
@@ -357,7 +396,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 43.216,
-  "lng": 2.30632
+  "lng": 2.30632,
+  "metro": "Carcassonne"
  },
  {
   "code": "CWL",
@@ -366,7 +406,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 51.3967,
-  "lng": -3.34333
+  "lng": -3.34333,
+  "metro": "Cardiff"
  },
  {
   "code": "CDT",
@@ -375,7 +416,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 39.999,
-  "lng": 0.026
+  "lng": 0.026,
+  "metro": "Castellon"
  },
  {
   "code": "CHQ",
@@ -384,7 +426,8 @@
   "country": "Grecja",
   "countryCode": "gr",
   "lat": 35.5317,
-  "lng": 24.1497
+  "lng": 24.1497,
+  "metro": "Chania"
  },
  {
   "code": "CRL",
@@ -393,7 +436,8 @@
   "country": "Belgia",
   "countryCode": "be",
   "lat": 50.4592,
-  "lng": 4.45382
+  "lng": 4.45382,
+  "metro": "Bruksela"
  },
  {
   "code": "CLJ",
@@ -402,7 +446,8 @@
   "country": "Rumunia",
   "countryCode": "ro",
   "lat": 46.785,
-  "lng": 23.6861
+  "lng": 23.6861,
+  "metro": "Cluj"
  },
  {
   "code": "CPH",
@@ -411,7 +456,8 @@
   "country": "Dania",
   "countryCode": "dk",
   "lat": 55.6181,
-  "lng": 12.6561
+  "lng": 12.6561,
+  "metro": "Copenhagen"
  },
  {
   "code": "ORK",
@@ -420,7 +466,8 @@
   "country": "Irlandia",
   "countryCode": "ie",
   "lat": 51.8413,
-  "lng": -8.49111
+  "lng": -8.49111,
+  "metro": "Cork"
  },
  {
   "code": "CRV",
@@ -429,7 +476,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 38.99722,
-  "lng": 17.08028
+  "lng": 17.08028,
+  "metro": "Crotone"
  },
  {
   "code": "CUF",
@@ -438,16 +486,18 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 44.547,
-  "lng": 7.62322
+  "lng": 7.62322,
+  "metro": "Cuneo"
  },
  {
   "code": "VIL",
-  "name": "Dakhla ",
+  "name": "Dakhla",
   "city": "Dakhla",
   "country": "Maroko",
   "countryCode": "ma",
   "lat": 23.7182999,
-  "lng": -15.9320002
+  "lng": -15.9320002,
+  "metro": "Dakhla"
  },
  {
   "code": "LDY",
@@ -456,7 +506,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 55.0428,
-  "lng": -7.16111
+  "lng": -7.16111,
+  "metro": "Derry"
  },
  {
   "code": "DLE",
@@ -465,7 +516,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 47.039,
-  "lng": 5.42725
+  "lng": 5.42725,
+  "metro": "Dole"
  },
  {
   "code": "DUB",
@@ -474,7 +526,8 @@
   "country": "Irlandia",
   "countryCode": "ie",
   "lat": 53.4213,
-  "lng": -6.27007
+  "lng": -6.27007,
+  "metro": "Dublin"
  },
  {
   "code": "DBV",
@@ -483,7 +536,8 @@
   "country": "Chorwacja",
   "countryCode": "hr",
   "lat": 42.5614,
-  "lng": 18.2683
+  "lng": 18.2683,
+  "metro": "Dubrovnik"
  },
  {
   "code": "NRN",
@@ -492,7 +546,8 @@
   "country": "Niemcy",
   "countryCode": "de",
   "lat": 51.6024,
-  "lng": 6.14217
+  "lng": 6.14217,
+  "metro": "Düsseldorf"
  },
  {
   "code": "EMA",
@@ -501,7 +556,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 52.8311,
-  "lng": -1.32806
+  "lng": -1.32806,
+  "metro": "East Midlands"
  },
  {
   "code": "EDI",
@@ -510,7 +566,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 55.95,
-  "lng": -3.3725
+  "lng": -3.3725,
+  "metro": "Edynburg"
  },
  {
   "code": "EIN",
@@ -519,7 +576,8 @@
   "country": "Holandia",
   "countryCode": "nl",
   "lat": 51.4501,
-  "lng": 5.37453
+  "lng": 5.37453,
+  "metro": "Eindhoven"
  },
  {
   "code": "ERH",
@@ -528,7 +586,8 @@
   "country": "Maroko",
   "countryCode": "ma",
   "lat": 31.5555,
-  "lng": 4.2528
+  "lng": 4.2528,
+  "metro": "Errachidia"
  },
  {
   "code": "EXT",
@@ -537,7 +596,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 50.7344,
-  "lng": -3.4139
+  "lng": -3.4139,
+  "metro": "Exeter"
  },
  {
   "code": "FAO",
@@ -546,7 +606,8 @@
   "country": "Portugalia",
   "countryCode": "pt",
   "lat": 37.0144,
-  "lng": -7.96591
+  "lng": -7.96591,
+  "metro": "Faro"
  },
  {
   "code": "FEZ",
@@ -555,7 +616,8 @@
   "country": "Maroko",
   "countryCode": "ma",
   "lat": 33.9273,
-  "lng": -4.97796
+  "lng": -4.97796,
+  "metro": "Fez"
  },
  {
   "code": "FSC",
@@ -564,7 +626,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 41.5006,
-  "lng": 9.09778
+  "lng": 9.09778,
+  "metro": "Figari"
  },
  {
   "code": "HHN",
@@ -573,7 +636,8 @@
   "country": "Niemcy",
   "countryCode": "de",
   "lat": 49.9487,
-  "lng": 7.26389
+  "lng": 7.26389,
+  "metro": "Frankfurt"
  },
  {
   "code": "FDH",
@@ -582,7 +646,8 @@
   "country": "Niemcy",
   "countryCode": "de",
   "lat": 47.6714,
-  "lng": 9.5114
+  "lng": 9.5114,
+  "metro": "Friedrichshafen"
  },
  {
   "code": "FUE",
@@ -591,7 +656,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 28.4527,
-  "lng": -13.8638
+  "lng": -13.8638,
+  "metro": "Fuerteventura"
  },
  {
   "code": "FNC",
@@ -600,7 +666,8 @@
   "country": "Portugalia",
   "countryCode": "pt",
   "lat": 32.6942,
-  "lng": -16.7781
+  "lng": -16.7781,
+  "metro": "Funchal"
  },
  {
   "code": "GDN",
@@ -609,7 +676,8 @@
   "country": "Polska",
   "countryCode": "pl",
   "lat": 54.3776,
-  "lng": 18.4662
+  "lng": 18.4662,
+  "metro": "Gdańsk"
  },
  {
   "code": "GOA",
@@ -618,7 +686,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 44.4133,
-  "lng": 8.8375
+  "lng": 8.8375,
+  "metro": "Genua"
  },
  {
   "code": "GRO",
@@ -627,7 +696,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 41.901,
-  "lng": 2.76055
+  "lng": 2.76055,
+  "metro": "Barcelona"
  },
  {
   "code": "GLA",
@@ -636,7 +706,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 55.87194,
-  "lng": -4.43306
+  "lng": -4.43306,
+  "metro": "Glasgow"
  },
  {
   "code": "PIK",
@@ -645,7 +716,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 55.5094,
-  "lng": -4.58667
+  "lng": -4.58667,
+  "metro": "Glasgow"
  },
  {
   "code": "GOT",
@@ -654,7 +726,8 @@
   "country": "Szwecja",
   "countryCode": "se",
   "lat": 57.6741,
-  "lng": 12.2925
+  "lng": 12.2925,
+  "metro": "Göteborg"
  },
  {
   "code": "LPA",
@@ -663,7 +736,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 27.9319,
-  "lng": -15.3866
+  "lng": -15.3866,
+  "metro": "Gran Canaria"
  },
  {
   "code": "GNB",
@@ -672,7 +746,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 45.3629,
-  "lng": 5.32937
+  "lng": 5.32937,
+  "metro": "Grenoble"
  },
  {
   "code": "HAM",
@@ -681,7 +756,8 @@
   "country": "Niemcy",
   "countryCode": "de",
   "lat": 53.63028,
-  "lng": 9.99111
+  "lng": 9.99111,
+  "metro": "Hamburg"
  },
  {
   "code": "LBC",
@@ -690,7 +766,8 @@
   "country": "Niemcy",
   "countryCode": "de",
   "lat": 53.8054,
-  "lng": 10.7192
+  "lng": 10.7192,
+  "metro": "Hamburg"
  },
  {
   "code": "HEL",
@@ -699,7 +776,8 @@
   "country": "Finlandia",
   "countryCode": "fi",
   "lat": 60.3172,
-  "lng": 24.9633
+  "lng": 24.9633,
+  "metro": "Helsinki"
  },
  {
   "code": "HER",
@@ -708,7 +786,8 @@
   "country": "Grecja",
   "countryCode": "gr",
   "lat": 35.3397,
-  "lng": 25.1803
+  "lng": 25.1803,
+  "metro": "Heraklion"
  },
  {
   "code": "IAS",
@@ -717,7 +796,8 @@
   "country": "Rumunia",
   "countryCode": "ro",
   "lat": 47.17889,
-  "lng": 27.617
+  "lng": 27.617,
+  "metro": "IASI"
  },
  {
   "code": "IBZ",
@@ -726,7 +806,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 38.8729,
-  "lng": 1.37312
+  "lng": 1.37312,
+  "metro": "Ibiza"
  },
  {
   "code": "FKB",
@@ -735,7 +816,8 @@
   "country": "Niemcy",
   "countryCode": "de",
   "lat": 48.7794,
-  "lng": 8.0805
+  "lng": 8.0805,
+  "metro": "Karlsruhe"
  },
  {
   "code": "CTA",
@@ -744,7 +826,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 37.4668,
-  "lng": 15.0664
+  "lng": 15.0664,
+  "metro": "Katania"
  },
  {
   "code": "KTW",
@@ -753,7 +836,8 @@
   "country": "Polska",
   "countryCode": "pl",
   "lat": 50.4743,
-  "lng": 19.08
+  "lng": 19.08,
+  "metro": "Katowice"
  },
  {
   "code": "EFL",
@@ -762,7 +846,8 @@
   "country": "Grecja",
   "countryCode": "gr",
   "lat": 38.1201,
-  "lng": 20.5005
+  "lng": 20.5005,
+  "metro": "Kefalinia"
  },
  {
   "code": "KIR",
@@ -771,7 +856,8 @@
   "country": "Irlandia",
   "countryCode": "ie",
   "lat": 52.1809,
-  "lng": -9.52378
+  "lng": -9.52378,
+  "metro": "Kerry"
  },
  {
   "code": "KLU",
@@ -780,7 +866,8 @@
   "country": "Austria",
   "countryCode": "at",
   "lat": 46.6425,
-  "lng": 14.3377
+  "lng": 14.3377,
+  "metro": "Klagenfurt"
  },
  {
   "code": "NOC",
@@ -789,7 +876,8 @@
   "country": "Irlandia",
   "countryCode": "ie",
   "lat": 53.9103,
-  "lng": -8.81849
+  "lng": -8.81849,
+  "metro": "Knock"
  },
  {
   "code": "CGN",
@@ -798,7 +886,8 @@
   "country": "Niemcy",
   "countryCode": "de",
   "lat": 50.8659,
-  "lng": 7.14274
+  "lng": 7.14274,
+  "metro": "Kolonia"
  },
  {
   "code": "CFU",
@@ -807,7 +896,8 @@
   "country": "Grecja",
   "countryCode": "gr",
   "lat": 39.6019,
-  "lng": 19.9117
+  "lng": 19.9117,
+  "metro": "Korfu"
  },
  {
   "code": "KGS",
@@ -816,7 +906,8 @@
   "country": "Grecja",
   "countryCode": "gr",
   "lat": 36.7933,
-  "lng": 27.0917
+  "lng": 27.0917,
+  "metro": "Kos"
  },
  {
   "code": "KSC",
@@ -825,7 +916,8 @@
   "country": "Słowacja",
   "countryCode": "sk",
   "lat": 48.6631,
-  "lng": 21.2411
+  "lng": 21.2411,
+  "metro": "Kosice"
  },
  {
   "code": "KUN",
@@ -834,7 +926,8 @@
   "country": "Litwa",
   "countryCode": "lt",
   "lat": 54.9639,
-  "lng": 24.0848
+  "lng": 24.0848,
+  "metro": "Kowno"
  },
  {
   "code": "KRK",
@@ -843,7 +936,8 @@
   "country": "Polska",
   "countryCode": "pl",
   "lat": 50.0777,
-  "lng": 19.7848
+  "lng": 19.7848,
+  "metro": "Kraków"
  },
  {
   "code": "LRH",
@@ -852,7 +946,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 46.1792,
-  "lng": -1.19528
+  "lng": -1.19528,
+  "metro": "La Rochelle"
  },
  {
   "code": "SUF",
@@ -861,7 +956,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 38.9054,
-  "lng": 16.2423
+  "lng": 16.2423,
+  "metro": "Lamezia"
  },
  {
   "code": "ACE",
@@ -870,7 +966,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 28.9455,
-  "lng": -13.6052
+  "lng": -13.6052,
+  "metro": "Lanzarote"
  },
  {
   "code": "LCA",
@@ -879,7 +976,8 @@
   "country": "Cypr",
   "countryCode": "cy",
   "lat": 34.8751,
-  "lng": 33.6249
+  "lng": 33.6249,
+  "metro": "Larnaka"
  },
  {
   "code": "LBA",
@@ -888,7 +986,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 53.8659,
-  "lng": -1.66057
+  "lng": -1.66057,
+  "metro": "Leeds"
  },
  {
   "code": "LXS",
@@ -897,7 +996,8 @@
   "country": "Grecja",
   "countryCode": "gr",
   "lat": 39.5501,
-  "lng": 25.1411
+  "lng": 25.1411,
+  "metro": "Lemnos"
  },
  {
   "code": "LIL",
@@ -906,7 +1006,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 50.5619,
-  "lng": 3.08944
+  "lng": 3.08944,
+  "metro": "Lille"
  },
  {
   "code": "LIG",
@@ -915,7 +1016,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 45.8628,
-  "lng": 1.17944
+  "lng": 1.17944,
+  "metro": "Limoges"
  },
  {
   "code": "LNZ",
@@ -924,7 +1026,8 @@
   "country": "Austria",
   "countryCode": "at",
   "lat": 48.2332,
-  "lng": 14.1875
+  "lng": 14.1875,
+  "metro": "Linz"
  },
  {
   "code": "LPL",
@@ -933,7 +1036,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 53.3336,
-  "lng": -2.84972
+  "lng": -2.84972,
+  "metro": "Liverpool"
  },
  {
   "code": "LIS",
@@ -942,7 +1046,8 @@
   "country": "Portugalia",
   "countryCode": "pt",
   "lat": 38.7813,
-  "lng": -9.13592
+  "lng": -9.13592,
+  "metro": "Lizbona"
  },
  {
   "code": "LGW",
@@ -951,7 +1056,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 51.1481,
-  "lng": -0.190278
+  "lng": -0.190278,
+  "metro": "Londyn"
  },
  {
   "code": "LTN",
@@ -960,7 +1066,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 51.8747,
-  "lng": -0.368333
+  "lng": -0.368333,
+  "metro": "Londyn"
  },
  {
   "code": "STN",
@@ -969,7 +1076,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 51.885,
-  "lng": 0.235
+  "lng": 0.235,
+  "metro": "Londyn"
  },
  {
   "code": "LDE",
@@ -978,7 +1086,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 43.1787,
-  "lng": -0.006439
+  "lng": -0.006439,
+  "metro": "Lourdes"
  },
  {
   "code": "LUZ",
@@ -987,7 +1096,8 @@
   "country": "Polska",
   "countryCode": "pl",
   "lat": 51.2319,
-  "lng": 22.6903
+  "lng": 22.6903,
+  "metro": "Lublin"
  },
  {
   "code": "LUX",
@@ -996,7 +1106,8 @@
   "country": "Luksemburg",
   "countryCode": "lu",
   "lat": 49.6233,
-  "lng": 6.2044
+  "lng": 6.2044,
+  "metro": "Luxembourg"
  },
  {
   "code": "LCJ",
@@ -1005,7 +1116,8 @@
   "country": "Polska",
   "countryCode": "pl",
   "lat": 51.7219,
-  "lng": 19.3981
+  "lng": 19.3981,
+  "metro": "Łódź"
  },
  {
   "code": "MAD",
@@ -1014,7 +1126,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 40.4722,
-  "lng": -3.5608
+  "lng": -3.5608,
+  "metro": "Madryt"
  },
  {
   "code": "AGP",
@@ -1023,7 +1136,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 36.6749,
-  "lng": -4.49911
+  "lng": -4.49911,
+  "metro": "Malaga"
  },
  {
   "code": "MMX",
@@ -1032,7 +1146,8 @@
   "country": "Szwecja",
   "countryCode": "se",
   "lat": 55.5363,
-  "lng": 13.3762
+  "lng": 13.3762,
+  "metro": "Malmo"
  },
  {
   "code": "MLA",
@@ -1041,7 +1156,8 @@
   "country": "Malta",
   "countryCode": "mt",
   "lat": 35.8575,
-  "lng": 14.4775
+  "lng": 14.4775,
+  "metro": "Malta"
  },
  {
   "code": "MAN",
@@ -1050,7 +1166,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 53.3537,
-  "lng": -2.27495
+  "lng": -2.27495,
+  "metro": "Manchester"
  },
  {
   "code": "RAK",
@@ -1059,7 +1176,8 @@
   "country": "Maroko",
   "countryCode": "ma",
   "lat": 31.6069,
-  "lng": -8.0363
+  "lng": -8.0363,
+  "metro": "Marrakesz"
  },
  {
   "code": "MRS",
@@ -1068,7 +1186,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 43.4393,
-  "lng": 5.22142
+  "lng": 5.22142,
+  "metro": "Marsylia"
  },
  {
   "code": "MXP",
@@ -1077,7 +1196,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 45.63,
-  "lng": 8.7231
+  "lng": 8.7231,
+  "metro": "Mediolan"
  },
  {
   "code": "FMM",
@@ -1086,7 +1206,8 @@
   "country": "Niemcy",
   "countryCode": "de",
   "lat": 47.9888,
-  "lng": 10.2395
+  "lng": 10.2395,
+  "metro": "Memmingen"
  },
  {
   "code": "MAH",
@@ -1095,7 +1216,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 39.8626,
-  "lng": 4.21865
+  "lng": 4.21865,
+  "metro": "Minorka"
  },
  {
   "code": "FMO",
@@ -1104,7 +1226,8 @@
   "country": "Niemcy",
   "countryCode": "de",
   "lat": 52.1346,
-  "lng": 7.68483
+  "lng": 7.68483,
+  "metro": "Münster"
  },
  {
   "code": "RMU",
@@ -1113,7 +1236,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 37.7903,
-  "lng": -1.1418
+  "lng": -1.1418,
+  "metro": "Murcja"
  },
  {
   "code": "JMK",
@@ -1122,7 +1246,8 @@
   "country": "Grecja",
   "countryCode": "gr",
   "lat": 37.4351,
-  "lng": 25.3481
+  "lng": 25.3481,
+  "metro": "Mykonos"
  },
  {
   "code": "NDR",
@@ -1131,7 +1256,8 @@
   "country": "Maroko",
   "countryCode": "ma",
   "lat": 34.9888,
-  "lng": -3.02821
+  "lng": -3.02821,
+  "metro": "Nador"
  },
  {
   "code": "NTE",
@@ -1140,7 +1266,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 47.1532,
-  "lng": -1.61073
+  "lng": -1.61073,
+  "metro": "Nantes"
  },
  {
   "code": "NAP",
@@ -1149,7 +1276,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 40.8844,
-  "lng": 14.2908
+  "lng": 14.2908,
+  "metro": "Neapol"
  },
  {
   "code": "MME",
@@ -1158,7 +1286,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 54.5092,
-  "lng": -1.42941
+  "lng": -1.42941,
+  "metro": "Newcastle"
  },
  {
   "code": "NCL",
@@ -1167,7 +1296,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 55.0375,
-  "lng": -1.69167
+  "lng": -1.69167,
+  "metro": "Newcastle"
  },
  {
   "code": "NQY",
@@ -1176,7 +1306,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 50.4406,
-  "lng": -4.99541
+  "lng": -4.99541,
+  "metro": "Newquay"
  },
  {
   "code": "NCE",
@@ -1185,7 +1316,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 43.6584,
-  "lng": 7.21587
+  "lng": 7.21587,
+  "metro": "Nicea"
  },
  {
   "code": "FNI",
@@ -1194,7 +1326,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 43.7574,
-  "lng": 4.41635
+  "lng": 4.41635,
+  "metro": "Nimes"
  },
  {
   "code": "NWI",
@@ -1203,7 +1336,8 @@
   "country": "Wielka Brytania",
   "countryCode": "gb",
   "lat": 52.672163978,
-  "lng": 1.276332228
+  "lng": 1.276332228,
+  "metro": "Norwich"
  },
  {
   "code": "NUE",
@@ -1212,7 +1346,8 @@
   "country": "Niemcy",
   "countryCode": "de",
   "lat": 49.4987,
-  "lng": 11.0669
+  "lng": 11.0669,
+  "metro": "Norymberga"
  },
  {
   "code": "OLB",
@@ -1221,7 +1356,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 40.8987,
-  "lng": 9.51763
+  "lng": 9.51763,
+  "metro": "Olbia"
  },
  {
   "code": "SZY",
@@ -1230,7 +1366,8 @@
   "country": "Polska",
   "countryCode": "pl",
   "lat": 53.4819,
-  "lng": 20.9378
+  "lng": 20.9378,
+  "metro": "Olsztyn"
  },
  {
   "code": "OSI",
@@ -1239,7 +1376,8 @@
   "country": "Chorwacja",
   "countryCode": "hr",
   "lat": 45.4627,
-  "lng": 18.8102
+  "lng": 18.8102,
+  "metro": "Osijek"
  },
  {
   "code": "OSL",
@@ -1248,7 +1386,8 @@
   "country": "Norwegia",
   "countryCode": "no",
   "lat": 60.2028,
-  "lng": 11.0839
+  "lng": 11.0839,
+  "metro": "Oslo"
  },
  {
   "code": "OSR",
@@ -1257,7 +1396,8 @@
   "country": "Czechy",
   "countryCode": "cz",
   "lat": 49.6963,
-  "lng": 18.1111
+  "lng": 18.1111,
+  "metro": "Ostrawa"
  },
  {
   "code": "OZZ",
@@ -1266,7 +1406,8 @@
   "country": "Maroko",
   "countryCode": "ma",
   "lat": 30.9392,
-  "lng": -6.9094
+  "lng": -6.9094,
+  "metro": "Ouarzazate"
  },
  {
   "code": "PAD",
@@ -1275,7 +1416,8 @@
   "country": "Niemcy",
   "countryCode": "de",
   "lat": 51.4305,
-  "lng": 8.4515
+  "lng": 8.4515,
+  "metro": "Paderborn"
  },
  {
   "code": "PFO",
@@ -1284,7 +1426,8 @@
   "country": "Cypr",
   "countryCode": "cy",
   "lat": 34.718,
-  "lng": 32.4857
+  "lng": 32.4857,
+  "metro": "Pafos"
  },
  {
   "code": "PLQ",
@@ -1293,7 +1436,8 @@
   "country": "Litwa",
   "countryCode": "lt",
   "lat": 55.9733,
-  "lng": 21.0939
+  "lng": 21.0939,
+  "metro": "Palanga"
  },
  {
   "code": "PMO",
@@ -1302,7 +1446,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 38.176,
-  "lng": 13.091
+  "lng": 13.091,
+  "metro": "Palermo"
  },
  {
   "code": "PMI",
@@ -1311,7 +1456,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 39.5517,
-  "lng": 2.73881
+  "lng": 2.73881,
+  "metro": "Palma"
  },
  {
   "code": "PED",
@@ -1320,7 +1466,8 @@
   "country": "Czechy",
   "countryCode": "cz",
   "lat": 50.0048,
-  "lng": 15.4419
+  "lng": 15.4419,
+  "metro": "Pardubice"
  },
  {
   "code": "PMF",
@@ -1329,7 +1476,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 44.8245,
-  "lng": 10.2964
+  "lng": 10.2964,
+  "metro": "Parma"
  },
  {
   "code": "BVA",
@@ -1338,7 +1486,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 49.4544,
-  "lng": 2.11278
+  "lng": 2.11278,
+  "metro": "Paryż"
  },
  {
   "code": "XCR",
@@ -1347,7 +1496,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 48.7761,
-  "lng": 4.18449
+  "lng": 4.18449,
+  "metro": "Paryż"
  },
  {
   "code": "PGF",
@@ -1356,7 +1506,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 42.7404,
-  "lng": 2.87067
+  "lng": 2.87067,
+  "metro": "Perpignan"
  },
  {
   "code": "PEG",
@@ -1365,7 +1516,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 43.0959,
-  "lng": 12.5132
+  "lng": 12.5132,
+  "metro": "Perugia"
  },
  {
   "code": "PSR",
@@ -1374,7 +1526,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 42.4317,
-  "lng": 14.1811
+  "lng": 14.1811,
+  "metro": "Pescara"
  },
  {
   "code": "PSA",
@@ -1383,7 +1536,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 43.6839,
-  "lng": 10.3927
+  "lng": 10.3927,
+  "metro": "Piza"
  },
  {
   "code": "PDV",
@@ -1392,7 +1546,8 @@
   "country": "Bułgaria",
   "countryCode": "bg",
   "lat": 42.0678,
-  "lng": 24.8508
+  "lng": 24.8508,
+  "metro": "Płowdiw"
  },
  {
   "code": "TGD",
@@ -1401,7 +1556,8 @@
   "country": "Czarnogóra",
   "countryCode": "me",
   "lat": 42.3594,
-  "lng": 19.2519
+  "lng": 19.2519,
+  "metro": "Podgorica"
  },
  {
   "code": "PIS",
@@ -1410,7 +1566,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 46.5877,
-  "lng": 0.306666
+  "lng": 0.306666,
+  "metro": "Poitiers"
  },
  {
   "code": "OPO",
@@ -1419,7 +1576,8 @@
   "country": "Portugalia",
   "countryCode": "pt",
   "lat": 41.2481,
-  "lng": -8.68139
+  "lng": -8.68139,
+  "metro": "Porto"
  },
  {
   "code": "POZ",
@@ -1428,7 +1586,8 @@
   "country": "Polska",
   "countryCode": "pl",
   "lat": 52.421,
-  "lng": 16.8263
+  "lng": 16.8263,
+  "metro": "Poznań"
  },
  {
   "code": "PRG",
@@ -1437,7 +1596,8 @@
   "country": "Czechy",
   "countryCode": "cz",
   "lat": 50.1008,
-  "lng": 14.26
+  "lng": 14.26,
+  "metro": "Praga"
  },
  {
   "code": "PVK",
@@ -1446,7 +1606,8 @@
   "country": "Grecja",
   "countryCode": "gr",
   "lat": 38.9256,
-  "lng": 20.7653
+  "lng": 20.7653,
+  "metro": "Preveza"
  },
  {
   "code": "PUY",
@@ -1455,7 +1616,8 @@
   "country": "Chorwacja",
   "countryCode": "hr",
   "lat": 44.8935,
-  "lng": 13.9222
+  "lng": 13.9222,
+  "metro": "Pula"
  },
  {
   "code": "RBA",
@@ -1464,7 +1626,8 @@
   "country": "Maroko",
   "countryCode": "ma",
   "lat": 34.0515,
-  "lng": -6.75152
+  "lng": -6.75152,
+  "metro": "Rabat"
  },
  {
   "code": "REG",
@@ -1473,7 +1636,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 38.0641,
-  "lng": 15.3943
+  "lng": 15.3943,
+  "metro": "Reggio Calabria"
  },
  {
   "code": "REU",
@@ -1482,7 +1646,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 41.1474,
-  "lng": 1.16717
+  "lng": 1.16717,
+  "metro": "Barcelona"
  },
  {
   "code": "RJK",
@@ -1491,7 +1656,8 @@
   "country": "Chorwacja",
   "countryCode": "hr",
   "lat": 45.2169,
-  "lng": 14.5703
+  "lng": 14.5703,
+  "metro": "Rijeka"
  },
  {
   "code": "RMI",
@@ -1500,7 +1666,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 44.0203,
-  "lng": 12.6117
+  "lng": 12.6117,
+  "metro": "Rimini"
  },
  {
   "code": "RDZ",
@@ -1509,7 +1676,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 44.4079,
-  "lng": 2.48267
+  "lng": 2.48267,
+  "metro": "Rodez"
  },
  {
   "code": "RHO",
@@ -1518,7 +1686,8 @@
   "country": "Grecja",
   "countryCode": "gr",
   "lat": 36.4054,
-  "lng": 28.0862
+  "lng": 28.0862,
+  "metro": "Rodos"
  },
  {
   "code": "RVN",
@@ -1527,7 +1696,8 @@
   "country": "Finlandia",
   "countryCode": "fi",
   "lat": 66.5631,
-  "lng": 25.8301
+  "lng": 25.8301,
+  "metro": "Rovaniemi"
  },
  {
   "code": "RIX",
@@ -1536,7 +1706,8 @@
   "country": "Łotwa",
   "countryCode": "lv",
   "lat": 56.9236,
-  "lng": 23.9711
+  "lng": 23.9711,
+  "metro": "Ryga"
  },
  {
   "code": "RZE",
@@ -1545,7 +1716,8 @@
   "country": "Polska",
   "countryCode": "pl",
   "lat": 50.11,
-  "lng": 22.019
+  "lng": 22.019,
+  "metro": "Rzeszów"
  },
  {
   "code": "CIA",
@@ -1554,7 +1726,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 41.7994,
-  "lng": 12.5949
+  "lng": 12.5949,
+  "metro": "Rzym"
  },
  {
   "code": "FCO",
@@ -1563,7 +1736,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 41.8045,
-  "lng": 12.2508
+  "lng": 12.2508,
+  "metro": "Rzym"
  },
  {
   "code": "SCN",
@@ -1572,16 +1746,18 @@
   "country": "Niemcy",
   "countryCode": "de",
   "lat": 49.2161,
-  "lng": 7.1103
+  "lng": 7.1103,
+  "metro": "Saarbrücken"
  },
  {
   "code": "QSR",
   "name": "Salerno Costa d'Amalfi",
-  "city": "Salerno ",
+  "city": "Salerno",
   "country": "Włochy",
   "countryCode": "it",
   "lat": 40.405,
-  "lng": 14.4534
+  "lng": 14.4534,
+  "metro": "Salerno"
  },
  {
   "code": "SKG",
@@ -1590,7 +1766,8 @@
   "country": "Grecja",
   "countryCode": "gr",
   "lat": 40.5197,
-  "lng": 22.9709
+  "lng": 22.9709,
+  "metro": "Saloniki"
  },
  {
   "code": "SZG",
@@ -1599,7 +1776,8 @@
   "country": "Austria",
   "countryCode": "at",
   "lat": 47.7933,
-  "lng": 13.0043
+  "lng": 13.0043,
+  "metro": "Salzburg"
  },
  {
   "code": "TRF",
@@ -1608,7 +1786,8 @@
   "country": "Norwegia",
   "countryCode": "no",
   "lat": 59.1867,
-  "lng": 10.2586
+  "lng": 10.2586,
+  "metro": "Oslo"
  },
  {
   "code": "SDR",
@@ -1617,7 +1796,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 43.4271,
-  "lng": -3.82001
+  "lng": -3.82001,
+  "metro": "Santander"
  },
  {
   "code": "SCQ",
@@ -1626,7 +1806,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 42.8963,
-  "lng": -8.41514
+  "lng": -8.41514,
+  "metro": "Santiago"
  },
  {
   "code": "JTR",
@@ -1635,7 +1816,8 @@
   "country": "Grecja",
   "countryCode": "gr",
   "lat": 36.4008,
-  "lng": 25.4783
+  "lng": 25.4783,
+  "metro": "Santorini"
  },
  {
   "code": "ZAZ",
@@ -1644,7 +1826,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 41.6662,
-  "lng": -1.04155
+  "lng": -1.04155,
+  "metro": "Saragossa"
  },
  {
   "code": "SJJ",
@@ -1653,7 +1836,8 @@
   "country": "Bośnia i Hercegowina",
   "countryCode": "ba",
   "lat": 43.5123,
-  "lng": 18.2447
+  "lng": 18.2447,
+  "metro": "Sarajevo"
  },
  {
   "code": "SVQ",
@@ -1662,7 +1846,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 37.418,
-  "lng": -5.89311
+  "lng": -5.89311,
+  "metro": "Sewilla"
  },
  {
   "code": "SNN",
@@ -1671,7 +1856,8 @@
   "country": "Irlandia",
   "countryCode": "ie",
   "lat": 52.702,
-  "lng": -8.92482
+  "lng": -8.92482,
+  "metro": "Shannon"
  },
  {
   "code": "SFT",
@@ -1680,7 +1866,8 @@
   "country": "Szwecja",
   "countryCode": "se",
   "lat": 64.6248,
-  "lng": 21.0769
+  "lng": 21.0769,
+  "metro": "Skelleftea"
  },
  {
   "code": "JSI",
@@ -1689,7 +1876,8 @@
   "country": "Grecja",
   "countryCode": "gr",
   "lat": 39.1775,
-  "lng": 23.5036
+  "lng": 23.5036,
+  "metro": "Skiathos"
  },
  {
   "code": "SOF",
@@ -1698,7 +1886,8 @@
   "country": "Bułgaria",
   "countryCode": "bg",
   "lat": 42.42,
-  "lng": 23.2
+  "lng": 23.2,
+  "metro": "Sofia"
  },
  {
   "code": "SPU",
@@ -1707,7 +1896,8 @@
   "country": "Chorwacja",
   "countryCode": "hr",
   "lat": 43.5389,
-  "lng": 16.2981
+  "lng": 16.2981,
+  "metro": "Split"
  },
  {
   "code": "SZZ",
@@ -1716,7 +1906,8 @@
   "country": "Polska",
   "countryCode": "pl",
   "lat": 53.5847,
-  "lng": 14.9022
+  "lng": 14.9022,
+  "metro": "Szczecin"
  },
  {
   "code": "ARN",
@@ -1725,7 +1916,8 @@
   "country": "Szwecja",
   "countryCode": "se",
   "lat": 59.6498,
-  "lng": 17.9239
+  "lng": 17.9239,
+  "metro": "Sztokholm"
  },
  {
   "code": "NYO",
@@ -1734,7 +1926,8 @@
   "country": "Szwecja",
   "countryCode": "se",
   "lat": 58.7886,
-  "lng": 16.9122
+  "lng": 16.9122,
+  "metro": "Sztokholm"
  },
  {
   "code": "VST",
@@ -1743,7 +1936,8 @@
   "country": "Szwecja",
   "countryCode": "se",
   "lat": 59.5894,
-  "lng": 16.6336
+  "lng": 16.6336,
+  "metro": "Sztokholm"
  },
  {
   "code": "TLL",
@@ -1752,7 +1946,8 @@
   "country": "Estonia",
   "countryCode": "ee",
   "lat": 59.4133,
-  "lng": 24.8328
+  "lng": 24.8328,
+  "metro": "Tallinn"
  },
  {
   "code": "TNG",
@@ -1761,7 +1956,8 @@
   "country": "Maroko",
   "countryCode": "ma",
   "lat": 35.7269,
-  "lng": -5.91689
+  "lng": -5.91689,
+  "metro": "Tanger"
  },
  {
   "code": "TFS",
@@ -1770,7 +1966,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 28.0445,
-  "lng": -16.5725
+  "lng": -16.5725,
+  "metro": "Teneryfa"
  },
  {
   "code": "TTU",
@@ -1779,7 +1976,8 @@
   "country": "Maroko",
   "countryCode": "ma",
   "lat": 35.5944,
-  "lng": -5.32
+  "lng": -5.32,
+  "metro": "Tétouan"
  },
  {
   "code": "TIA",
@@ -1788,7 +1986,8 @@
   "country": "Albania",
   "countryCode": "al",
   "lat": 41.4147,
-  "lng": 19.7206
+  "lng": 19.7206,
+  "metro": "Tirana"
  },
  {
   "code": "TUF",
@@ -1797,7 +1996,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 47.4322,
-  "lng": 0.727606
+  "lng": 0.727606,
+  "metro": "Tours"
  },
  {
   "code": "TPS",
@@ -1806,7 +2006,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 37.9114,
-  "lng": 12.488
+  "lng": 12.488,
+  "metro": "Trapani"
  },
  {
   "code": "TRS",
@@ -1815,7 +2016,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 45.8275,
-  "lng": 13.4722
+  "lng": 13.4722,
+  "metro": "Triest"
  },
  {
   "code": "TLS",
@@ -1824,7 +2026,8 @@
   "country": "Francja",
   "countryCode": "fr",
   "lat": 43.3616,
-  "lng": 1.2638
+  "lng": 1.2638,
+  "metro": "Tuluza"
  },
  {
   "code": "TRN",
@@ -1833,7 +2036,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 45.2008,
-  "lng": 7.64963
+  "lng": 7.64963,
+  "metro": "Turyn"
  },
  {
   "code": "VAR",
@@ -1842,7 +2046,8 @@
   "country": "Bułgaria",
   "countryCode": "bg",
   "lat": 43.13,
-  "lng": 27.55
+  "lng": 27.55,
+  "metro": "Varna"
  },
  {
   "code": "VXO",
@@ -1851,7 +2056,8 @@
   "country": "Szwecja",
   "countryCode": "se",
   "lat": 56.9291,
-  "lng": 14.728
+  "lng": 14.728,
+  "metro": "Växjö"
  },
  {
   "code": "VIT",
@@ -1860,7 +2066,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 42.8828,
-  "lng": -2.7244
+  "lng": -2.7244,
+  "metro": "Vitoria-Gasteiz"
  },
  {
   "code": "OUD",
@@ -1869,7 +2076,8 @@
   "country": "Maroko",
   "countryCode": "ma",
   "lat": 34.7872,
-  "lng": -1.92399
+  "lng": -1.92399,
+  "metro": "Wadżda"
  },
  {
   "code": "VLC",
@@ -1878,7 +2086,8 @@
   "country": "Hiszpania",
   "countryCode": "es",
   "lat": 39.4893,
-  "lng": -0.481625
+  "lng": -0.481625,
+  "metro": "Walencja"
  },
  {
   "code": "WAW",
@@ -1887,7 +2096,8 @@
   "country": "Polska",
   "countryCode": "pl",
   "lat": 52.1657,
-  "lng": 20.9671
+  "lng": 20.9671,
+  "metro": "Warszawa"
  },
  {
   "code": "WMI",
@@ -1896,7 +2106,8 @@
   "country": "Polska",
   "countryCode": "pl",
   "lat": 52.4511,
-  "lng": 20.6517
+  "lng": 20.6517,
+  "metro": "Warszawa"
  },
  {
   "code": "TSF",
@@ -1905,7 +2116,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 45.6484,
-  "lng": 12.1944
+  "lng": 12.1944,
+  "metro": "Wenecja"
  },
  {
   "code": "VCE",
@@ -1914,7 +2126,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 45.5053,
-  "lng": 12.3519
+  "lng": 12.3519,
+  "metro": "Wenecja"
  },
  {
   "code": "VRN",
@@ -1923,7 +2136,8 @@
   "country": "Włochy",
   "countryCode": "it",
   "lat": 45.3957,
-  "lng": 10.8885
+  "lng": 10.8885,
+  "metro": "Werona"
  },
  {
   "code": "VIE",
@@ -1932,7 +2146,8 @@
   "country": "Austria",
   "countryCode": "at",
   "lat": 48.1103,
-  "lng": 16.5697
+  "lng": 16.5697,
+  "metro": "Wiedeń"
  },
  {
   "code": "VNO",
@@ -1941,7 +2156,8 @@
   "country": "Litwa",
   "countryCode": "lt",
   "lat": 54.6341,
-  "lng": 25.2858
+  "lng": 25.2858,
+  "metro": "Wilno"
  },
  {
   "code": "VOL",
@@ -1950,7 +2166,8 @@
   "country": "Grecja",
   "countryCode": "gr",
   "lat": 39.2196,
-  "lng": 22.7943
+  "lng": 22.7943,
+  "metro": "Wolos"
  },
  {
   "code": "WRO",
@@ -1959,7 +2176,8 @@
   "country": "Polska",
   "countryCode": "pl",
   "lat": 51.1027,
-  "lng": 16.8858
+  "lng": 16.8858,
+  "metro": "Wrocław"
  },
  {
   "code": "ZAD",
@@ -1968,7 +2186,8 @@
   "country": "Chorwacja",
   "countryCode": "hr",
   "lat": 44.1083,
-  "lng": 15.3467
+  "lng": 15.3467,
+  "metro": "Zadar"
  },
  {
   "code": "ZAG",
@@ -1977,7 +2196,8 @@
   "country": "Chorwacja",
   "countryCode": "hr",
   "lat": 45.7431,
-  "lng": 16.0689
+  "lng": 16.0689,
+  "metro": "Zagrzeb"
  },
  {
   "code": "ZTH",
@@ -1986,6 +2206,7 @@
   "country": "Grecja",
   "countryCode": "gr",
   "lat": 37.7509,
-  "lng": 20.8843
+  "lng": 20.8843,
+  "metro": "Zakintos"
  }
 ]
