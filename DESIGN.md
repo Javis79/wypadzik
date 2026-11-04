@@ -196,6 +196,16 @@ components:
     backgroundColor: "{colors.sheet}"
     textColor: "{colors.muted}"
     height: "64px"
+  login-print:
+    backgroundColor: "{colors.print-white}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.none}"
+    padding: "16px"
+    width: "380px"
+  wizard-footer:
+    backgroundColor: "{colors.plate-ink}"
+    textColor: "{colors.print-white}"
+    padding: "10px 16px"
   detail-sheet:
     backgroundColor: "{colors.sheet}"
     textColor: "{colors.ink}"
@@ -353,7 +363,7 @@ When both voted yes, a strip of tape pink is stuck across the top edge of the co
 - **Table cells:** 36px, field fill, field-line border, right-aligned numbers, print inks in both modes.
 
 ### Navigation
-- **Camera bar:** sticky pink bar, wordmark left, offline pill and the K/Z voter chips right (32px ink-outlined circles; the active voter is filled ink with white text).
+- **Camera bar:** sticky pink bar, wordmark left, offline pill and the K/Z voter chips right (32px ink-outlined circles; the active voter is filled ink with white text). Inside a trip the wordmark gives way to a back arrow and the trip title, and the voter is the signed-in person, so the chips do not appear.
 - **Tab bar:** on phones a bottom bar on sheet with a top hairline, a 23px drawn icon over an 11.5px label, muted when inactive; the active tab is ink at 800 with a 3px pink bar along the top. On desktop it sits under the camera bar as horizontal tabs with the bar along the bottom.
 
 ### Detail Sheet
@@ -361,6 +371,31 @@ Opens from any print. A 280px photo gallery with scroll-snap, hand-written paper
 
 ### Map Pins and Places
 Teardrop pins in category ink with a white drawn icon; done places fade to 50%. Place rows have a square category dot, a bold name, muted meta and a small edit button. Plan slots are paper strips (time, category icon, name, price) on the table.
+
+### Login (logowanie)
+The one screen that has no camera bar: it is the whole shell in pink. A pink field fills the viewport and centres a column up to 380px wide, with the wordmark (40px, "we dwoje" in marker at 28px) set straight on the pink in shell ink. Below it lies a single white paper card (2px ink border, paper shadow) that stays light in dark mode.
+- **Mode tabs:** two equal square tabs on top of the card, "Zaloguj" and "Załóż konto", 44px, 2px ink rules between them and under them. The active tab is white with a 3px pink bar along its bottom edge; the inactive one is rule-grey (`#e6dee4`) with ink-2 text.
+- **Form:** 16px padding; labels in Archivo 700 14px, fields in the standard 2px ink square style at 16px text so iOS does not zoom. "Załóż konto" reveals two more fields (display name, repeated password). The submit is a full-width primary (ink) button, and a muted line under it states the login rule ("3–20 znaków, małe litery, cyfry, _ lub .").
+- **Errors:** a field error is a bold 14px line in error red (`#b3261e`) under its field, and the field takes a red border. A form-level error is a red-bordered box on a pale red fill above the button. Nothing is colour-only: every error has words.
+- **Gate:** while signed out, the camera bar, main area and tab bar are hidden by one `signed-out` class on the root element, set by a tiny inline script before first paint so the app never flashes.
+
+### Moje wypady (trip list)
+The first screen after login, and the way back from a trip (the arrow left of the trip title). It uses the camera bar, but with the account on the right: the person's name and a small outlined "Wyloguj" button that inverts to shell ink on hover. The tab bar is hidden here.
+- **Header row:** "Moje wypady" in marker at 30px, and the primary "Nowy wypad" button on the right. Offline, that button is disabled and a muted line under it says "Nowy wypad wymaga internetu".
+- **Trip print:** a contact print (see Cards / Containers) with a blank photo-blank field instead of a photo, because a trip is not a place. The initials of its members sit top-right as paper vote tags, the title is in marker, and a muted line gives the dates and the departure airport ("4–7 gru 2026 · z KRK"). The grid is 2 columns on phones, 3 from 640px and 4 from 960px, with the same tilt pattern as the contact sheet.
+- **Past trips:** under a "Minione" marker heading the prints turn greyscale at 62% opacity. They stay tappable.
+- **Empty state:** one white card with a 2px ink border and a hand-written line ("Jeszcze żadnego wypadu. Zaplanujmy pierwszy."), centred.
+- **Inside a trip:** the camera bar swaps its voter chips for a back arrow and the trip title; the tab bar returns. The Więcej tab gains an "Osoby" panel: each member is a small paper tag with an initial in marker, a name and a login; below are a login field with suggestions, "Dodaj", "Wyślij link osobom z wypadu", and two danger buttons, "Opuść wypad" and (only for whoever created the trip) "Usuń wypad". Vote tags show the shortest initials that tell everyone in the trip apart.
+
+### Kreator wypadu (Dokąd tanio?)
+A full-screen dialog on phones and a centred dialog up to 860px tall on desktop, in three steps. Its bar is pink like the camera bar and holds a back arrow, the step ("Krok 1 z 3") over the step title in marker, and a close cross, all 44px targets. The footer is the plate: an ink slab with the status in Archivo 800 at left, and the actions at right as plate-outlined buttons plus one pink "Dalej" / "Gotowe". The pink button is disabled (35%) until the step is valid, and the status line says what is missing ("Wybierz daty wylotu i powrotu").
+- **1. Kiedy i skąd:** two date fields side by side, a title that suggests itself from the dates (a placeholder, not a value), the departure airport as a combobox with a suggestion list (bold name, muted code and country, 44px rows), and two "dokładnie / ±1 dzień / ±2 dni" groups for how flexible each date is. These are the standard chips: selected is a white chip with a solid ink border, the rest dashed.
+- **2. Z kim:** a login field with suggestions and "Dodaj"; people already added appear as paper tags with a small remove button. "Wyślij link-zaproszenie" shares an invite link. The step can be skipped.
+- **3. Dokąd tanio?:** a full-bleed filter strip with a price slider ("do 1130 zł") and a country select, a one-line note ("Ceny za osobę, tam i z powrotem"), and a grid of prints (2 columns, 3 from 560px). Each print is a contact print whose photo area shows the airport code in condensed 26px Archivo on photo-blank, the city in marker, the round-trip price at right and the times below ("pt 22:05 → pon 09:55"). A 28px square tick box sits top-right; picking a print gives it a 3px ink outline and fills the box. Keyboard focus is a dashed marker-navy outline, apart from the solid selection. While prices load, a pulsing line says "Szukam tanich lotów…"; if there are none, the grid is replaced by a plain message. Below the grid are "Dodane przez was" (cities added by hand, with a remove button), "Dodaj miasto ręcznie" and "Skopiuj z poprzedniego wypadu".
+- **Errors:** a step error is a box with a 2px red border on field fill; a field error is the bold red line used on the login.
+
+### Stary wyjazd (migration dialog)
+A small dialog (440px at most, 32px less than the viewport on phones) in the sheet style with no tab bar behind it, shown on the trip list when the phone still holds the November trip from before accounts. Its heading "Stary wyjazd" is in marker, followed by one or two plain lines and a 2-up row of buttons: "Krystian" and "Zuzia" (who the person was), then a full-width outlined "Nie teraz" that hides the question until the session ends. While moving the data the buttons give way to a muted "Przenoszę wyjazd…" line and the dialog cannot be dismissed. It opens with the same rise as the wizard (.32s), or a plain fade with reduced motion.
 
 ### Toast
 A square plate-ink bar above the tab bar, 14px 600 text, fading in over .2s and rising with `cubic-bezier(.2,.8,.2,1)`.

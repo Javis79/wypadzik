@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-03T12:00:00Z",
+  "generatedAt": "2026-11-04T12:00:00Z",
   "title": "Design System: Wypad we dwoje",
   "extensions": {
     "colorMeta": {
@@ -449,6 +449,30 @@
       "description": "Phone bottom bar: drawn icons over condensed labels, active tab in ink with a pink bar on top.",
       "html": "<nav class=\"ds-tabs\"><button class=\"ds-act\"><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><rect x=\"5\" y=\"3\" width=\"14\" height=\"18\"/><path d=\"M5 15h14\"/></svg>Wybierz</button><button><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"M4 6h16M4 12h16M4 18h10\"/></svg>Porównaj</button><button><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><path d=\"M3.5 6.5 9 4.5l6 2 5.5-2v13l-5.5 2-6-2-5.5 2z\"/><path d=\"M9 4.5v13M15 6.5v13\"/></svg>Mapa</button><button><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><rect x=\"4\" y=\"5.5\" width=\"16\" height=\"14.5\"/><path d=\"M4 10h16M8.5 3.5v4M15.5 3.5v4\"/></svg>Plan</button></nav>",
       "css": ".ds-ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}.ds-tabs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:#fff;border-top:1px solid #e6dee4}.ds-tabs button{position:relative;height:64px;border:0;background:none;color:#6a6270;font-family:Archivo,system-ui,sans-serif;font-weight:600;font-size:11.5px;font-stretch:90%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer}.ds-tabs .ds-ic{width:23px;height:23px}.ds-tabs button:hover{color:#1d1a22}.ds-tabs button:focus-visible{outline:2px solid #1d1a22;outline-offset:-2px}.ds-tabs .ds-act{color:#1d1a22;font-weight:800}.ds-tabs .ds-act::after{content:'';position:absolute;top:0;left:28%;right:28%;height:3px;background:#e98aa6}"
+    },
+    {
+      "name": "Login Print",
+      "kind": "card",
+      "refersTo": "login-print",
+      "description": "Logowanie: one white paper card with two square mode tabs on the pink shell; the active tab carries a pink bar.",
+      "html": "<div class=\"ds-lgs\"><div class=\"ds-lgw\">Wypad <span>we dwoje</span></div><div class=\"ds-lgp\"><div class=\"ds-lgt\"><button class=\"ds-on\">Zaloguj</button><button>Załóż konto</button></div><div class=\"ds-lgf\"><label>Login<input placeholder=\"np. zuzia\"></label><label>Hasło<input type=\"password\" placeholder=\"co najmniej 8 znaków\"></label><button class=\"ds-go\">Zaloguj</button></div></div></div>",
+      "css": ".ds-lgs{background:#e98aa6;padding:24px 16px;display:grid;justify-items:center;font-family:Archivo,system-ui,sans-serif}.ds-lgs>*{width:100%;max-width:380px}.ds-lgw{font-size:40px;font-weight:800;font-stretch:78%;letter-spacing:-.015em;color:#1d1a22;margin-bottom:16px}.ds-lgw span{font-family:'Shantell Sans',Archivo,system-ui,sans-serif;font-stretch:normal;font-weight:700;font-size:28px;color:#24318f;margin-left:2px;letter-spacing:0}.ds-lgp{background:#fff;color:#1d1a22;border:2px solid #1d1a22;box-shadow:0 10px 22px rgba(45,20,40,.20),0 1px 2px rgba(0,0,0,.18)}.ds-lgt{display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #1d1a22}.ds-lgt button{border:0;background:#e6dee4;color:#4f4854;min-height:44px;font:700 15px/1 Archivo,system-ui,sans-serif;font-stretch:88%;border-radius:0}.ds-lgt button+button{border-left:2px solid #1d1a22}.ds-lgt .ds-on{background:#fff;color:#1d1a22;box-shadow:inset 0 -3px 0 #e98aa6}.ds-lgf{padding:16px}.ds-lgf label{display:block;font-weight:700;font-stretch:90%;font-size:14px;margin-top:12px}.ds-lgf label:first-child{margin-top:0}.ds-lgf input{display:block;width:100%;box-sizing:border-box;margin-top:4px;font:400 16px Archivo,system-ui,sans-serif;color:#1d1a22;background:#fff;border:2px solid #1d1a22;border-radius:0;padding:9px 10px;min-height:42px}.ds-go{display:flex;align-items:center;justify-content:center;width:100%;margin-top:12px;min-height:44px;border:2px solid #1d1a22;border-radius:0;background:#1d1a22;color:#fff;font:700 15px/1 Archivo,system-ui,sans-serif;font-stretch:88%}"
+    },
+    {
+      "name": "Trip Print",
+      "kind": "card",
+      "refersTo": "print-contact",
+      "description": "Moje wypady: a contact print with a blank field instead of a photo, member initials as tags, the title in marker and the dates under it. Past trips go greyscale.",
+      "html": "<div class=\"ds-sheet\"><article class=\"ds-cp\" tabindex=\"0\"><div class=\"ds-th\"><div class=\"ds-votes\"><span class=\"ds-vt\">K</span><span class=\"ds-vt\">Z</span></div></div><div class=\"ds-dc\"><h3>Wypad 4–7 gru</h3><div class=\"ds-sub\">4–7 gru 2026 · z KRK</div></div></article><article class=\"ds-cp ds-t2 ds-past\" tabindex=\"0\"><div class=\"ds-th\"><div class=\"ds-votes\"><span class=\"ds-vt\">K</span></div></div><div class=\"ds-dc\"><h3>Wypad we dwoje</h3><div class=\"ds-sub\">19–24 lis 2026 · z KRK</div></div></article></div>",
+      "css": ".ds-ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}.ds-sheet{background:#17131a;padding:20px;display:grid;grid-template-columns:repeat(2,minmax(0,170px));gap:16px 12px}.ds-cp{position:relative;background:#f6f2f4;color:#1d1a22;padding:6px 6px 8px;box-shadow:0 2px 8px rgba(0,0,0,.45);transform:rotate(-.8deg);cursor:pointer;font-family:Archivo,system-ui,sans-serif}.ds-t2{transform:rotate(.6deg)}.ds-cp:focus-visible{outline:2px solid #1d1a22;outline-offset:2px}.ds-th{position:relative;aspect-ratio:1/1;background:#d9d0d7}.ds-votes{position:absolute;top:6px;right:6px;display:flex;gap:3px}.ds-vt{font-family:'Shantell Sans',Archivo,system-ui,sans-serif;font-weight:700;font-size:12px;line-height:1;background:#fff;color:#24318f;padding:4px 6px 5px;box-shadow:0 1px 2px rgba(0,0,0,.25)}.ds-dc{padding:8px 2px 2px}.ds-dc h3{margin:0;font-family:'Shantell Sans',Archivo,system-ui,sans-serif;font-weight:700;font-size:19px;line-height:1.05;color:#24318f}.ds-sub{font-size:12px;color:#6a6270;margin-top:3px;font-stretch:90%}.ds-past{filter:grayscale(1);opacity:.62}"
+    },
+    {
+      "name": "Wizard Footer",
+      "kind": "nav",
+      "refersTo": "wizard-footer",
+      "description": "Kreator wypadu: the ink plate at the foot of the dialog with the step status at left and a pink primary action at right.",
+      "html": "<div class=\"ds-wf\"><span>Wybrane: 4</span><div><button>Pomiń</button><button class=\"ds-go\">Gotowe</button></div></div>",
+      "css": ".ds-wf{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:#1d1a22;color:#fff;font-family:Archivo,system-ui,sans-serif}.ds-wf span{font-weight:800;font-stretch:85%;font-size:16px}.ds-wf div{display:flex;gap:8px}.ds-wf button{min-height:44px;padding:8px 14px;border:2px solid #fff;border-radius:0;background:transparent;color:#fff;font:700 15px/1 Archivo,system-ui,sans-serif;font-stretch:88%}.ds-wf .ds-go{background:#e98aa6;color:#1d1a22;border-color:#e98aa6;min-width:104px}"
     }
   ],
   "narrative": {

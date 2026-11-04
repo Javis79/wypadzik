@@ -77,6 +77,7 @@ main{padding:12px 16px}
   color:#1d1a22;border-radius:0;padding:8px 14px;font:700 15px/1 var(--f-ui);font-stretch:88%;cursor:pointer;min-height:44px;text-decoration:none;
   transition:background .12s,transform .12s}
 @media (prefers-color-scheme: dark){ .btn{background:transparent;color:var(--ink)} }
+.btn[hidden]{display:none}
 .btn:hover{background:var(--field)}
 .btn:active{transform:translateY(1px)}
 .btn.primary{background:var(--ink);color:var(--print)}
