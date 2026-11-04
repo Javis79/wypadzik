@@ -1,11 +1,11 @@
 /* Konto: logowanie loginem i hasłem przez Supabase Auth (REST, bez bibliotek).
-   Login zamieniamy na e-mail <login>@wypad.app; serwer pilnuje tej samej reguły.
+   Login zamieniamy na e-mail <login>@wypad.invalid (zarezerwowana domena RFC 2606, nikt jej nie przejmie); serwer pilnuje tej samej reguły.
    Sesja leży w localStorage pod „wypad-auth”. Klucz to publiczny „publishable”, przeznaczony do przeglądarki. */
 (() => {
   const URL_ = "https://zyvjjqucfidnbzoevqlr.supabase.co";
   const KEY = "sb_publishable_EVB-jO0lqjj_hB49t7M7fA_wNh42fWX";
   const LS = "wypad-auth";
-  const DOMAIN = "wypad.app";
+  const DOMAIN = "wypad.invalid";
   const LOGIN_RE = /^[a-z0-9_.]{3,20}$/;
 
   const MSG = {
@@ -101,10 +101,11 @@
     return api.user;
   };
 
+  // scope=local: wylogowanie tylko tego telefonu (domyślnie GoTrue wylogowałby wszystkie urządzenia)
   api.signOut = () => {
     const t = sess && sess.access_token;
     sess = null; api.user = null; write(null);
-    if (t) { try { Promise.resolve(fetch(`${URL_}/auth/v1/logout`, { method: "POST", headers: { apikey: KEY, Authorization: `Bearer ${t}` } })).catch(() => {}); } catch {} }
+    if (t) { try { Promise.resolve(fetch(`${URL_}/auth/v1/logout?scope=local`, { method: "POST", headers: { apikey: KEY, Authorization: `Bearer ${t}` } })).catch(() => {}); } catch {} }
     fire();
   };
 

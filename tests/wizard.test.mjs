@@ -221,6 +221,8 @@ test("krok 1: „Dalej” nieaktywne na żywo z komunikatem przy polu", () => {
 
 test("„Gotowe” zakłada wypad, dodaje osoby z kolejki i zapisuje kierunki", async () => {
   const t = setup();
+  const pushed = [];
+  t.w.pushTrip = id => { pushed.push([id, JSON.parse(t.w.localStorage.getItem("wypad-trip-" + id)).destinations.length]); return Promise.resolve(true); };
   t.open();
   fill1(t.$);
   t.$("#wz-next").click();
@@ -245,6 +247,8 @@ test("„Gotowe” zakłada wypad, dodaje osoby z kolejki i zapisuje kierunki", 
   assert.deepEqual(plain(t.calls.done), ["T1"]);
   assert.equal(t.dlg.open, false);
   assert.match(t.toastEl.textContent, /: 2 kierunki$/);
+  // kierunki wysłane od razu (po zapisie lokalnym), bez czekania na otwarcie wypadu przez założyciela
+  assert.deepEqual(plain(pushed), [["T1", 2]]);
 });
 
 test("zamknięcie w trakcie „Gotowe”: nic nie zapisane, bez onDone", async () => {

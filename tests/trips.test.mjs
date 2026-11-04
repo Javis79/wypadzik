@@ -5,7 +5,7 @@ import { load, plain } from "./load.mjs";
 const now = () => Math.floor(Date.now() / 1000);
 const sess = () => ({
   access_token: "A1", refresh_token: "R1", expires_at: now() + 3600,
-  user: { id: "u1", email: "zuzia@wypad.app", user_metadata: { login: "zuzia", name: "Zuzia" } },
+  user: { id: "u1", email: "zuzia@wypad.invalid", user_metadata: { login: "zuzia", name: "Zuzia" } },
 });
 const res = (status, body) => ({ ok: status < 400, status, json: async () => body });
 const T1 = "11111111-1111-1111-1111-111111111111";
@@ -133,7 +133,7 @@ test("lista jest osobna dla każdego konta", async () => {
   assert.equal(w.WypadTrips.list().length, 0);
   await w.WypadTrips.refresh();
   assert.equal(w.WypadTrips.list().length, 1);
-  const b = sess(); b.user = { id: "u2", email: "kuba@wypad.app", user_metadata: { login: "kuba", name: "Kuba" } };
+  const b = sess(); b.user = { id: "u2", email: "kuba@wypad.invalid", user_metadata: { login: "kuba", name: "Kuba" } };
   w.localStorage.setItem("wypad-auth", JSON.stringify(b));
   const w2 = load(["auth.js", "trips.js"], { localStorage: w.localStorage, fetch: async () => { throw new TypeError("offline"); } });
   assert.equal(w2.WypadTrips.list().length, 0);

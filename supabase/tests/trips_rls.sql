@@ -2,29 +2,32 @@
 begin;
 
 insert into auth.users (id, email, raw_user_meta_data)
-values (gen_random_uuid(), 't_ala@wypad.app', '{"login":"t_ala","name":"Ala"}'),
-       (gen_random_uuid(), 't_ola@wypad.app', '{"login":"t_ola","name":"Ola"}'),
-       (gen_random_uuid(), 't_ewa@wypad.app', '{"login":"t_ewa","name":"Ewa"}');
+values (gen_random_uuid(), 't_ala@wypad.invalid', '{"login":"t_ala","name":"Ala"}'),
+       (gen_random_uuid(), 't_ola@wypad.invalid', '{"login":"t_ola","name":"Ola"}'),
+       (gen_random_uuid(), 't_ewa@wypad.invalid', '{"login":"t_ewa","name":"Ewa"}');
 
 do $$
 declare msg text;
 begin
-  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 't_zly@wypad.app', '{"login":"t_inny","name":"X"}'); msg := 'brak błędu';
+  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 't_zly@wypad.invalid', '{"login":"t_inny","name":"X"}'); msg := 'brak błędu';
   exception when others then msg := sqlerrm; end;
   assert msg = 'bad_email', 'login/email niezgodne: ' || msg;
-  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 'ab@wypad.app', '{"login":"ab","name":"X"}'); msg := 'brak błędu';
+  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 'ab@wypad.invalid', '{"login":"ab","name":"X"}'); msg := 'brak błędu';
   exception when others then msg := sqlerrm; end;
   assert msg = 'bad_login', 'za krótki login: ' || msg;
-  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 't_a b@wypad.app', '{"login":"t_a b","name":"X"}'); msg := 'brak błędu';
+  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 't_a b@wypad.invalid', '{"login":"t_a b","name":"X"}'); msg := 'brak błędu';
   exception when others then msg := sqlerrm; end;
   assert msg = 'bad_login', 'login ze spacją: ' || msg;
-  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 't_ąla@wypad.app', '{"login":"t_ąla","name":"X"}'); msg := 'brak błędu';
+  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 't_ąla@wypad.invalid', '{"login":"t_ąla","name":"X"}'); msg := 'brak błędu';
   exception when others then msg := sqlerrm; end;
   assert msg = 'bad_login', 'login z Unicode: ' || msg;
   begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 't_obcy@gmail.com', '{"login":"t_obcy","name":"X"}'); msg := 'brak błędu';
   exception when others then msg := sqlerrm; end;
   assert msg = 'bad_email', 'obca domena: ' || msg;
-  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 't_dluga_nazwa_loginu_xx@wypad.app', '{"login":"t_dluga_nazwa_loginu_xx"}'); msg := 'brak błędu';
+  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 't_stary@wypad.app', '{"login":"t_stary","name":"X"}'); msg := 'brak błędu';
+  exception when others then msg := sqlerrm; end;
+  assert msg = 'bad_email', 'stara domena wypad.app: ' || msg;
+  begin insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 't_dluga_nazwa_loginu_xx@wypad.invalid', '{"login":"t_dluga_nazwa_loginu_xx"}'); msg := 'brak błędu';
   exception when others then msg := sqlerrm; end;
   assert msg = 'bad_login', 'za długi login: ' || msg;
 end $$;

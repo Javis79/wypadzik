@@ -14,7 +14,7 @@
 
 - Bez kroku budowania i bez bibliotek npm w apce; jedyny serwer to Supabase `zyvjjqucfidnbzoevqlr`, w kodzie tylko klucz `sb_publishable_EVB-jO0lqjj_hB49t7M7fA_wNh42fWX`.
 - Cały tekst w UI po polsku; wygląd według DESIGN.md („Odbitki”), ikony z istniejącego sprite’a SVG, bez emoji.
-- Login: 3–20 znaków `a–z 0–9 _ .`, przed sprawdzeniem `trim()` i `toLowerCase()`; e-mail techniczny `<login>@wypad.app`; hasło min. 8 znaków.
+- Login: 3–20 znaków `a–z 0–9 _ .`, przed sprawdzeniem `trim()` i `toLowerCase()`; e-mail techniczny `<login>@wypad.invalid`; hasło min. 8 znaków.
 - Klucze wpisów: `cfg`, `d:<destId>`, `p:<destId>:<placeId>`, `v:<destId>:<userId>`.
 - Dane lokalne wypadu: `wypad-trip-<tripId>`; stary wyjazd: `wypad-v3` → po przeniesieniu `wypad-v3-old`.
 - Ryanair: limit czasu 8 s, pamięć 6 h, waluta PLN, rynek `pl-pl`, 1 dorosły.
@@ -69,7 +69,7 @@
   - `execute` funkcji tylko dla `authenticated` (odebrane `anon` i `public`).
   - `profiles`: `select` dla `authenticated`, `update` własnego wiersza.
 - [ ] **Step 4: Uruchom test ponownie.** Oczekiwane: brak wyjątku. Potem `get_advisors` (security); dopuszczalne tylko ostrzeżenia o celowym SECURITY DEFINER.
-- [ ] **Step 5: Krystian wyłącza „Confirm email”** (Authentication → Sign In / Providers → Email). Sprawdź: `curl` POST `/auth/v1/signup` z `t_probe@wypad.app` zwraca `access_token`. Usuń `t_probe` przez `execute_sql`.
+- [ ] **Step 5: Krystian wyłącza „Confirm email”** (Authentication → Sign In / Providers → Email). Sprawdź: `curl` POST `/auth/v1/signup` z `t_probe@wypad.invalid` zwraca `access_token`. Usuń `t_probe` przez `execute_sql`.
 - [ ] **Step 6: Commit** `supabase/` z wiadomością „Baza wypadów: konta, członkowie, zaproszenia, RLS”.
 
 ### Task 2: Testy logiki w Node

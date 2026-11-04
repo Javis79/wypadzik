@@ -291,7 +291,7 @@ function server() {
 }
 function phone(srv, { user = U1, list = [], v3 = oldState(), autoRename = true } = {}) {
   const w0 = load([]);
-  w0.localStorage.setItem("wypad-auth", JSON.stringify({ access_token: "A", refresh_token: "R", expires_at: now() + 3600, user: { id: user, email: "x@wypad.app", user_metadata: { login: "x" } } }));
+  w0.localStorage.setItem("wypad-auth", JSON.stringify({ access_token: "A", refresh_token: "R", expires_at: now() + 3600, user: { id: user, email: "x@wypad.invalid", user_metadata: { login: "x" } } }));
   if (v3) w0.localStorage.setItem("wypad-v3", JSON.stringify(v3));
   const created = [];
   const w = load(["auth.js", "group.js", "sync.js", "legacy.js"], {
@@ -492,4 +492,43 @@ test("okno: Escape liczy się jak „Nie teraz”, także bez działającego ses
   dlg.close();
   leave(); enter(); await tick();
   assert.equal(dlg.shown, 1);
+});
+
+// ---------- poprawki końcowe ----------
+test("dołączanie: synchronizacja po otwarciu nie zmienia nazwy wypad-v3 przed dołączeniem", async () => {
+  const srv = server();
+  srv.write("cfg", { budget: 3000, persons: 2, matched: [] });
+  srv.write("d:sofia", { id: "sofia", name: "Sofia" });
+  const twin = { id: T1, title: "Wypad we dwoje", start: "2026-11-19", end: "2026-11-24", members: [] };
+  const p = phone(srv, { list: [twin] });
+  // wcześniejsza próba: pełny zapis był, ale kopii lokalnej już nie ma, więc tryb „merge”
+  p.ls.setItem("wypad-legacy-trip", T1);
+  p.ls.setItem("wypad-legacy-written", T1);
+  const edit = p.w.editTrip;
+  let v3AtMerge;
+  p.w.editTrip = fn => { v3AtMerge = p.ls.getItem("wypad-v3"); return edit(fn); };
+  assert.equal(await p.L.run("K"), T1);
+  p.w.WypadSync.close();
+  assert.ok(v3AtMerge, "wypad-v3 zniknął przed dołączeniem");
+  assert.equal(p.ls.getItem("wypad-v3"), null);
+  assert.ok(p.ls.getItem("wypad-v3-old"));
+  assert.ok(srv.rows.get("d:oslo"));
+});
+
+test("brak miejsca przy kończeniu przeniesienia: synchronizacja nadal ok, wypad-v3 zostaje", async () => {
+  const srv = server();
+  const p = phone(srv);
+  const orig = p.ls.setItem;
+  p.ls.setItem = (k, v) => { if (k === "wypad-v3-old") { const e = new Error("quota"); e.name = "QuotaExceededError"; throw e; } return orig(k, v); };
+  const init = p.w.WypadSync;
+  assert.equal(await p.L.run("K"), T1);
+  assert.ok(p.ls.getItem("wypad-v3"));
+  assert.equal(p.ls.getItem("wypad-v3-old"), null);
+  assert.equal(p.ls.getItem("wypad-legacy-trip"), T1);     // następna udana synchronizacja spróbuje znowu
+  assert.equal(await init.sync(), true);                     // wyjątek w onStatus("ok") nie robi z tego błędu
+  p.ls.setItem = orig;
+  assert.equal(await init.sync(), true);
+  init.close();
+  assert.equal(p.ls.getItem("wypad-v3"), null);
+  assert.ok(p.ls.getItem("wypad-v3-old"));
 });

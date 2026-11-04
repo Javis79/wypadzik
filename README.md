@@ -6,7 +6,7 @@ Statyczna strona bez budowania: `index.html`, `app.js`, `data.js` (dane lotów),
 
 ## Konta, wypady i testy
 
-Logowanie loginem i hasłem działa na Supabase Auth (login zamienia się na e-mail `<login>@wypad.app`). W Supabase: **Authentication → Providers → Email → „Confirm email” musi być WYŁĄCZONE**, inaczej założenie konta kończy się komunikatem „wymaga potwierdzenia e-mail”.
+Logowanie loginem i hasłem działa na Supabase Auth (login zamienia się na e-mail `<login>@wypad.invalid`). W Supabase: **Authentication → Providers → Email → „Confirm email” musi być WYŁĄCZONE**, inaczej założenie konta kończy się komunikatem „wymaga potwierdzenia e-mail”.
 
 - Testy: `node --test tests/` (bez instalowania czegokolwiek, wystarczy Node).
 - Lista lotnisk Ryanair (`airports.json`) powstaje ze skryptu: `node scripts/airports.mjs`. Plik jest w repo, apka ładuje go statycznie i trzyma w cache offline.

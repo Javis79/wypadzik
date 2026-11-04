@@ -5,7 +5,7 @@ import { load, plain } from "./load.mjs";
 const now = () => Math.floor(Date.now() / 1000);
 const sess = (over = {}) => ({
   access_token: "A1", refresh_token: "R1", expires_at: now() + 3600,
-  user: { id: "u1", email: "zuzia@wypad.app", user_metadata: { login: "zuzia", name: "Zuzia" } }, ...over,
+  user: { id: "u1", email: "zuzia@wypad.invalid", user_metadata: { login: "zuzia", name: "Zuzia" } }, ...over,
 });
 const res = (status, body) => ({ ok: status < 400, status, json: async () => body });
 const A = "11111111-1111-1111-1111-111111111111", B = "22222222-2222-2222-2222-222222222222";
@@ -24,7 +24,7 @@ function setup(fetchImpl) {
   const calls = [];
   const w = load(["auth.js", "sync.js"], {
     localStorage: w0.localStorage, WebSocket: FakeWS,
-    fetch: async (u, o) => { const c = { u, fn: u.split("/rpc/")[1], body: o.body ? JSON.parse(o.body) : null, h: o.headers }; calls.push(c); return fetchImpl(c); },
+    fetch: async (u, o) => { const c = { u, fn: u.split("/rpc/")[1], body: o.body ? JSON.parse(o.body) : null, h: o.headers, signal: o.signal }; calls.push(c); return fetchImpl(c); },
   });
   return { w, calls, S: w.WypadSync };
 }
@@ -257,5 +257,127 @@ test("pierwszy przebieg pada, powtórka w kolejce się udaje: oczekujący dostaj
   const first = S.open(A), waiter = S.sync();
   assert.equal(await first, false);
   assert.equal(await waiter, true);
+  S.close();
+});
+
+// ---------- poprawki końcowe: nieudany zapis lokalny, ostatnia wysyłka przy zamknięciu, limit czasu ----------
+const settle = async (n = 20) => { for (let i = 0; i < n; i++) await new Promise(r => setTimeout(r, 0)); };
+
+test("apply zwraca false (brak miejsca): cień bez zmian, bez wysyłki, potem żadnych null", async () => {
+  const items = { a: 1 };
+  let full = true;
+  const { calls, S, w } = setup(c => c.fn === "trip_pull"
+    ? res(200, [{ key: "r", value: { v: 1 }, updated_at: "2026-02-01T00:00:00Z" }]) : ok(c));
+  const st = [];
+  S.init(hooks(items, { apply: r => { if (full) return false; Object.assign(items, plain(r)); }, onStatus: s => st.push(s) }));
+  assert.equal(await S.open(A), false);
+  assert.equal(st[st.length - 1], "error");
+  assert.equal(calls.filter(c => c.fn === "trip_push").length, 0);
+  assert.equal(w.localStorage.getItem("wypad-sync-" + A), null);    // cień nie wyprzedził danych lokalnych
+  assert.equal(S.last, null);
+  full = false;
+  assert.equal(await S.sync(), true);
+  const pushed = calls.filter(c => c.fn === "trip_push").map(c => plain(c.body.p_items));
+  assert.deepEqual(pushed, [{ a: 1 }]);
+  assert.ok(JSON.parse(w.localStorage.getItem("wypad-sync-" + A)).shadow.r);
+  S.close();
+});
+
+test("zmiana i od razu close(): ostatnia wysyłka w tle z tym kluczem", async () => {
+  const items = { a: 1 };
+  const { calls, S, w } = setup(ok);
+  const st = [];
+  S.init(hooks(items, { onStatus: s => st.push(s) }));
+  await S.open(A);
+  items.v = 1; S.schedule();                 // głos, a po chwili (przed 500 ms) powrót do listy
+  S.close();
+  await settle();
+  const last = calls.filter(c => c.fn === "trip_push").pop();
+  assert.equal(last.body.p_trip, A);
+  assert.deepEqual(plain(last.body.p_items), { v: 1 });
+  assert.ok(JSON.parse(w.localStorage.getItem("wypad-sync-" + A)).shadow.v);
+  assert.equal(st[st.length - 1], "off");    // wysyłka w tle nie zmienia statusu
+});
+
+test("close() w trakcie synchronizacji: zmiana i tak wysłana", async () => {
+  let release;
+  const gate = new Promise(r => { release = r; });
+  const items = { a: 1 };
+  let n = 0;
+  const { calls, S } = setup(async c => { if (c.fn === "trip_push" && ++n === 2) await gate; return ok(c); });
+  S.init(hooks(items));
+  await S.open(A);
+  items.b = 1;
+  const running = S.sync();
+  await settle(5);
+  items.b = 2;                                // zmiana w trakcie wysyłki b=1
+  S.close();
+  release();
+  await running; await settle();
+  const pushes = calls.filter(c => c.fn === "trip_push").map(c => plain(c.body.p_items));
+  assert.deepEqual(pushes.pop(), { b: 2 });
+});
+
+test("ostatnia wysyłka A po open(B) nie dotyka B", async () => {
+  let release;
+  const gate = new Promise(r => { release = r; });
+  const itemsA = { a: 1 }, itemsB = { b: 1 };
+  let cur = itemsA;
+  const applied = [];
+  const { calls, S, w } = setup(async c => {
+    // drugie pobranie A (ostatnia wysyłka) czeka, aż otworzymy B, i przynosi cudzy wpis
+    if (c.fn === "trip_pull" && c.body.p_trip === A && calls.filter(x => x.fn === "trip_pull" && x.body.p_trip === A).length === 2) {
+      await gate; return res(200, [{ key: "zdalny", value: 1, updated_at: "2030-01-01T00:00:00Z" }]);
+    }
+    return ok(c);
+  });
+  S.init(hooks(null, { snapshot: () => cur, apply: r => { applied.push(plain(r)); } }));
+  await S.open(A);
+  applied.length = 0;
+  itemsA.x = 1;
+  S.close();                                  // ostatnia wysyłka A czeka na pobranie
+  cur = itemsB;
+  await S.open(B);
+  const bState = w.localStorage.getItem("wypad-sync-" + B);
+  release(); await settle();
+  const forA = calls.filter(c => c.fn === "trip_push" && c.body.p_trip === A).pop();
+  assert.deepEqual(plain(forA.body.p_items), { x: 1 });
+  assert.ok(!("b" in forA.body.p_items));
+  assert.equal(w.localStorage.getItem("wypad-sync-" + B), bState);
+  assert.deepEqual(applied, []);              // cudzy wpis z A nie trafił do otwartego B
+  assert.equal(S.trip, B);
+  const pushesB = calls.filter(c => c.fn === "trip_push" && c.body.p_trip === B).map(c => plain(c.body.p_items));
+  assert.deepEqual(pushesB, [{ b: 1 }]);
+  // cudzy wpis A nie oznaczony jako znany (ani cień, ani last): następne otwarcie A go wczyta
+  const sa = JSON.parse(w.localStorage.getItem("wypad-sync-" + A));
+  assert.ok(sa.shadow.x && !("zdalny" in sa.shadow) && !sa.ts.zdalny);
+  assert.ok(sa.last < "2030-01-01T00:00:00Z");
+  S.close();
+});
+
+test("pushTrip: wpisy nieotwartego wypadu od razu na serwer", async () => {
+  const { calls, S, w } = setup(ok);
+  S.init(hooks({}));
+  assert.equal(await S.pushTrip(B, { cfg: { budget: 0 }, "d:sofia": { id: "sofia" } }), true);
+  const p = calls.filter(c => c.fn === "trip_push");
+  assert.equal(p.length, 1);
+  assert.equal(p[0].body.p_trip, B);
+  assert.deepEqual(plain(Object.keys(p[0].body.p_items)).sort(), ["cfg", "d:sofia"]);
+  assert.ok(JSON.parse(w.localStorage.getItem("wypad-sync-" + B)).shadow["d:sofia"]);
+  assert.equal(S.trip, null);
+});
+
+test("rpc: zawieszone zapytanie przerwane po limicie czasu, status error, sync znów możliwy", async () => {
+  let hang = true;
+  const { S } = setup(c => hang
+    ? new Promise((_, rej) => c.signal.addEventListener("abort", () => rej(new Error("aborted"))))
+    : ok(c));
+  S._timeout = 20;
+  const st = [];
+  S.init(hooks({ a: 1 }, { onStatus: (s, x) => st.push([s, x && x.error]) }));
+  assert.equal(await S.open(A), false);
+  assert.deepEqual(st[st.length - 1], ["error", "trip_pull timeout"]);
+  hang = false;
+  assert.equal(await S.sync(), true);
   S.close();
 });

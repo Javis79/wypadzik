@@ -152,16 +152,19 @@
   const TRIP_KEY = id => "wypad-trip-" + id;
   const set = (k, v) => localStorage.setItem(k, v);
   const del = k => { try { localStorage.removeItem(k); } catch {} };
+  // false = brak miejsca na kopię: wypad-v3 i znaczniki zostają, następna udana synchronizacja spróbuje znowu
   function finish() {
-    const raw = get(V3);
-    if (raw != null && get(OLD) == null) { set(OLD, raw); localStorage.removeItem(V3); }
+    try {
+      const raw = get(V3);
+      if (raw != null && get(OLD) == null) { set(OLD, raw); localStorage.removeItem(V3); }
+    } catch { return false; }
     del(MINE); del(WRITTEN);
+    return true;
   }
   // wołane z app.js po udanej synchronizacji w sieci (status „ok”)
   function synced(id) {
     if (!id || id !== get(MINE) || get(WRITTEN) !== id || get(V3) == null || get(TRIP_KEY(id)) == null) return false;
-    finish();
-    return true;
+    return finish();
   }
   const limit = (p, ms) => new Promise(res => { const t = setTimeout(() => res(false), ms); Promise.resolve(p).then(v => { clearTimeout(t); res(v); }, () => { clearTimeout(t); res(false); }); });
 
@@ -186,6 +189,8 @@
       // dane już w kopii lokalnej: tylko otwórz i zsynchronizuj; bez kopii (albo bez pełnego zapisu) dołącz jak do istniejącego
       else mode = get(WRITTEN) === id && get(TRIP_KEY(id)) != null ? "open" : "merge";
     }
+    // dołączanie: bez znacznika pełnego zapisu, żeby synced() nie zmienił nazwy wypad-v3, zanim dołączenie się wykona
+    if (mode === "merge") del(WRITTEN);
     if (mode !== "open") {
       const p = pair();
       if (p) overlay(s, await pullPair(p.room, timeout), p.ts);

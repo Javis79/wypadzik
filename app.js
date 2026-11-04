@@ -23,7 +23,12 @@
   // stan wypadu zawsze przez sito z group.js (localStorage, import, kreator); local = zostaw pola „_” z własnych pobrań
   const normalize = (s, persons, local = true) => G.normalize(s, persons, local, FL.legDate);
   let S = normalize(null);
-  const save = () => { if (!trip) return; try { localStorage.setItem(tripKey(trip.id), JSON.stringify(S)); } catch {} window.WypadSync?.schedule(); };
+  // zapis u siebie; false = brak miejsca (albo inny błąd pamięci), wtedy komunikat
+  const store = (id, s) => {
+    try { localStorage.setItem(tripKey(id), JSON.stringify(s)); return true; }
+    catch { toast("Brak miejsca w pamięci telefonu — zmiany mogą się nie zapisać.", 4000); return false; }
+  };
+  const save = () => { if (!trip) return; store(trip.id, S); window.WypadSync?.schedule(); };
   const dest = id => S.destinations.find(d => d.id === id);
   let currentDest = null;
   const members = () => (trip && trip.members) || [];
@@ -976,7 +981,8 @@
     if (matched) S.matched = [...new Set([...matched, ...S.matched.filter(id => { const d = dest(id); return d && allYes(d); })])];
     const freshIds = new Set(G.newMatches({ before: [...before], dests: S.destinations, members: members(), matched: S.matched, quiet }));
     const fresh = S.destinations.filter(d => freshIds.has(d.id));
-    try { localStorage.setItem(tripKey(trip.id), JSON.stringify(S)); } catch {}
+    // nieudany zapis: false każe sync.js nie przesuwać cienia (inaczej następna wysyłka cofnęłaby cudze wpisy)
+    const saved = store(trip.id, S);
     // głosy innych: kierunki, na które już zagłosowałem, nie wracają do talii; nowe kierunki dochodzą na koniec
     deck = deck.filter(d => dest(d.id) && !d.votes[who]);
     const inDeck = new Set(deck.map(d => d.id));
@@ -984,6 +990,7 @@
     if (!currentDest || !dest(currentDest)) currentDest = S.destinations[0]?.id;
     renderAll();
     if ($("#view-swipe").classList.contains("active")) renderSwipe();
+    if (!saved) return false;
     if (!fresh.length) { if (stale && !quiet) syncTrip(); return; }
     const d0 = fresh[0], was = yesBefore.get(d0.id) || new Set();
     const newly = members().filter(m => m.id !== who && d0.votes[m.id] === 1 && !was.has(m.id));
@@ -1066,6 +1073,13 @@
     trip = null; who = ""; S = normalize(null); deck = []; history = []; currentDest = null;
   }
   function backToList() { leaveView(); window.WypadTripsScreen?.show(); }
+  // wypad zapisany lokalnie poza widokiem (kreator „Gotowe” z listy): wpisy od razu na serwer, żeby reszta widziała kierunki
+  window.pushTrip = id => {
+    if (trip && trip.id === id) return WypadSync.sync();
+    let s = null; try { s = JSON.parse(localStorage.getItem(tripKey(id))); } catch {}
+    if (!s) return Promise.resolve(false);
+    return WypadSync.pushTrip(id, G.toItems(normalize(s, s.persons)));
+  };
   $("#back").addEventListener("click", backToList);
   // wypad zniknął z mojego konta (usunięty albo ktoś mnie wypisał)
   function forget(id) { try { localStorage.removeItem("wypad-sync-" + id); localStorage.removeItem(tripKey(id)); } catch {} }
@@ -1208,7 +1222,7 @@
     if (typed === null) return;
     if (typed.trim() !== title.trim()) return toast("Tytuł się nie zgadza, wypad został");
     if (!navigator.onLine) return toast("Usunięcie wypadu wymaga internetu");
-    WypadSync.close();
+    WypadSync.close(false);              // wypad zaraz zniknie: bez ostatniej wysyłki
     try { await WypadTrips.remove(id); }
     catch { if (trip && trip.id === id) WypadSync.open(id); return toast("Nie udało się usunąć wypadu. Spróbuj jeszcze raz."); }
     forget(id); backToList(); toast("Wypad usunięty");

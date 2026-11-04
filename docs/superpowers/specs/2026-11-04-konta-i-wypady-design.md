@@ -29,7 +29,7 @@ Kolejne etapy z osobnymi specyfikacjami:
 
 ### Dane w Supabase
 
-- **Auth:** Supabase Auth, logowanie hasłem. Login `ala` zamienia się w adres `ala@wypad.app` niewidoczny dla użytkownika. W panelu Supabase wyłączone „Confirm email” (robi to Krystian). Login: 3–20 znaków `a–z 0–9 _ .`, unikalny, bez rozróżniania wielkości liter.
+- **Auth:** Supabase Auth, logowanie hasłem. Login `ala` zamienia się w adres `ala@wypad.invalid` niewidoczny dla użytkownika. W panelu Supabase wyłączone „Confirm email” (robi to Krystian). Login: 3–20 znaków `a–z 0–9 _ .`, unikalny, bez rozróżniania wielkości liter.
 - **`profiles`** (`id` = `auth.users.id`, `login` unikalny, `name`): tworzony triggerem przy rejestracji z metadanych. Czytać mogą zalogowani (żeby znaleźć znajomego po loginie); edytować tylko swój.
 - **`trips`** (`id` uuid, `title`, `start_date`, `end_date`, `origin` kod IATA, domyślnie `KRK`, `created_by`, `created_at`).
 - **`trip_members`** (`trip_id`, `user_id`, `joined_at`; klucz złożony).

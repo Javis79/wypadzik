@@ -438,6 +438,8 @@
       showErr3("Nie udało się zapisać kierunków na tym telefonie (brak miejsca). Wypad jest założony, kierunki dodasz później.");
       return;
     }
+    // kierunki od razu na serwer (w tle), żeby zaproszeni widzieli je, zanim założyciel otworzy wypad (app.js)
+    try { Promise.resolve(window.pushTrip && window.pushTrip(s.trip.id)).catch(() => {}); } catch {}
     s.phase = null;
     $("#wz-x").disabled = false;
     const head = s.fixed ? `Dodano ${added} ${plural(added)}` : `Wypad „${s.trip.title}”: ${added} ${plural(added)}`;

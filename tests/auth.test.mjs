@@ -6,7 +6,7 @@ const res = (status, body) => ({ ok: status < 400, status, json: async () => bod
 const now = () => Math.floor(Date.now() / 1000);
 const sess = (over = {}) => ({
   access_token: "A1", refresh_token: "R1", expires_at: now() + 3600,
-  user: { id: "u1", email: "zuzia@wypad.app", user_metadata: { login: "zuzia", name: "Zuzia" } }, ...over,
+  user: { id: "u1", email: "zuzia@wypad.invalid", user_metadata: { login: "zuzia", name: "Zuzia" } }, ...over,
 });
 
 test("normalizeLogin", () => {
@@ -30,13 +30,13 @@ test("signIn z invalid_credentials", async () => {
   assert.equal(w.WypadAuth.user, null);
 });
 
-test("signIn zapisuje sesję i wysyła login@wypad.app", async () => {
+test("signIn zapisuje sesję i wysyła login@wypad.invalid", async () => {
   let call;
   const w = load(["auth.js"], { fetch: async (u, o) => { call = { u, o }; return res(200, sess()); } });
   const u = await w.WypadAuth.signIn({ login: " Zuzia ", password: "pw" });
   assert.deepEqual(plain(u), { id: "u1", login: "zuzia", name: "Zuzia" });
   assert.match(call.u, /\/auth\/v1\/token\?grant_type=password$/);
-  assert.equal(JSON.parse(call.o.body).email, "zuzia@wypad.app");
+  assert.equal(JSON.parse(call.o.body).email, "zuzia@wypad.invalid");
   assert.equal(call.o.headers.apikey, w.WypadAuth.KEY);
   assert.equal(JSON.parse(w.localStorage.getItem("wypad-auth")).access_token, "A1");
   assert.deepEqual(plain(w.WypadAuth.user), { id: "u1", login: "zuzia", name: "Zuzia" });
@@ -60,12 +60,12 @@ test("signUp: metadane, user_already_exists, brak sesji", async () => {
   let body;
   const w = load(["auth.js"], { fetch: async (u, o) => { body = JSON.parse(o.body); return res(200, sess()); } });
   await w.WypadAuth.signUp({ login: "Zuzia", name: "Zuzia", password: "haslo123" });
-  assert.deepEqual(plain(body), { email: "zuzia@wypad.app", password: "haslo123", data: { login: "zuzia", name: "Zuzia" } });
+  assert.deepEqual(plain(body), { email: "zuzia@wypad.invalid", password: "haslo123", data: { login: "zuzia", name: "Zuzia" } });
 
   const w2 = load(["auth.js"], { fetch: async () => res(422, { error_code: "user_already_exists" }) });
   await assert.rejects(w2.WypadAuth.signUp({ login: "zuzia", name: "Z", password: "haslo123" }), { message: "Taki login już jest" });
 
-  const w3 = load(["auth.js"], { fetch: async () => res(200, { id: "u1", email: "zuzia@wypad.app" }) });
+  const w3 = load(["auth.js"], { fetch: async () => res(200, { id: "u1", email: "zuzia@wypad.invalid" }) });
   await assert.rejects(w3.WypadAuth.signUp({ login: "zuzia", name: "Z", password: "haslo123" }), /potwierdzenia e-mail/);
   assert.equal(w3.WypadAuth.user, null);
 
@@ -134,7 +134,8 @@ test("signOut czyści sesję, woła onChange i /logout", async () => {
   assert.equal(w.WypadAuth.user, null);
   assert.equal(w.localStorage.getItem("wypad-auth"), null);
   assert.deepEqual(plain(seen), [null]);
-  assert.ok(urls.some(u => u.endsWith("/auth/v1/logout")));
+  // tylko ten telefon: bez scope GoTrue wylogowałby wszystkie urządzenia
+  assert.ok(urls.includes("https://zyvjjqucfidnbzoevqlr.supabase.co/auth/v1/logout?scope=local"), urls.join(" "));
 });
 
 test("signUp: hasło 7 znaków odrzucone (pole password), 8 przyjęte", async () => {
