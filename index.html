@@ -203,6 +203,7 @@
     <div class="panel">
       <h2>Osoby</h2>
       <ul class="tp-people" id="tp-people"></ul>
+      <div class="tp-claim" id="tp-claim" hidden></div>
       <form id="tp-add-f" novalidate>
         <label for="tp-login">Dodaj po loginie</label>
         <div class="wz-row">
@@ -350,6 +351,7 @@
   </div>
 </dialog>
 <dialog id="dlg"><form method="dialog" id="dlg-form"></form></dialog>
+<dialog id="legacy" class="mv" aria-labelledby="mv-h"><div class="mv-body"></div></dialog>
 <div id="toast" role="status"></div>
 
 <script src="vendor/leaflet.js"></script>
@@ -363,6 +365,7 @@
 <script src="trips.js"></script>
 <script src="fares.js"></script>
 <script src="wizard.js"></script>
+<script src="legacy.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

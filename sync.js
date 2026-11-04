@@ -87,18 +87,27 @@
     if (Object.keys(remote).length) hooks.apply(remote);
   }
 
-  // jedna synchronizacja naraz; jeśli coś przyjdzie w trakcie, powtórz raz na końcu
+  // jedna synchronizacja naraz; jeśli coś przyjdzie w trakcie, powtórz raz na końcu.
+  // Zwraca true, gdy pobranie i wysyłka przeszły w sieci; wywołanie w trakcie czeka na tę powtórkę.
+  let waiting = [];
   async function sync() {
-    if (!trip) return;
-    if (busy) { again = true; return; }
+    if (!trip) return false;
+    if (busy) { again = true; return new Promise(r => waiting.push(r)); }
     busy = true; status("busy");
     const id = trip, s = st;
-    try { await pull(s, id); await push(s, id); if (st === s) status("ok", { at: new Date() }); }
+    let ok = false;
+    try { await pull(s, id); await push(s, id); if (st === s) { status("ok", { at: new Date() }); ok = navigator.onLine !== false; } }
     catch (e) {
       if (e.notMember && st === s) { close(); hooks.onGone && hooks.onGone(id); }
       else if (st === s) status(navigator.onLine ? "error" : "offline", { error: String(e.message || e) });
     }
-    finally { busy = false; if (again) { again = false; sync(); } }
+    finally {
+      busy = false;
+      const w = waiting; waiting = [];
+      if (again && trip) { again = false; const next = sync(); w.forEach(r => next.then(r)); }
+      else { again = false; w.forEach(r => r(ok)); }
+    }
+    return ok;
   }
   const schedule = () => { if (!trip) return; clearTimeout(pushT); pushT = setTimeout(sync, 500); };
 

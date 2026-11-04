@@ -223,3 +223,17 @@ test("sync wypadu A nie wysyła B przed jego pobraniem", async () => {
   assert.ok(seq.indexOf("trip_pull:" + B) < seq.indexOf("trip_push:" + B));
   S.close();
 });
+
+test("sync zwraca true po udanej wysyłce, a wywołanie w trakcie czeka na powtórkę", async () => {
+  let fail = false;
+  const items = { a: 1 };
+  const { S } = setup(c => fail ? res(500, { message: "boom" }) : ok(c));
+  S.init(hooks(items));
+  const first = S.open(A), second = S.sync();
+  assert.equal(await first, true);
+  assert.equal(await second, true);
+  fail = true; items.a = 2;
+  assert.equal(await S.sync(), false);
+  S.close();
+  assert.equal(await S.sync(), false);
+});

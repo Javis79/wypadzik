@@ -29,7 +29,7 @@
   // stan wypadu zawsze przez sito z group.js (localStorage, import, kreator); local = zostaw pola „_” z własnych pobrań
   function normalize(s, persons, local = true) {
     if (!s || !Array.isArray(s.destinations) || s.version !== 3) s = { version: 3, budget: 0, persons: persons || 1, destinations: [] };
-    const cfg = G.cleanCfg({ budget: s.budget, persons: s.persons ?? persons, matched: s.matched });
+    const cfg = G.cleanCfg({ budget: s.budget, persons: s.persons ?? persons, matched: s.matched, legacy: s.legacy });
     const v = s.view && typeof s.view === "object" ? s.view : {};
     // stary limit powrotu jako dzień („pon”) zamienia się w datę
     let maxBack = typeof v.maxBack === "string" ? v.maxBack : "";
@@ -998,6 +998,7 @@
   };
   function snapshot() {
     const it = { cfg: { budget: S.budget, persons: S.persons, matched: S.matched } };
+    if (S.legacy) it.cfg.legacy = S.legacy;      // głosy ze starego wyjazdu czekające na właściciela (legacy.js)
     S.destinations.forEach(d => {
       it["d:" + d.id] = shared(d);
       Object.entries(d.votes || {}).forEach(([p, v]) => { if (v) it[`v:${d.id}:${p}`] = v; });
@@ -1016,7 +1017,7 @@
     // wpisy pisze każdy członek wypadu: wszystko przechodzi przez sito z group.js, zanim trafi do stanu i do HTML
     Object.keys(remote).sort((a, b) => rank(a) - rank(b)).forEach(k => {
       const v = remote[k], [t, rawId, rawX] = k.split(":");
-      if (k === "cfg") { if (v) { const c = G.cleanCfg(v); S.budget = c.budget; S.persons = c.persons; if (Array.isArray(v.matched)) matched = c.matched; } return; }
+      if (k === "cfg") { if (v) { const c = G.cleanCfg(v); S.budget = c.budget; S.persons = c.persons; if (Array.isArray(v.matched)) matched = c.matched; if (c.legacy) S.legacy = c.legacy; } return; }
       const id = G.safeId(rawId); if (!id) return;
       let d = dest(id);
       if (t === "d") {
@@ -1117,6 +1118,17 @@
     quietPull = !s || !Array.isArray(s.destinations) || !s.destinations.length || !WypadSync.last;
     syncTrip();
   };
+  // zmiana danych otwartego wypadu z zewnątrz (legacy.js: dołączenie głosów ze starego wyjazdu); potem zapis i synchronizacja
+  window.editTrip = fn => {
+    if (!trip) return false;
+    fn(S);
+    S = normalize(S, members().length);
+    S.destinations.forEach(d => { if (allYes(d)) remember(d); });
+    save(); buildDeck(); renderAll();
+    if (current === "swipe") renderSwipe();
+    if (current === "more") renderTripPanel();
+    return true;
+  };
   function leaveView() {
     closeOverlays();
     WypadSync.close();
@@ -1149,7 +1161,27 @@
     const ini = G.initials(t.members || []);
     $("#tp-people").innerHTML = (t.members || []).map((m, i) => `<li class="wz-person"><b>${esc(ini[i])}</b><span>${esc(m.name || m.login)}${m.id === who ? " (Ty)" : ""}</span><small>${esc(m.login)}${m.id === t.createdBy ? " · założył(a)" : ""}</small></li>`).join("");
     $("#tp-remove").hidden = t.createdBy !== who;
+    renderClaim();
   }
+  // stary wyjazd: osoba bez głosów może wskazać, kim była (K/Z), i przejąć oczekujące głosy z cfg.legacy
+  function renderClaim() {
+    const box = $("#tp-claim"), L = window.WypadLegacy;
+    const open = L ? L.letters(S) : [];
+    const voted = S.destinations.some(d => d.votes[who]);
+    box.hidden = !open.length || voted;
+    box.innerHTML = box.hidden ? "" : `<p>Byłaś/eś w starym wyjeździe?</p><div class="tp-claim-b">${open.map(l => `<button type="button" class="btn" data-claim="${l}">${esc(L.NAMES[l])}</button>`).join("")}</div>`;
+  }
+  $("#tp-claim").addEventListener("click", e => {
+    const b = e.target.closest("[data-claim]");
+    if (!b || !trip || !window.WypadLegacy) return;
+    const l = b.dataset.claim;
+    if (!window.WypadLegacy.letters(S).includes(l)) return renderClaim();
+    // match sprzed przeniesienia już jest w cfg.matched; tu tylko po cichu dopisujemy nowe wspólne tak
+    window.editTrip(s => window.WypadLegacy.claim(s, l, who));
+    WypadSync.sync();
+    toast("Twoje głosy ze starego wyjazdu są już w wypadzie", 3000);
+    $("#tp-invite").focus();      // kliknięty przycisk znika razem z pytaniem
+  });
   $("#tp-form").addEventListener("submit", async e => {
     e.preventDefault();
     if (!trip) return;

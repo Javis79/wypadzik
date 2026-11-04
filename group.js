@@ -103,7 +103,23 @@
   function cleanCfg(c) {
     c = c && typeof c === "object" ? c : {};
     const persons = int(c.persons, 1);
-    return { budget: Math.max(0, num(c.budget, 0)), persons: Math.min(99, Math.max(1, persons)), matched: Array.isArray(c.matched) ? [...new Set(c.matched.map(safeId).filter(Boolean))] : [] };
+    const out = { budget: Math.max(0, num(c.budget, 0)), persons: Math.min(99, Math.max(1, persons)), matched: Array.isArray(c.matched) ? [...new Set(c.matched.map(safeId).filter(Boolean))] : [] };
+    const l = cleanLegacy(c.legacy);
+    if (l) out.legacy = l;
+    return out;
+  }
+  // głosy ze starego wyjazdu (K = Krystian, Z = Zuzia), które czekają, aż ktoś z grupy wskaże swoją literę
+  function cleanLegacy(l) {
+    if (!l || typeof l !== "object" || Array.isArray(l)) return null;
+    const out = {};
+    for (const letter of ["K", "Z"]) {
+      const src = l[letter];
+      if (!src || typeof src !== "object" || Array.isArray(src)) continue;
+      const o = {};
+      for (const k of Object.keys(src)) { const v = cleanVote(src[k]); if (safeId(k) && v) o[k] = v; }
+      if (Object.keys(o).length) out[letter] = o;
+    }
+    return out;
   }
   const cleanVote = v => (v === 1 || v === -1 ? v : null);
 

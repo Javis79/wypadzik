@@ -648,3 +648,21 @@ html.in-trips body{padding-bottom:calc(24px + env(safe-area-inset-bottom))}
 .tp-people .wz-person span{font-weight:700;font-stretch:90%}
 #tp-add-f .wz-row{margin-top:6px}
 #tp-invite,#tp-leave,#tp-remove{margin-top:10px}
+.tp-claim{border:1.5px dashed var(--field-line);padding:10px 12px 12px;margin:0 0 14px}
+.tp-claim p{margin:0 0 8px;font-weight:700}
+.tp-claim-b{display:flex;gap:8px}
+.tp-claim-b .btn{flex:1}
+
+/* ---------- stary wyjazd: przeniesienie na konto (legacy.js) ---------- */
+#legacy{width:min(440px,calc(100vw - 32px))}
+.mv-body{padding:20px 18px 18px}
+.mv-body p{margin:0 0 12px;line-height:1.45}
+.mv-body .muted{margin-top:-4px}
+.mv-body .wz-ferr:empty{display:none}
+.mv-body .mv-wait{color:var(--muted)}
+.mv-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.mv-actions .btn{flex:1 1 40%}
+.mv-actions [data-mv=later]{flex-basis:100%}
+#legacy[open]{animation:dlg-in .32s cubic-bezier(.16,1,.3,1)}
+#legacy[open]::backdrop{animation:fade .3s ease-out}
+@media (prefers-reduced-motion: reduce){ #legacy[open]{animation:fade .2s ease-out} }
