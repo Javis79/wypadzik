@@ -510,3 +510,27 @@ html.signed-out body{padding-bottom:0}
 .lg-err{margin:12px 0 0;padding:8px 10px;border:2px solid #b3261e;background:#fdecea}
 #lg-form .btn.primary{background:#1d1a22;color:#fff;margin-top:12px}
 #lg-form .muted{margin:12px 0 0;color:#6a6270}
+
+/* ---------- moje wypady ---------- */
+#trips{display:none}
+html.in-trips:not(.signed-out) #trips{display:block}
+html.in-trips body > .top,html.in-trips main,html.in-trips .tabs{display:none}
+html.in-trips body{padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.tr-acct{gap:10px}
+.tr-who{font-weight:700;font-stretch:88%;font-size:15px;max-width:40vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tr-acct .btn{background:transparent;border-color:var(--shell-ink);color:var(--shell-ink)}
+.tr-acct .btn:hover{background:var(--shell-ink);color:var(--shell)}
+.tr-body{padding:16px;max-width:1200px;margin:0 auto}
+.tr-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.tr-head h2,.tr-sub{margin:0;font:700 30px/1.05 var(--f-hand);color:var(--marker);letter-spacing:-.01em}
+.tr-sub{font-size:24px;margin:28px 0 14px}
+.tr-off{margin:0 0 12px;text-align:right}
+.tr-empty{margin:28px 0;padding:28px 18px;background:var(--print);color:#1d1a22;border:2px solid #1d1a22;box-shadow:var(--shadow-sm);font:700 22px/1.2 var(--f-hand);text-align:center}
+.tr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px;align-items:start;margin-top:14px}
+.tr-grid:empty{display:none}
+.dest.trip{display:block;width:100%;text-align:left;border:0;font:inherit;padding-bottom:8px}
+.dest.trip .thumb{background:#d9d0d7}
+.dest.trip .votes{display:flex;gap:3px}
+.dest.trip.past{filter:grayscale(1);opacity:.62}
+@media (min-width:640px){.tr-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:960px){.tr-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}

@@ -94,6 +94,29 @@
   </div>
 </section>
 
+<section id="trips" aria-labelledby="tr-title">
+  <header class="top">
+    <h1 class="wordmark" id="tr-title">Wypad <span>we dwoje</span></h1>
+    <div class="top-r tr-acct">
+      <span class="tr-who" id="tr-who"></span>
+      <button type="button" class="btn small" id="tr-out"><svg class="ic"><use href="#i-out"/></svg>Wyloguj</button>
+    </div>
+  </header>
+  <div class="tr-body">
+    <div class="tr-head">
+      <h2>Moje wypady</h2>
+      <button type="button" class="btn primary" id="tr-new"><svg class="ic"><use href="#i-plus"/></svg>Nowy wypad</button>
+    </div>
+    <p class="muted tr-off" id="tr-offline" hidden>Nowy wypad wymaga internetu</p>
+    <p class="tr-empty" id="tr-empty" hidden>Jeszcze żadnego wypadu. Zaplanujmy pierwszy.</p>
+    <div class="tr-grid" id="tr-up"></div>
+    <div id="tr-past-wrap" hidden>
+      <h2 class="tr-sub">Minione</h2>
+      <div class="tr-grid" id="tr-past"></div>
+    </div>
+  </div>
+</section>
+
 <header class="top">
   <h1 class="wordmark">Wypad <span>we dwoje</span></h1>
   <div class="top-r">
@@ -218,6 +241,7 @@
 <script src="motion.js"></script>
 <script src="auth.js"></script>
 <script src="sync.js"></script>
+<script src="trips.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
