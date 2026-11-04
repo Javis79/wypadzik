@@ -164,3 +164,16 @@ keeps("błąd sieci zostawia hash zaproszenia", () => { throw new TypeError("Fai
 keeps("błąd serwera 5xx zostawia hash zaproszenia", () => res(503, { message: "oops" }));
 keeps("401 po wymuszonym odświeżeniu zostawia hash zaproszenia", c =>
   c.u.includes("/auth/v1/token") ? res(200, { ...sess(), access_token: "A2", refresh_token: "R2", user: sess().user }) : res(401, { message: "JWT expired" }));
+
+test("update bez członków w odpowiedzi zostawia członków z listy", async () => {
+  const two = [{ id: "u1", login: "zuzia", name: "Zuzia" }, { id: "u2", login: "ala", name: "Ala" }];
+  let fn = "my_trips";
+  const { T } = setup(c => { fn = c.fn; return res(200, c.fn === "my_trips" ? [row({ members: two })] : row({ title: "Neapol", members: undefined })); });
+  await T.refresh();
+  const t = plain(await T.update(T1, { title: "Neapol", start: "2026-11-19", end: "2026-11-24", origin: "KRK" }));
+  assert.equal(fn, "update_trip");
+  assert.equal(t.title, "Neapol");
+  assert.deepEqual(t.members, two);
+  assert.deepEqual(plain(T.list()[0].members), two);
+  assert.equal(T.list()[0].title, "Neapol");
+});

@@ -126,3 +126,83 @@ test("parse: dzień z daty, rok najbliższy początkowi wypadu, złe linie to nu
   assert.deepEqual(plain(f.parse("sr 06:00-08:00 10", "2026-12-01")), [{ day: "śr", dep: "06:00", arr: "08:00", price: 10, note: "" }]);
   assert.deepEqual(plain(f.parse("jutro 06:00-08:00 10\n\n", "2026-12-01")), [null]);
 });
+
+// ---------- trwałe matche: cofnięcie i „Przejrzyj jeszcze raz” ----------
+test("undoMatch: cofnięcie głosu osoby, która dołączyła później, zostawia match", () => {
+  const g = G();
+  assert.deepEqual(plain(g.undoMatch(["sofia", "bari"], { id: "sofia", made: false })), ["sofia", "bari"]);
+});
+
+test("undoMatch: cofnięcie głosu, który stworzył match, usuwa go", () => {
+  const g = G();
+  assert.deepEqual(plain(g.undoMatch(["sofia", "bari"], { id: "sofia", made: true })), ["bari"]);
+  assert.deepEqual(plain(g.undoMatch(undefined, { id: "sofia", made: true })), []);
+});
+
+test("resetMatched: „Przejrzyj jeszcze raz” nie rusza wspólnych", () => {
+  const g = G();
+  assert.deepEqual(plain(g.resetMatched(["sofia"])), ["sofia"]);
+  assert.deepEqual(plain(g.resetMatched(null)), []);
+});
+
+// ---------- pierwsze pobranie: bez oklasków ----------
+test("newMatches: przy pierwszym pobraniu (quiet) żadnych nowych matchy", () => {
+  const g = G();
+  const dests = [{ id: "sofia", votes: { k: 1, z: 1, x: 1 } }, { id: "bari", votes: { k: 1 } }];
+  assert.deepEqual(plain(g.newMatches({ before: [], dests, members: M3, matched: [], quiet: true })), []);
+  assert.deepEqual(plain(g.newMatches({ before: [], dests, members: M3, matched: [], quiet: false })), ["sofia"]);
+  assert.deepEqual(plain(g.newMatches({ before: ["sofia"], dests, members: M3, matched: [], quiet: false })), []);
+  assert.deepEqual(plain(g.newMatches({ before: [], dests: [{ id: "bari", votes: {} }], members: M3, matched: ["bari"], quiet: false })), ["bari"]);
+});
+
+// ---------- dane od innych członków: czyszczenie na wejściu ----------
+test("cleanDest: wrogie wartości z serwera nie przechodzą", () => {
+  const g = G();
+  const d = g.cleanDest({
+    id: "sofia", name: "<b>Sofia</b>", temp: "<img src=x onerror=alert(1)>", apKm: "9", apMin: "x", tz: "1",
+    lat: "42.7", lng: null, photo: "javascript:alert(1)", wiki: 5,
+    out: [{ day: "pt", dep: "06:05", arr: "08:40", price: "<script>", note: 7, date: "2026-12-04\"><x" }, "zły"],
+    back: "nie tablica", selOut: "1", selBack: "<x>",
+    stay: { name: "Hotel", perNight: "1e3", link: "javascript:alert(1)" }, dailySpend: "abc", transferCost: 50,
+    ratings: { "u1": 4, "u\"2": 5, u3: "<x>" }, _srcs: ["javascript:alert(1)"], evil: "<x>",
+  });
+  assert.equal(d.id, "sofia");
+  assert.equal(d.name, "<b>Sofia</b>");           // tekst zostaje, escapuje go widok
+  assert.equal(d.temp, null);
+  assert.equal(d.apKm, 9); assert.equal(d.apMin, null); assert.equal(d.tz, 1); assert.equal(d.lat, 42.7); assert.equal(d.lng, null);
+  assert.equal(d.photo, ""); assert.equal(d.wiki, "5");
+  assert.deepEqual(plain(d.out), [{ day: "pt", dep: "06:05", arr: "08:40", price: 0, note: "7" }]);
+  assert.deepEqual(plain(d.back), []);
+  assert.equal(d.selOut, 1); assert.equal(d.selBack, null);
+  assert.deepEqual(plain(d.stay), { name: "Hotel", perNight: 1000, link: "" });
+  assert.equal(d.dailySpend, 0); assert.equal(d.transferCost, 50);
+  assert.deepEqual(plain(d.ratings), { u1: 4 });
+  assert.equal("_srcs" in d, false); assert.equal("evil" in d, false);
+});
+
+test("cleanDest: cudzysłów w id odrzuca kierunek, dobre linki zostają", () => {
+  const g = G();
+  assert.equal(g.cleanDest({ id: 'a"b' }), null);
+  assert.equal(g.cleanDest({ id: "" }), null);
+  assert.equal(g.safeId("ab-1_c"), "ab-1_c");
+  assert.equal(g.safeId("0c677dec-b066-47f0-be83-d6a0ebc92d3c"), "0c677dec-b066-47f0-be83-d6a0ebc92d3c");
+  assert.equal(g.safeId("AB"), null);
+  assert.equal(g.safeId("a b"), null);
+  assert.equal(g.safeUrl("https://x.pl/a?b=1"), "https://x.pl/a?b=1");
+  assert.equal(g.safeUrl(" JavaScript:alert(1)"), "");
+  assert.equal(g.safeUrl("data:text/html,<x>"), "");
+  assert.equal(g.safePhoto("data:image/jpeg;base64,AAAA"), "data:image/jpeg;base64,AAAA");
+  assert.equal(g.safePhoto("data:text/html;base64,AAAA"), "");
+  const keep = g.cleanDest({ id: "x", _srcs: ["https://a"], _wx: { a: 1 } }, true);
+  assert.deepEqual(plain(keep._srcs), ["https://a"]);
+});
+
+test("cleanPlace, cleanCfg i cleanVote", () => {
+  const g = G();
+  const p = g.cleanPlace({ id: "p1", name: "Bar", cat: "<x>", lat: "1.5", lng: "<x>", price: "20", link: "javascript:alert(1)", day: "2", time: "12:00\"><x", done: "tak", note: 3 });
+  assert.deepEqual(plain(p), { id: "p1", name: "Bar", cat: "other", lat: 1.5, lng: null, price: 20, link: "", day: 2, time: "", done: true, note: "3" });
+  assert.equal(g.cleanPlace({ id: "<x>" }), null);
+  assert.deepEqual(plain(g.cleanCfg({ budget: "<x>", persons: "3", matched: ["sofia", "a\"b", 5] })), { budget: 0, persons: 3, matched: ["sofia"] });
+  assert.deepEqual(plain(g.cleanCfg({ persons: -2 })), { budget: 0, persons: 1, matched: [] });
+  assert.equal(g.cleanVote(1), 1); assert.equal(g.cleanVote(-1), -1); assert.equal(g.cleanVote("1"), null); assert.equal(g.cleanVote("<x>"), null);
+});

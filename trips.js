@@ -12,7 +12,13 @@
   const readList = () => { const k = lsKey(); if (!k) return []; try { const l = JSON.parse(localStorage.getItem(k)); return Array.isArray(l) ? l : []; } catch { return []; } };
   const writeList = l => { const k = lsKey(); if (k) try { localStorage.setItem(k, JSON.stringify(l)); } catch {} };
   try { localStorage.removeItem(LS); } catch {}
-  const upsert = t => { const l = readList(), i = l.findIndex(x => x.id === t.id); if (i >= 0) l[i] = t; else l.unshift(t); writeList(l); };
+  // update_trip zwraca sam wiersz wypadu bez członków: wtedy zostają ci z listy
+  const upsert = t => {
+    const l = readList(), i = l.findIndex(x => x.id === t.id);
+    if (i >= 0) { if (!t.members.length && (l[i].members || []).length) t = { ...t, members: l[i].members }; l[i] = t; } else l.unshift(t);
+    writeList(l);
+    return t;
+  };
   const drop = id => writeList(readList().filter(t => t.id !== id));
 
   async function post(fn, body, token) {
@@ -79,8 +85,8 @@
     } catch { return readList(); }      // offline albo błąd serwera: zostaje to, co mamy
   };
   const fields = f => ({ p_title: f.title, p_start: f.start, p_end: f.end, p_origin: f.origin });
-  api.create = async f => { const t = toTrip(await rpc("create_trip", fields(f))); upsert(t); return t; };
-  api.update = async (id, f) => { const t = toTrip(await rpc("update_trip", { p_trip: id, ...fields(f) })); upsert(t); return t; };
+  api.create = async f => upsert(toTrip(await rpc("create_trip", fields(f))));
+  api.update = async (id, f) => upsert(toTrip(await rpc("update_trip", { p_trip: id, ...fields(f) })));
   api.addMember = (id, login) => rpc("add_member", { p_trip: id, p_login: login });
   api.invite = async id => {
     const tok = await rpc("create_invite", { p_trip: id });
