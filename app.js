@@ -20,32 +20,8 @@
   let trip = null;                       // aktywny wypad (Trip z WypadTrips), null na liście
   let who = "";                          // głosuje zalogowana osoba: WypadAuth.user.id
   const tripKey = id => "wypad-trip-" + id;
-  // głosy: tylko 1 / -1 i poprawne id osób
-  const cleanVotes = v => {
-    const o = {};
-    if (v && typeof v === "object") for (const k of Object.keys(v)) { const x = G.cleanVote(v[k]); if (G.safeId(k) && x) o[k] = x; }
-    return o;
-  };
   // stan wypadu zawsze przez sito z group.js (localStorage, import, kreator); local = zostaw pola „_” z własnych pobrań
-  function normalize(s, persons, local = true) {
-    if (!s || !Array.isArray(s.destinations) || s.version !== 3) s = { version: 3, budget: 0, persons: persons || 1, destinations: [] };
-    const cfg = G.cleanCfg({ budget: s.budget, persons: s.persons ?? persons, matched: s.matched, legacy: s.legacy });
-    const v = s.view && typeof s.view === "object" ? s.view : {};
-    // stary limit powrotu jako dzień („pon”) zamienia się w datę
-    let maxBack = typeof v.maxBack === "string" ? v.maxBack : "";
-    if (maxBack && !/^\d{4}-\d{2}-\d{2}$/.test(maxBack)) maxBack = FL.legDate({ day: maxBack }) || "";
-    const view = { sort: ["cost", "fav", "time", "flight", "warm"].includes(v.sort) ? v.sort : "cost", hideRejected: v.hideRejected !== false, maxBack, onlyFav: !!v.onlyFav };
-    const seen = new Set(), destinations = [];
-    for (const x of s.destinations) {
-      const d = G.cleanDest(x, local);
-      if (!d || seen.has(d.id)) continue;
-      seen.add(d.id);
-      d.votes = cleanVotes(x.votes);
-      d.places = (Array.isArray(x.places) ? x.places : []).map(G.cleanPlace).filter(Boolean);
-      destinations.push(d);
-    }
-    return { version: 3, ...cfg, view, destinations };
-  }
+  const normalize = (s, persons, local = true) => G.normalize(s, persons, local, FL.legDate);
   let S = normalize(null);
   const save = () => { if (!trip) return; try { localStorage.setItem(tripKey(trip.id), JSON.stringify(S)); } catch {} window.WypadSync?.schedule(); };
   const dest = id => S.destinations.find(d => d.id === id);
@@ -987,61 +963,15 @@
 
   // ---------- wspólny wypad: synchronizacja z grupą (Supabase, sync.js) ----------
   // wspólne: budżet, osoby, wspólne kierunki (cfg.matched), kierunki (z kosztami i ocenami), głosy i miejsca; prywatne: filtry, zdjęcia w pamięci
-  const shared = d => {
-    const o = {};
-    for (const [k, v] of Object.entries(d)) {
-      if (k[0] === "_" || k === "votes" || k === "places") continue;
-      if (k === "photo" && typeof v === "string" && v.startsWith("data:") && v.length > 150000) continue;
-      o[k] = v;
-    }
-    return o;
-  };
-  function snapshot() {
-    const it = { cfg: { budget: S.budget, persons: S.persons, matched: S.matched } };
-    if (S.legacy) it.cfg.legacy = S.legacy;      // głosy ze starego wyjazdu czekające na właściciela (legacy.js)
-    S.destinations.forEach(d => {
-      it["d:" + d.id] = shared(d);
-      Object.entries(d.votes || {}).forEach(([p, v]) => { if (v) it[`v:${d.id}:${p}`] = v; });
-      (d.places || []).forEach(p => { const { _m, ...q } = p; it[`p:${d.id}:${p.id}`] = q; });
-    });
-    return it;
-  }
+  const snapshot = () => G.toItems(S);
   function applyRemote(remote) {
     if (!trip) return;
     const before = new Set(S.destinations.filter(isMatch).map(d => d.id));
     const yesBefore = new Map(S.destinations.map(d => [d.id, new Set(Object.keys(d.votes).filter(k => d.votes[k] === 1))]));
-    const rank = k => k === "cfg" ? 0 : k.startsWith("d:") ? 1 : 2;
     // pierwsze pobranie po otwarciu z pustym stanem: wszystko jest „nowe”, więc bez oklasków i dodatkowych zapytań
     const quiet = quietPull; quietPull = false;
-    let matched = null, stale = false;     // stale: głos od kogoś spoza znanej listy członków
     // wpisy pisze każdy członek wypadu: wszystko przechodzi przez sito z group.js, zanim trafi do stanu i do HTML
-    Object.keys(remote).sort((a, b) => rank(a) - rank(b)).forEach(k => {
-      const v = remote[k], [t, rawId, rawX] = k.split(":");
-      if (k === "cfg") { if (v) { const c = G.cleanCfg(v); S.budget = c.budget; S.persons = c.persons; if (Array.isArray(v.matched)) matched = c.matched; if (c.legacy) S.legacy = c.legacy; } return; }
-      const id = G.safeId(rawId); if (!id) return;
-      let d = dest(id);
-      if (t === "d") {
-        if (v === null) { S.destinations = S.destinations.filter(q => q.id !== id); deck = deck.filter(q => q.id !== id); return; }
-        const c = G.cleanDest(v);
-        if (!c || c.id !== id) return;
-        if (d) Object.assign(d, c); else S.destinations.push({ ...c, votes: {}, places: [] });
-        return;
-      }
-      if (!d) return;
-      const x = G.safeId(rawX); if (!x) return;
-      if (t === "v") {
-        const vote = G.cleanVote(v);
-        if (vote) d.votes[x] = vote; else if (v === null) delete d.votes[x];
-        if (vote && !members().some(m => m.id === x)) stale = true;
-      }
-      if (t === "p") {
-        const i = d.places.findIndex(q => q.id === x);
-        if (v === null) { if (i >= 0) d.places.splice(i, 1); return; }
-        const c = G.cleanPlace(v);
-        if (!c || c.id !== x) return;
-        if (i >= 0) Object.assign(d.places[i], c); else d.places.push(c);
-      }
-    });
+    const { matched, stale } = G.applyItems(S, remote, members().map(m => m.id));
     // wspólne kierunki: lista z serwera plus moje jeszcze niewysłane, jeśli wszyscy dalej są na tak
     if (matched) S.matched = [...new Set([...matched, ...S.matched.filter(id => { const d = dest(id); return d && allYes(d); })])];
     const freshIds = new Set(G.newMatches({ before: [...before], dests: S.destinations, members: members(), matched: S.matched, quiet }));
@@ -1119,11 +1049,12 @@
     syncTrip();
   };
   // zmiana danych otwartego wypadu z zewnątrz (legacy.js: dołączenie głosów ze starego wyjazdu); potem zapis i synchronizacja
-  window.editTrip = fn => {
+  // rematch: po cichu dopisz nowe wspólne tak (przejęcie litery); przy dołączaniu głosów nie, bo samotny członek „matchowałby” każde swoje tak
+  window.editTrip = (fn, { rematch = false } = {}) => {
     if (!trip) return false;
     fn(S);
     S = normalize(S, members().length);
-    S.destinations.forEach(d => { if (allYes(d)) remember(d); });
+    if (rematch) S.destinations.forEach(d => { if (allYes(d)) remember(d); });
     save(); buildDeck(); renderAll();
     if (current === "swipe") renderSwipe();
     if (current === "more") renderTripPanel();
@@ -1143,7 +1074,11 @@
   if (navigator.storage?.persist) navigator.storage.persist();
   WypadSync.init({
     snapshot, apply: applyRemote,
-    onStatus: st => { syncState = st; if (st === "ok") quietPull = false; net(); },
+    onStatus: st => {
+      syncState = st; if (st === "ok") quietPull = false; net();
+      // przeniesienie starego wyjazdu kończy się przy pierwszej udanej synchronizacji jego wypadu (legacy.js)
+      if (st === "ok" && navigator.onLine) window.WypadLegacy?.synced(WypadSync.trip);
+    },
     onGone: id => {
       try { localStorage.removeItem("wypad-sync-" + id); } catch {}
       toast("Nie jesteś już w tym wypadzie", 3200);
@@ -1177,7 +1112,7 @@
     const l = b.dataset.claim;
     if (!window.WypadLegacy.letters(S).includes(l)) return renderClaim();
     // match sprzed przeniesienia już jest w cfg.matched; tu tylko po cichu dopisujemy nowe wspólne tak
-    window.editTrip(s => window.WypadLegacy.claim(s, l, who));
+    window.editTrip(s => window.WypadLegacy.claim(s, l, who), { rematch: true });
     WypadSync.sync();
     toast("Twoje głosy ze starego wyjazdu są już w wypadzie", 3000);
     $("#tp-invite").focus();      // kliknięty przycisk znika razem z pytaniem

@@ -3,7 +3,7 @@
    Telefon sparowany kodem („wypad-sync”) najpierw pobiera ostatni stan pary starym wypad_pull (klucz publishable, bez logowania). */
 (() => {
   const G = window.WypadGroup;
-  const V3 = "wypad-v3", OLD = "wypad-v3-old", PAIR = "wypad-sync", MINE = "wypad-legacy-trip";
+  const V3 = "wypad-v3", OLD = "wypad-v3-old", PAIR = "wypad-sync", MINE = "wypad-legacy-trip", WRITTEN = "wypad-legacy-written";
   const TRIP = { title: "Wypad we dwoje", start: "2026-11-19", end: "2026-11-24", origin: "KRK" };
   const LETTERS = ["K", "Z"];
   const NAMES = { K: "Krystian", Z: "Zuzia" };
@@ -52,28 +52,50 @@
     return data;
   }
 
-  // ten wypad przeniósł już ktoś na drugim telefonie: dołącz głosy mojej litery z tego telefonu (pierwszeństwo przed legacy)
+  // dołączenie starego wyjazdu do wypadu, który już istnieje (przeniesiony na drugim telefonie, pusty po zgubionej odpowiedzi
+  // create_trip albo nasza niedokończona próba): kierunki, których brak, dochodzą w całości (z miejscami i kosztami),
+  // głosy mojej litery uzupełniają puste miejsca (pierwszeństwo przed legacy), a głosy drugiej litery z dodanych kierunków czekają w legacy
   function merge(data, old, letter, userId) {
-    const c = convert(old, letter, userId).data;
-    const mine = new Map(c.destinations.map(d => [d.id, d.votes[userId]]));
-    for (const d of data.destinations || []) {
-      const v = mine.get(d.id);
-      d.votes = d.votes || {};
-      if (v && !G.cleanVote(d.votes[userId])) d.votes[userId] = v;
+    const c = convert(old, letter, userId).data, o = other(letter);
+    data.destinations = Array.isArray(data.destinations) ? data.destinations : [];
+    // pusty wypad (np. po zgubionej odpowiedzi create_trip): budżet i liczba osób ze starego wyjazdu
+    if (!data.destinations.length) { data.budget = c.budget; data.persons = c.persons; }
+    const have = new Set(data.destinations.map(d => d.id));
+    for (const x of c.destinations) {
+      if (!G.safeId(x.id)) continue;
+      if (have.has(x.id)) {
+        const d = data.destinations.find(q => q.id === x.id);
+        d.votes = d.votes || {};
+        const v = x.votes[userId];
+        if (v && !G.cleanVote(d.votes[userId])) d.votes[userId] = v;
+        continue;
+      }
+      data.destinations.push(x);
+      have.add(x.id);
+      const t = c.legacy[o] && c.legacy[o][x.id];
+      if (t) { data.legacy = data.legacy || {}; (data.legacy[o] = data.legacy[o] || {})[x.id] = t; }
     }
     claim(data, letter, userId);
-    const have = new Set((data.destinations || []).map(d => d.id));
     data.matched = [...new Set([...(data.matched || []), ...c.matched.filter(id => have.has(id))])];
     return data;
   }
+  // czy dane wypadu mają każdy kierunek ze starego wyjazdu
+  const covers = (data, old) => {
+    const have = new Set(((data && data.destinations) || []).map(d => d && d.id));
+    return (old.destinations || []).every(d => !d || !G.safeId(d.id) || have.has(d.id));
+  };
 
   // ---------- stan pary ze starego serwera ----------
-  async function pullPair(room) {
-    const r = await fetch(`${WypadAuth.URL}/rest/v1/rpc/wypad_pull`, {
-      method: "POST",
+  async function pullPair(room, ms) {
+    const ac = new AbortController(), t = setTimeout(() => ac.abort(), ms);
+    let r;
+    try {
+      r = await fetch(`${WypadAuth.URL}/rest/v1/rpc/wypad_pull`, {
+      method: "POST", signal: ac.signal,
       headers: { apikey: WypadAuth.KEY, "Content-Type": "application/json" },
       body: JSON.stringify({ p_room: room, p_since: null }),
-    });
+      });
+    } finally { clearTimeout(t); }
     if (r.status === 404) return [];          // stare funkcje już usunięte: zostaje stan z telefonu
     if (!r.ok) throw new Error(`wypad_pull ${r.status}`);
     const rows = await r.json();
@@ -125,45 +147,72 @@
   // ten sam wypad przeniesiony już wcześniej (np. na drugim telefonie), ale nie nasza własna niedokończona próba
   const existing = () => (window.WypadTrips.list() || []).find(t => isTwin(t) && t.id !== get(MINE)) || null;
 
+  // „wypad-legacy-trip” = id wypadu przeniesienia; „wypad-legacy-written” = id, gdy pełne dane starego wyjazdu są już w jego kopii lokalnej.
+  // Od tej chwili kopii nie wolno nadpisać (synchronizacja wysłałaby usunięcia nowszych wpisów), a każda udana synchronizacja kończy przeniesienie.
+  const TRIP_KEY = id => "wypad-trip-" + id;
+  const set = (k, v) => localStorage.setItem(k, v);
+  const del = k => { try { localStorage.removeItem(k); } catch {} };
+  function finish() {
+    const raw = get(V3);
+    if (raw != null && get(OLD) == null) { set(OLD, raw); localStorage.removeItem(V3); }
+    del(MINE); del(WRITTEN);
+  }
+  // wołane z app.js po udanej synchronizacji w sieci (status „ok”)
+  function synced(id) {
+    if (!id || id !== get(MINE) || get(WRITTEN) !== id || get(V3) == null || get(TRIP_KEY(id)) == null) return false;
+    finish();
+    return true;
+  }
+  const limit = (p, ms) => new Promise(res => { const t = setTimeout(() => res(false), ms); Promise.resolve(p).then(v => { clearTimeout(t); res(v); }, () => { clearTimeout(t); res(false); }); });
+
   let running = null;
   function run(letter, opts = {}) {
     if (running) return running;
     running = go(letter, opts).finally(() => { running = null; });
     return running;
   }
-  async function go(letter, { into } = {}) {
+  async function go(letter, { into, timeout = 15000 } = {}) {
     if (!LETTERS.includes(letter)) throw new Error("bad_letter");
     const raw = get(V3), user = window.WypadAuth.user;
     let s = null; try { s = JSON.parse(raw); } catch {}
     if (!s || !Array.isArray(s.destinations)) throw new Error("no_legacy");
     if (!user) throw new Error("not_signed_in");
-    const p = pair();
-    if (p) overlay(s, await pullPair(p.room), p.ts);
-    let trip;
-    if (into) {
-      trip = into;
-      window.openTrip(trip);
-      if (!(await window.WypadSync.sync())) throw new Error("sync_failed");
-      if (typeof window.editTrip !== "function" || !window.editTrip(data => merge(data, s, letter, user.id))) throw new Error("edit_failed");
-    } else {
+    const sync = async () => { if (!(await limit(window.WypadSync.sync(), timeout))) throw new Error("sync_failed"); };
+    let trip = into || null, mode = into ? "merge" : null;
+    if (!trip && get(MINE)) {
       const id = get(MINE);
-      trip = id && ((await window.WypadTrips.refresh()) || []).find(t => t.id === id);
-      if (!trip) {
-        trip = await window.WypadTrips.create(TRIP);
-        try { localStorage.setItem(MINE, trip.id); } catch {}
-      }
-      localStorage.setItem("wypad-trip-" + trip.id, JSON.stringify(convert(s, letter, user.id).data));
-      window.openTrip(trip);
+      trip = ((await window.WypadTrips.refresh()) || []).find(t => t.id === id) || null;
+      if (!trip) { del(MINE); del(WRITTEN); }
+      // dane już w kopii lokalnej: tylko otwórz i zsynchronizuj; bez kopii (albo bez pełnego zapisu) dołącz jak do istniejącego
+      else mode = get(WRITTEN) === id && get(TRIP_KEY(id)) != null ? "open" : "merge";
     }
-    if (!(await window.WypadSync.sync())) throw new Error("sync_failed");
-    // dopiero teraz: nowy wypad jest na serwerze
-    localStorage.setItem(OLD, raw);
-    localStorage.removeItem(V3);
-    try { localStorage.removeItem(MINE); } catch {}
+    if (mode !== "open") {
+      const p = pair();
+      if (p) overlay(s, await pullPair(p.room, timeout), p.ts);
+    }
+    if (!trip) {
+      trip = await window.WypadTrips.create(TRIP);
+      set(MINE, trip.id);
+      set(TRIP_KEY(trip.id), JSON.stringify(convert(s, letter, user.id).data));
+      set(WRITTEN, trip.id);
+      mode = "fresh";
+    }
+    window.openTrip(trip);
+    if (mode === "merge") {
+      await sync();                      // najpierw stan z serwera, potem dołączenie
+      let ok = false;
+      if (typeof window.editTrip === "function") ok = window.editTrip(data => merge(data, s, letter, user.id));
+      let data = null; try { data = JSON.parse(get(TRIP_KEY(trip.id))); } catch {}
+      if (!ok || !covers(data, s)) throw new Error("merge_failed");
+      set(MINE, trip.id); set(WRITTEN, trip.id);
+    }
+    await sync();
+    // dopiero teraz: pełny wyjazd jest na serwerze
+    finish();
     return trip.id;
   }
 
-  window.WypadLegacy = { pending, convert, claim, merge, overlay, letters, existing, run, NAMES };
+  window.WypadLegacy = { pending, convert, claim, merge, covers, overlay, letters, existing, run, synced, NAMES };
 
   // ---------- pytanie po zalogowaniu (ekran #trips) ----------
   const dlg = document.getElementById("legacy");
@@ -240,6 +289,15 @@
     body.querySelector("[data-mv=K]").focus();
   }
   window.WypadAuth.onChange(u => { if (u) setTimeout(maybeAsk, 0); else if (dlg.open) { busy = false; dlg.close(); } });
+  // każde wejście na listę wypadów pyta jeszcze raz, dopóki stary wyjazd czeka, a nie ma rozpoczętego przeniesienia
+  // (rozpoczęte kończy się samo przy pierwszej udanej synchronizacji tego wypadu)
+  const root = document.documentElement;
+  let inList = root.classList.contains("in-trips");
+  if (typeof MutationObserver === "function") new MutationObserver(() => {
+    const now = root.classList.contains("in-trips");
+    if (now && !inList && !get(MINE)) { later = false; setTimeout(maybeAsk, 0); }
+    inList = now;
+  }).observe(root, { attributes: true, attributeFilter: ["class"] });
   window.WypadLegacy.ask = maybeAsk;
   setTimeout(maybeAsk, 0);
 })();

@@ -237,3 +237,25 @@ test("sync zwraca true po udanej wysyłce, a wywołanie w trakcie czeka na powt�
   S.close();
   assert.equal(await S.sync(), false);
 });
+
+test("oczekujący na sync dostaje false, gdy wypad zamknięto w trakcie", async () => {
+  let release;
+  const gate = new Promise(r => { release = r; });
+  const { S } = setup(async c => { await gate; return ok(c); });
+  S.init(hooks({ a: 1 }));
+  const first = S.open(A), waiter = S.sync();
+  S.close();
+  release();
+  assert.equal(await first, false);
+  assert.equal(await waiter, false);
+});
+
+test("pierwszy przebieg pada, powtórka w kolejce się udaje: oczekujący dostaje true", async () => {
+  let n = 0;
+  const { S } = setup(c => (c.fn === "trip_pull" && ++n === 1 ? res(500, { message: "boom" }) : ok(c)));
+  S.init(hooks({ a: 1 }));
+  const first = S.open(A), waiter = S.sync();
+  assert.equal(await first, false);
+  assert.equal(await waiter, true);
+  S.close();
+});

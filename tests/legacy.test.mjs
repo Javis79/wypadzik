@@ -205,35 +205,218 @@ test("existing: wypad „Wypad we dwoje” od 2026-11-19 na liście, ale nie nas
   assert.equal(setup({ list: [{ id: T2, title: "Inny", start: "2026-11-19" }] }).L.existing(), null);
 });
 
-test("merge: głosy z tego telefonu dołączone do istniejącego wypadu", () => {
+test("merge: głosy z tego telefonu dołączone do istniejącego wypadu, brakujące kierunki dochodzą w całości", () => {
   const { L } = setup();
   const theirs = L.convert(oldState(), "K", U1).data;   // wypad przeniesiony na drugim telefonie przez Krystiana
   theirs.destinations = theirs.destinations.filter(d => d.id !== "oslo");
+  theirs.destinations.find(d => d.id === "sofia").name = "Sofia (zmieniona)";
   const mine = oldState();
   mine.destinations.find(d => d.id === "porto").votes = { Z: -1 };   // ten telefon wie co innego niż legacy
+  mine.destinations.find(d => d.id === "oslo").votes = { K: 1, Z: 1 };
   L.merge(theirs, mine, "Z", U2);
   const d = id => theirs.destinations.find(x => x.id === id);
   assert.equal(d("porto").votes[U2], -1);
   assert.equal(d("sofia").votes[U2], -1);
+  assert.equal(d("sofia").name, "Sofia (zmieniona)");   // kierunek z wypadu zostaje taki, jaki jest
   assert.equal(d("bari").votes[U2], 1);
-  assert.equal(d("oslo"), undefined);
+  assert.equal(d("oslo").ratingK, 4);                    // brakujący kierunek dochodzi w całości
+  assert.equal(d("oslo").votes[U2], 1);
+  assert.equal(theirs.legacy.K.oslo, 1);                 // głos drugiej litery z dodanego kierunku czeka w legacy
   assert.equal(theirs.legacy.Z, undefined);
-  assert.deepEqual(plain(theirs.matched), ["bari"]);
+  assert.deepEqual(plain(theirs.matched).sort(), ["bari", "oslo"]);
+  assert.equal(L.covers(theirs, mine), true);
 });
 
-test("run z istniejącym wypadem: bez create, edycja przez editTrip, potem zmiana nazwy", async () => {
+test("merge do pustego wypadu (zgubiona odpowiedź create_trip): wszystkie kierunki z miejscami i głosami", () => {
+  const { L } = setup();
+  const empty = { version: 3, budget: 0, persons: 1, destinations: [] };
+  assert.equal(L.covers(empty, oldState()), false);
+  L.merge(empty, oldState(), "K", U1);
+  assert.deepEqual(plain(empty.destinations.map(d => d.id)), ["sofia", "bari", "porto", "oslo"]);
+  assert.equal(empty.destinations[0].places[0].name, "Aleksandr Newski");
+  assert.equal(empty.destinations[0].votes[U1], 1);
+  assert.deepEqual(plain(empty.legacy), { Z: { sofia: -1, bari: 1, porto: 1 } });
+  assert.deepEqual(plain(empty.matched), ["bari"]);
+  assert.equal(empty.budget, 3000);
+  assert.equal(empty.persons, 2);
+  assert.equal(L.covers(empty, oldState()), true);
+});
+
+test("run z istniejącym wypadem bez edycji danych (brak editTrip): wypad-v3 zostaje", async () => {
   const list = [{ id: T2, title: "Wypad we dwoje", start: "2026-11-19", end: "2026-11-24", members: [] }];
-  const { w, L, ls, calls } = setup({ list });
-  const theirs = L.convert(oldState(), "K", "33333333-3333-3333-3333-333333333333").data;
-  let edited = null;
-  w.editTrip = fn => { fn(theirs); edited = theirs; return true; };
-  assert.equal(await L.run("K", { into: list[0] }), T2);
+  const { L, ls } = setup({ list });
+  await assert.rejects(L.run("K", { into: list[0] }), /merge_failed/);
+  assert.ok(ls.getItem("wypad-v3"));
+  assert.equal(ls.getItem("wypad-v3-old"), null);
+});
+
+test("run: zawieszona synchronizacja kończy się po limicie czasu, wypad-v3 zostaje", async () => {
+  const { L, ls } = setup({ syncOk: () => new Promise(() => {}) });
+  await assert.rejects(L.run("K", { timeout: 30 }), /sync_failed/);
+  assert.ok(ls.getItem("wypad-v3"));
+});
+
+test("run: zawieszony wypad_pull przerwany po limicie czasu", async () => {
+  const pair = { room: "abcdefghijklmnop1234" };
+  let aborted = false;
+  const { L, ls, calls, w } = setup({ pair });
+  w.fetch = (u, o) => new Promise((_, rej) => o.signal.addEventListener("abort", () => { aborted = true; rej(new Error("aborted")); }));
+  await assert.rejects(L.run("K", { timeout: 30 }));
+  assert.equal(aborted, true);
   assert.equal(calls.create.length, 0);
-  assert.deepEqual(plain(calls.opened), [T2]);
-  assert.equal(calls.sync, 2);
-  assert.equal(edited.destinations.find(d => d.id === "sofia").votes[U1], 1);
-  assert.equal(ls.getItem("wypad-v3"), null);
-  assert.ok(ls.getItem("wypad-v3-old"));
+  assert.ok(ls.getItem("wypad-v3"));
+});
+
+// ---------- prawdziwe sync.js + rdzeń app.js z group.js (normalize, toItems, applyItems) na udawanym serwerze ----------
+const now = () => Math.floor(Date.now() / 1000);
+function server() {
+  const rows = new Map(), pushes = [];
+  let clock = 0;
+  const at = () => new Date(Date.UTC(2026, 10, 4, 12) + (++clock) * 1000).toISOString();
+  return {
+    rows, pushes, down: false,
+    write(key, value) { rows.set(key, { value, updated_at: at() }); },
+    async fetch(u, o) {
+      const fn = u.split("/rpc/")[1], body = JSON.parse(o.body);
+      if (this.down) return res(503, { message: "down" });
+      if (fn === "trip_push") {
+        pushes.push(body.p_items);
+        return res(200, Object.entries(body.p_items).map(([key, value]) => { this.write(key, value); return { key, updated_at: rows.get(key).updated_at }; }));
+      }
+      if (fn === "trip_pull") return res(200, [...rows].filter(([, r]) => !body.p_since || r.updated_at > body.p_since).map(([key, r]) => ({ key, value: r.value, updated_at: r.updated_at })));
+      if (fn === "wypad_pull") return res(200, []);
+      return res(404, {});
+    },
+  };
+}
+function phone(srv, { user = U1, list = [], v3 = oldState(), autoRename = true } = {}) {
+  const w0 = load([]);
+  w0.localStorage.setItem("wypad-auth", JSON.stringify({ access_token: "A", refresh_token: "R", expires_at: now() + 3600, user: { id: user, email: "x@wypad.app", user_metadata: { login: "x" } } }));
+  if (v3) w0.localStorage.setItem("wypad-v3", JSON.stringify(v3));
+  const created = [];
+  const w = load(["auth.js", "group.js", "sync.js", "legacy.js"], {
+    localStorage: w0.localStorage,
+    WypadTrips: {
+      create: async f => { const t = { id: T1, title: f.title, start: f.start, end: f.end, origin: f.origin, members: [] }; created.push(t); list.push(t); return t; },
+      list: () => list, refresh: async () => list,
+    },
+    fetch: (u, o) => srv.fetch(u, o),
+  });
+  const G = w.WypadGroup, ls = w.localStorage;
+  const app = { S: null, id: null };
+  const persist = () => ls.setItem("wypad-trip-" + app.id, JSON.stringify(app.S));
+  w.WypadSync.init({
+    snapshot: () => G.toItems(app.S),
+    apply: r => { const { matched } = G.applyItems(app.S, r, []); if (matched) app.S.matched = [...new Set([...matched, ...app.S.matched])]; persist(); },
+    onStatus: st => { if (autoRename && st === "ok" && w.navigator.onLine) w.WypadLegacy.synced(w.WypadSync.trip); },
+    onGone() {},
+  });
+  w.openTrip = t => { app.id = t.id; let s = null; try { s = JSON.parse(ls.getItem("wypad-trip-" + t.id)); } catch {} app.S = G.normalize(s, 1); w.WypadSync.open(t.id); };
+  w.editTrip = fn => { fn(app.S); app.S = G.normalize(app.S, 1); persist(); return true; };
+  return { w, L: w.WypadLegacy, ls, app, created, list, G };
+}
+const nulls = pushes => pushes.flatMap(p => Object.keys(p).filter(k => p[k] === null));
+
+test("w obie strony: convert → normalize → toItems → trip_push → trip_pull → applyItems zachowuje legacy i matched", async () => {
+  const srv = server();
+  const a = phone(srv);
+  assert.equal(await a.L.run("K"), T1);
+  a.w.WypadSync.close();
+  assert.deepEqual(plain(srv.rows.get("cfg").value.legacy), { Z: { sofia: -1, bari: 1, porto: 1 } });
+  const b = phone(srv, { user: U2, v3: null, list: [...a.list] });
+  b.w.openTrip(a.list[0]);
+  assert.equal(await b.w.WypadSync.sync(), true);
+  assert.deepEqual(plain(b.app.S.legacy), { Z: { sofia: -1, bari: 1, porto: 1 } });
+  assert.deepEqual(plain(b.app.S.matched), ["bari"]);
+  assert.equal(b.app.S.destinations.length, 4);
+  assert.equal(b.app.S.destinations.find(d => d.id === "sofia").places[0].name, "Aleksandr Newski");
+  b.w.editTrip(s => b.L.claim(s, "Z", U2));
+  assert.equal(await b.w.WypadSync.sync(), true);
+  b.w.WypadSync.close();
+  assert.deepEqual(plain(srv.rows.get("cfg").value.legacy), {});
+  assert.equal(srv.rows.get(`v:porto:${U2}`).value, 1);
+  assert.deepEqual(nulls(srv.pushes), []);
+});
+
+test("ponowienie po nieudanej synchronizacji nie nadpisuje kopii i nie wysyła usunięć nowszych wpisów", async () => {
+  const srv = server();
+  const p = phone(srv, { autoRename: false });     // stara ścieżka bez automatycznego końca: tu liczy się samo ponowienie
+  srv.down = true;
+  await assert.rejects(p.L.run("K"), /sync_failed/);
+  assert.equal(p.ls.getItem("wypad-legacy-trip"), T1);
+  assert.equal(p.ls.getItem("wypad-legacy-written"), T1);
+  // „Nie teraz”, dalsze używanie wypadu: nowy głos i miejsce wysłane w tle, a na serwerze pojawia się przejęcie Zuzi
+  srv.down = false;
+  p.w.editTrip(s => {
+    s.destinations.find(d => d.id === "oslo").votes[U1] = -1;
+    s.destinations.find(d => d.id === "bari").places.push({ id: "p7", name: "Nowe miejsce", cat: "food" });
+  });
+  srv.write(`v:porto:${U2}`, 1);
+  srv.write("cfg", { budget: 3000, persons: 2, matched: ["bari"], legacy: {} });
+  assert.equal(await p.w.WypadSync.sync(), true);
+  const shadow = JSON.parse(p.ls.getItem("wypad-sync-" + T1)).shadow;
+  assert.ok(shadow[`v:oslo:${U1}`] && shadow["p:bari:p7"] && shadow[`v:porto:${U2}`]);
+  assert.ok(p.ls.getItem("wypad-v3"));
+  const before = srv.pushes.length;
+  assert.equal(await p.L.run("K"), T1);
+  p.w.WypadSync.close();
+  assert.equal(p.created.length, 1);
+  assert.deepEqual(nulls(srv.pushes.slice(before)), []);
+  assert.equal(srv.rows.get(`v:oslo:${U1}`).value, -1);
+  assert.equal(srv.rows.get("p:bari:p7").value.name, "Nowe miejsce");
+  assert.deepEqual(plain(srv.rows.get("cfg").value.legacy), {});
+  const local = JSON.parse(p.ls.getItem("wypad-trip-" + T1));
+  assert.equal(local.destinations.find(d => d.id === "porto").votes[U2], 1);
+  assert.equal(p.ls.getItem("wypad-v3"), null);
+  assert.ok(p.ls.getItem("wypad-v3-old"));
+  assert.equal(p.ls.getItem("wypad-legacy-trip"), null);
+  assert.equal(p.ls.getItem("wypad-legacy-written"), null);
+});
+
+test("po nieudanym przeniesieniu pierwsza udana synchronizacja wypadu sama kończy przeniesienie", async () => {
+  const srv = server();
+  const p = phone(srv);
+  srv.down = true;
+  await assert.rejects(p.L.run("K"));
+  assert.equal(p.L.pending(), true);
+  srv.down = false;
+  assert.equal(await p.w.WypadSync.sync(), true);
+  p.w.WypadSync.close();
+  assert.equal(p.L.pending(), false);
+  assert.ok(p.ls.getItem("wypad-v3-old"));
+  assert.equal(srv.rows.get("d:oslo").value.ratingK, 4);
+});
+
+test("dołączenie do pustego bliźniaka: wszystkie kierunki na serwerze przed zmianą nazwy", async () => {
+  const srv = server();
+  const twin = { id: T2, title: "Wypad we dwoje", start: "2026-11-19", end: "2026-11-24", members: [] };
+  const p = phone(srv, { list: [twin] });
+  assert.equal(p.L.existing().id, T2);
+  assert.equal(await p.L.run("K", { into: twin }), T2);
+  p.w.WypadSync.close();
+  assert.equal(p.created.length, 0);
+  for (const id of ["sofia", "bari", "porto", "oslo"]) assert.ok(srv.rows.get("d:" + id), id);
+  assert.equal(srv.rows.get(`v:sofia:${U1}`).value, 1);
+  assert.equal(srv.rows.get("p:sofia:p1").value.name, "Aleksandr Newski");
+  assert.deepEqual(plain(srv.rows.get("cfg").value.legacy), { Z: { sofia: -1, bari: 1, porto: 1 } });
+  assert.ok(p.ls.getItem("wypad-v3-old"));
+});
+
+test("dołączenie do częściowego bliźniaka: brakujące kierunki dochodzą, istniejące zostają", async () => {
+  const srv = server();
+  const U3 = "33333333-3333-3333-3333-333333333333";
+  srv.write("d:sofia", { id: "sofia", name: "Sofia (z wypadu)", out: [], back: [] });
+  srv.write(`v:sofia:${U3}`, 1);
+  const twin = { id: T2, title: "Wypad we dwoje", start: "2026-11-19", end: "2026-11-24", members: [] };
+  const p = phone(srv, { list: [twin] });
+  assert.equal(await p.L.run("K", { into: twin }), T2);
+  p.w.WypadSync.close();
+  assert.equal(srv.rows.get("d:sofia").value.name, "Sofia (z wypadu)");
+  assert.equal(srv.rows.get(`v:sofia:${U3}`).value, 1);
+  assert.equal(srv.rows.get(`v:sofia:${U1}`).value, 1);
+  for (const id of ["bari", "porto", "oslo"]) assert.ok(srv.rows.get("d:" + id), id);
+  assert.deepEqual(nulls(srv.pushes), []);
+  assert.ok(p.ls.getItem("wypad-v3-old"));
 });
 
 test("cleanCfg: legacy przechodzi przez sito i wraca w obie strony", () => {

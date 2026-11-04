@@ -123,6 +123,88 @@
   }
   const cleanVote = v => (v === 1 || v === -1 ? v : null);
 
+  // ---------- stan wypadu: sito, wpisy do synchronizacji i nakładanie wpisów z serwera ----------
+  // głosy: tylko 1 / -1 i poprawne id osób
+  const cleanVotes = v => {
+    const o = {};
+    if (v && typeof v === "object") for (const k of Object.keys(v)) { const x = cleanVote(v[k]); if (safeId(k) && x) o[k] = x; }
+    return o;
+  };
+  // local = zostaw pola „_” z własnych pobrań; legDate zamienia stary limit powrotu („pon”) w datę (flights.js)
+  function normalize(s, persons, local = true, legDate) {
+    if (!s || !Array.isArray(s.destinations) || s.version !== 3) s = { version: 3, budget: 0, persons: persons || 1, destinations: [] };
+    const cfg = cleanCfg({ budget: s.budget, persons: s.persons ?? persons, matched: s.matched, legacy: s.legacy });
+    const v = s.view && typeof s.view === "object" ? s.view : {};
+    let maxBack = typeof v.maxBack === "string" ? v.maxBack : "";
+    if (maxBack && !/^\d{4}-\d{2}-\d{2}$/.test(maxBack)) maxBack = (legDate && legDate({ day: maxBack })) || "";
+    const view = { sort: ["cost", "fav", "time", "flight", "warm"].includes(v.sort) ? v.sort : "cost", hideRejected: v.hideRejected !== false, maxBack, onlyFav: !!v.onlyFav };
+    const seen = new Set(), destinations = [];
+    for (const x of s.destinations) {
+      const d = cleanDest(x, local);
+      if (!d || seen.has(d.id)) continue;
+      seen.add(d.id);
+      d.votes = cleanVotes(x.votes);
+      d.places = (Array.isArray(x.places) ? x.places : []).map(cleanPlace).filter(Boolean);
+      destinations.push(d);
+    }
+    return { version: 3, ...cfg, view, destinations };
+  }
+  // wspólne: budżet, osoby, wspólne kierunki (cfg.matched), oczekujące głosy starego wyjazdu (cfg.legacy), kierunki, głosy i miejsca;
+  // prywatne: filtry, pola „_”, duże zdjęcia w pamięci
+  const shared = d => {
+    const o = {};
+    for (const [k, v] of Object.entries(d)) {
+      if (k[0] === "_" || k === "votes" || k === "places") continue;
+      if (k === "photo" && typeof v === "string" && v.startsWith("data:") && v.length > 150000) continue;
+      o[k] = v;
+    }
+    return o;
+  };
+  function toItems(S) {
+    const it = { cfg: { budget: S.budget, persons: S.persons, matched: S.matched } };
+    if (S.legacy) it.cfg.legacy = S.legacy;
+    S.destinations.forEach(d => {
+      it["d:" + d.id] = shared(d);
+      Object.entries(d.votes || {}).forEach(([p, v]) => { if (v) it[`v:${d.id}:${p}`] = v; });
+      (d.places || []).forEach(p => { const { _m, ...q } = p; it[`p:${d.id}:${p.id}`] = q; });
+    });
+    return it;
+  }
+  // wpisy od członków wypadu przez sito; zwraca matched z serwera (albo null) i stale = głos kogoś spoza znanych członków
+  function applyItems(S, remote, memberIds) {
+    const rank = k => k === "cfg" ? 0 : k.startsWith("d:") ? 1 : 2;
+    const dest = id => S.destinations.find(d => d.id === id);
+    let matched = null, stale = false;
+    Object.keys(remote).sort((a, b) => rank(a) - rank(b)).forEach(k => {
+      const v = remote[k], [t, rawId, rawX] = k.split(":");
+      if (k === "cfg") { if (v) { const c = cleanCfg(v); S.budget = c.budget; S.persons = c.persons; if (Array.isArray(v.matched)) matched = c.matched; if (c.legacy) S.legacy = c.legacy; } return; }
+      const id = safeId(rawId); if (!id) return;
+      const d = dest(id);
+      if (t === "d") {
+        if (v === null) { S.destinations = S.destinations.filter(q => q.id !== id); return; }
+        const c = cleanDest(v);
+        if (!c || c.id !== id) return;
+        if (d) Object.assign(d, c); else S.destinations.push({ ...c, votes: {}, places: [] });
+        return;
+      }
+      if (!d) return;
+      const x = safeId(rawX); if (!x) return;
+      if (t === "v") {
+        const vote = cleanVote(v);
+        if (vote) d.votes[x] = vote; else if (v === null) delete d.votes[x];
+        if (vote && !(memberIds || []).includes(x)) stale = true;
+      }
+      if (t === "p") {
+        const i = d.places.findIndex(q => q.id === x);
+        if (v === null) { if (i >= 0) d.places.splice(i, 1); return; }
+        const c = cleanPlace(v);
+        if (!c || c.id !== x) return;
+        if (i >= 0) Object.assign(d.places[i], c); else d.places.push(c);
+      }
+    });
+    return { matched, stale };
+  }
+
   window.WypadGroup = { isMatch, voteTags, matchLine, initials, undoMatch, resetMatched, newMatches,
-    safeId, safeUrl, safePhoto, cleanDest, cleanPlace, cleanCfg, cleanVote };
+    safeId, safeUrl, safePhoto, cleanDest, cleanPlace, cleanCfg, cleanVote, normalize, toItems, applyItems };
 })();
