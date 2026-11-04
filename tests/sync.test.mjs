@@ -1,0 +1,122 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { load, plain } from "./load.mjs";
+
+const now = () => Math.floor(Date.now() / 1000);
+const sess = (over = {}) => ({
+  access_token: "A1", refresh_token: "R1", expires_at: now() + 3600,
+  user: { id: "u1", email: "zuzia@wypad.app", user_metadata: { login: "zuzia", name: "Zuzia" } }, ...over,
+});
+const res = (status, body) => ({ ok: status < 400, status, json: async () => body });
+const A = "11111111-1111-1111-1111-111111111111", B = "22222222-2222-2222-2222-222222222222";
+
+class FakeWS {
+  static all = [];
+  constructor(url) { this.url = url; this.readyState = 0; this.sent = []; FakeWS.all.push(this); }
+  send(m) { this.sent.push(JSON.parse(m)); }
+  close() { this.readyState = 3; }
+}
+
+function setup(fetchImpl) {
+  FakeWS.all = [];
+  const w0 = load([]);
+  w0.localStorage.setItem("wypad-auth", JSON.stringify(sess()));
+  const calls = [];
+  const w = load(["auth.js", "sync.js"], {
+    localStorage: w0.localStorage, WebSocket: FakeWS,
+    fetch: async (u, o) => { const c = { u, fn: u.split("/rpc/")[1], body: o.body ? JSON.parse(o.body) : null, h: o.headers }; calls.push(c); return fetchImpl(c); },
+  });
+  return { w, calls, S: w.WypadSync };
+}
+const hooks = (items, extra = {}) => ({ snapshot: () => items, apply() {}, onStatus() {}, onGone() {}, ...extra });
+const ok = c => res(200, c.fn === "trip_push" ? Object.keys(c.body.p_items).map(key => ({ key, updated_at: "2026-01-01T00:00:00Z" })) : []);
+
+test("push wysyła tylko zmienione klucze", async () => {
+  const items = { a: { x: 1, y: 2 }, b: 1 };
+  const { calls, S } = setup(ok);
+  S.init(hooks(items));
+  await S.open(A);
+  const first = calls.filter(c => c.fn === "trip_push");
+  assert.deepEqual(plain(Object.keys(first[0].body.p_items)).sort(), ["a", "b"]);
+  assert.equal(first[0].body.p_trip, A);
+  assert.equal(first[0].h.Authorization, "Bearer A1");
+  items.a = { y: 2, x: 1 };      // inna kolejność pól, ta sama treść
+  items.b = 2;
+  await S.sync();
+  const pushes = calls.filter(c => c.fn === "trip_push");
+  assert.deepEqual(plain(Object.keys(pushes[1].body.p_items)), ["b"]);
+  delete items.a;
+  await S.sync();
+  const last = calls.filter(c => c.fn === "trip_push").pop();
+  assert.deepEqual(plain(last.body.p_items), { a: null });
+  S.close();
+});
+
+test("401, a potem 200: dwa trip_push i jedno wymuszone odświeżenie", async () => {
+  let pushes = 0;
+  const { calls, S } = setup(c => {
+    if (c.u.includes("/auth/v1/token")) return res(200, sess({ access_token: "A2", refresh_token: "R2" }));
+    if (c.fn === "trip_push" && ++pushes === 1) return res(401, { message: "JWT expired" });
+    return ok(c);
+  });
+  S.init(hooks({ k: 1 }));
+  await S.open(A);
+  const push = calls.filter(c => c.fn === "trip_push");
+  assert.equal(push.length, 2);
+  assert.equal(push[0].h.Authorization, "Bearer A1");
+  assert.equal(push[1].h.Authorization, "Bearer A2");
+  assert.equal(calls.filter(c => c.u.includes("grant_type=refresh_token")).length, 1);
+  S.close();
+});
+
+test("not_member woła onGone i zamyka wypad", async () => {
+  const gone = [];
+  const { S } = setup(() => res(400, { code: "P0001", message: "not_member" }));
+  S.init(hooks({ k: 1 }, { onGone: id => gone.push(id) }));
+  await S.open(A);
+  assert.deepEqual(gone, [A]);
+  assert.equal(S.trip, null);
+});
+
+test("open(b) po open(a) nie miesza cieni", async () => {
+  const items = { k: 1 };
+  const { calls, S, w } = setup(ok);
+  S.init(hooks(items));
+  await S.open(A);
+  await S.open(B);
+  const pushes = calls.filter(c => c.fn === "trip_push");
+  assert.deepEqual(pushes.map(c => c.body.p_trip), [A, B]);   // B wysłał k, mimo że A już je znał
+  assert.equal(S.trip, B);
+  assert.ok(JSON.parse(w.localStorage.getItem("wypad-sync-" + A)).shadow.k);
+  assert.ok(JSON.parse(w.localStorage.getItem("wypad-sync-" + B)).shadow.k);
+  await S.open(A);
+  assert.equal(calls.filter(c => c.fn === "trip_push").length, 2);   // A nic nowego do wysłania
+  S.close();
+});
+
+test("kanał Realtime: temat i access_token w URL; stary klucz wypad-sync zostaje", async () => {
+  const { S, w } = setup(ok);
+  w.localStorage.setItem("wypad-sync", '{"room":"x"}');
+  S.init(hooks({}));
+  S.open(A);
+  for (let i = 0; i < 5 && !FakeWS.all.length; i++) await new Promise(r => setTimeout(r, 0));
+  const ws = FakeWS.all[0];
+  assert.match(ws.url, /apikey=sb_publishable_.*&vsn=1\.0\.0&access_token=A1$/);
+  ws.readyState = 1; ws.onopen();
+  assert.equal(ws.sent[0].topic, "realtime:trip-" + A);
+  assert.equal(ws.sent[0].event, "phx_join");
+  assert.equal(w.localStorage.getItem("wypad-sync"), '{"room":"x"}');
+  S.close();
+});
+
+test("pull stosuje zdalne wpisy i pomija znane", async () => {
+  const applied = [];
+  const { S } = setup(c => c.fn === "trip_pull"
+    ? res(200, [{ key: "r", value: { v: 1 }, updated_at: "2026-02-01T00:00:00Z" }]) : ok(c));
+  const items = {};
+  S.init(hooks(items, { apply: r => { applied.push(plain(r)); Object.assign(items, r); } }));
+  await S.open(A); await S.sync();
+  assert.deepEqual(applied, [{ r: { v: 1 } }]);
+  assert.equal(S.last, "2026-02-01T00:00:00Z");
+  S.close();
+});

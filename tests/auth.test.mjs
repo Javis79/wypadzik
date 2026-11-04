@@ -88,6 +88,22 @@ test("token(): ważny nie odświeża, <60 s odświeża", async () => {
   assert.equal(calls.length, 1);
 });
 
+test("token({force}) odświeża ważny token, wspólnie dla równoległych wywołań", async () => {
+  const calls = [];
+  const w0 = load([]);
+  w0.localStorage.setItem("wypad-auth", JSON.stringify(sess()));
+  const w = load(["auth.js"], { localStorage: w0.localStorage, fetch: async u => {
+    calls.push(u);
+    return res(200, sess({ access_token: "A2", refresh_token: "R2", expires_at: now() + 3600 }));
+  } });
+  assert.equal(await w.WypadAuth.token(), "A1");
+  assert.equal(calls.length, 0);
+  const [x, y] = await Promise.all([w.WypadAuth.token({ force: true }), w.WypadAuth.token({ force: true })]);
+  assert.equal(x, "A2"); assert.equal(y, "A2");
+  assert.equal(calls.length, 1);
+  assert.equal(await w.WypadAuth.token(), "A2");
+});
+
 test("token(): błąd odświeżenia wylogowuje i woła onChange", async () => {
   const w0 = load([]);
   w0.localStorage.setItem("wypad-auth", JSON.stringify(sess({ expires_at: now() + 5 })));

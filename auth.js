@@ -109,9 +109,9 @@
   };
 
   let refreshing = null;
-  api.token = async () => {
+  api.token = async ({ force } = {}) => {
     if (!sess) { const e = new Error("not_signed_in"); e.code = "not_signed_in"; throw e; }
-    if (sess.expires_at - Math.floor(Date.now() / 1000) >= 60) return sess.access_token;
+    if (!force && sess.expires_at - Math.floor(Date.now() / 1000) >= 60) return sess.access_token;
     const from = sess;
     if (!refreshing || refreshing.from !== from) {
       const p = (async () => {
@@ -129,7 +129,7 @@
       var h = refreshing = { from, p };   // finally wykona się dopiero po tym przypisaniu (pierwszy await w środku)
     }
     const out = await refreshing.p;
-    return out == null ? api.token() : out;
+    return out == null ? api.token({ force }) : out;
   };
 
   api.onChange = fn => { listeners.push(fn); return () => { const i = listeners.indexOf(fn); if (i >= 0) listeners.splice(i, 1); }; };

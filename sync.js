@@ -1,27 +1,45 @@
-/* Synchronizacja dwóch telefonów przez Supabase.
+/* Synchronizacja jednego wypadu między telefonami przez Supabase.
    Każdy głos, kierunek i miejsce to osobny wpis, więc równoległe zmiany się nie nadpisują.
-   Tabela jest zamknięta; dostęp tylko przez funkcje wypad_pull / wypad_push z tajnym kodem pary.
-   Klucz poniżej to publiczny klucz „publishable”, przeznaczony do kodu w przeglądarce. */
+   Dostęp tylko przez funkcje trip_pull / trip_push z tokenem zalogowanego członka wypadu.
+   Klucz w WypadAuth to publiczny klucz „publishable”, przeznaczony do kodu w przeglądarce. */
 (() => {
   const URL_ = WypadAuth.URL, KEY = WypadAuth.KEY;
-  const LS = "wypad-sync";
+  const LS = "wypad-sync-";
 
-  const load = () => { try { return JSON.parse(localStorage.getItem(LS)) || {}; } catch { return {}; } };
-  let st = load();                       // { room, shadow: {key: json}, ts: {key: iso}, last: iso }
-  const persist = () => { try { localStorage.setItem(LS, JSON.stringify(st)); } catch {} };
+  let trip = null;                       // id otwartego wypadu
+  let st = null;                         // { shadow: {key: json}, ts: {key: iso}, last: iso }
+  const loadState = id => {
+    let o = null;
+    try { o = JSON.parse(localStorage.getItem(LS + id)); } catch {}
+    return { shadow: (o && o.shadow) || {}, ts: (o && o.ts) || {}, last: (o && o.last) || null };
+  };
+  const persist = () => { if (trip) try { localStorage.setItem(LS + trip, JSON.stringify(st)); } catch {} };
   // porównanie niezależne od kolejności pól (Postgres jsonb układa klucze po swojemu)
   const canon = v => Array.isArray(v) ? v.map(canon) : v && typeof v === "object"
     ? Object.fromEntries(Object.keys(v).sort().map(k => [k, canon(v[k])])) : v;
   const J = v => JSON.stringify(canon(v ?? null));
 
-  let hooks = {}, ws = null, wsRef = 1, beat = null, retry = 0, pushT = null, pollT = null, busy = false, again = false;
+  let hooks = {}, ws = null, wsRef = 1, beat = null, retry = 0, pushT = null, retryT = null, pollT = null, busy = false, again = false;
   const status = (s, extra) => { hooks.onStatus && hooks.onStatus(s, extra); };
 
-  async function rpc(fn, body) {
-    const r = await fetch(`${URL_}/rest/v1/rpc/${fn}`, {
-      method: "POST", headers: { apikey: KEY, "Content-Type": "application/json" }, body: JSON.stringify(body),
+  async function post(fn, body, token) {
+    return fetch(`${URL_}/rest/v1/rpc/${fn}`, {
+      method: "POST",
+      headers: { apikey: KEY, Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
-    if (!r.ok) throw new Error(`${fn} ${r.status}`);
+  }
+  async function rpc(fn, body) {
+    let r = await post(fn, body, await WypadAuth.token());
+    if (r.status === 401) r = await post(fn, body, await WypadAuth.token({ force: true }));
+    if (!r.ok) {
+      let j = null;
+      try { j = await r.json(); } catch {}
+      const e = new Error((j && j.message) || `${fn} ${r.status}`);
+      e.status = r.status;
+      if (j && j.message === "not_member") e.notMember = true;
+      throw e;
+    }
     return r.json();
   }
 
@@ -33,16 +51,18 @@
     return out;
   }
   async function push() {
-    if (!st.room || !navigator.onLine) return;
+    if (!trip || !navigator.onLine) return;
+    const s = st, id = trip;
     const out = diff(), keys = Object.keys(out);
     if (!keys.length) return;
     for (let i = 0; i < keys.length; i += 400) {
       const part = Object.fromEntries(keys.slice(i, i + 400).map(k => [k, out[k]]));
-      const rows = await rpc("wypad_push", { p_room: st.room, p_items: part });
+      const rows = await rpc("trip_push", { p_trip: id, p_items: part });
+      if (st !== s) return;              // w trakcie wysyłki otwarto inny wypad
       rows.forEach(r => {
-        if (part[r.key] === null) delete st.shadow[r.key]; else st.shadow[r.key] = J(part[r.key]);
-        st.ts[r.key] = r.updated_at;
-        if (!st.last || r.updated_at > st.last) st.last = r.updated_at;
+        if (part[r.key] === null) delete s.shadow[r.key]; else s.shadow[r.key] = J(part[r.key]);
+        s.ts[r.key] = r.updated_at;
+        if (!s.last || r.updated_at > s.last) s.last = r.updated_at;
       });
     }
     persist();
@@ -51,17 +71,19 @@
 
   // ---------- pobieranie: wpisy nowsze niż te, które już znamy ----------
   async function pull() {
-    if (!st.room || !navigator.onLine) return;
+    if (!trip || !navigator.onLine) return;
+    const s = st, id = trip;
     // mały zapas czasu, bo wpisy z równoległych transakcji mogą mieć wcześniejszy znacznik
-    const since = st.last ? new Date(new Date(st.last).getTime() - 15000).toISOString() : null;
-    const rows = await rpc("wypad_pull", { p_room: st.room, p_since: since });
+    const since = s.last ? new Date(new Date(s.last).getTime() - 15000).toISOString() : null;
+    const rows = await rpc("trip_pull", { p_trip: id, p_since: since });
+    if (st !== s) return;
     const remote = {};
     rows.forEach(r => {
-      if (st.ts[r.key] && r.updated_at <= st.ts[r.key]) return;
+      if (s.ts[r.key] && r.updated_at <= s.ts[r.key]) return;
       remote[r.key] = r.value;
-      st.ts[r.key] = r.updated_at;
-      if (r.value === null) delete st.shadow[r.key]; else st.shadow[r.key] = J(r.value);
-      if (!st.last || r.updated_at > st.last) st.last = r.updated_at;
+      s.ts[r.key] = r.updated_at;
+      if (r.value === null) delete s.shadow[r.key]; else s.shadow[r.key] = J(r.value);
+      if (!s.last || r.updated_at > s.last) s.last = r.updated_at;
     });
     persist();
     if (Object.keys(remote).length) hooks.apply(remote);
@@ -69,25 +91,33 @@
 
   // jedna synchronizacja naraz; jeśli coś przyjdzie w trakcie, powtórz raz na końcu
   async function sync() {
-    if (!st.room) return;
+    if (!trip) return;
     if (busy) { again = true; return; }
     busy = true; status("busy");
-    try { await pull(); await push(); status("ok", { at: new Date() }); }
-    catch (e) { status(navigator.onLine ? "error" : "offline", { error: String(e.message || e) }); }
+    const id = trip;
+    try { await pull(); await push(); if (trip === id) status("ok", { at: new Date() }); }
+    catch (e) {
+      if (e.notMember && trip === id) { close(); hooks.onGone && hooks.onGone(id); }
+      else if (trip === id) status(navigator.onLine ? "error" : "offline", { error: String(e.message || e) });
+    }
     finally { busy = false; if (again) { again = false; sync(); } }
   }
-  const schedule = () => { if (!st.room) return; clearTimeout(pushT); pushT = setTimeout(sync, 500); };
+  const schedule = () => { if (!trip) return; clearTimeout(pushT); pushT = setTimeout(sync, 500); };
 
-  // ---------- na żywo: kanał Realtime z kodem pary; wiadomość = „zajrzyj, coś się zmieniło” ----------
-  const topic = () => `realtime:wypad-${st.room}`;
+  // ---------- na żywo: kanał Realtime wypadu; wiadomość = „zajrzyj, coś się zmieniło” ----------
+  const topic = () => `realtime:trip-${trip}`;
   function send(payload) {
     if (ws?.readyState !== 1) return;
     ws.send(JSON.stringify({ topic: topic(), event: "broadcast", payload: { type: "broadcast", event: "sync", payload }, ref: String(++wsRef), join_ref: "1" }));
   }
-  function connect() {
+  async function connect() {
     disconnect();
-    if (!st.room || !navigator.onLine || !("WebSocket" in window)) return;
-    const sock = new WebSocket(`${URL_.replace("https", "wss")}/realtime/v1/websocket?apikey=${KEY}&vsn=1.0.0`);
+    if (!trip || !navigator.onLine || !("WebSocket" in window)) return;
+    const id = trip;
+    let token;
+    try { token = await WypadAuth.token(); } catch { return; }
+    if (trip !== id || ws) return;       // w czasie czekania zmienił się wypad albo ktoś inny już połączył
+    const sock = new WebSocket(`${URL_.replace("https", "wss")}/realtime/v1/websocket?apikey=${KEY}&vsn=1.0.0&access_token=${encodeURIComponent(token)}`);
     ws = sock;
     sock.onopen = () => {
       retry = 0;
@@ -99,39 +129,39 @@
     };
     sock.onclose = () => {
       clearInterval(beat);
-      if (ws !== sock || !st.room) return;
+      if (ws !== sock || trip !== id) return;
       ws = null;
-      setTimeout(connect, Math.min(30000, 1000 * 2 ** retry++));
+      clearTimeout(retryT);
+      retryT = setTimeout(connect, Math.min(30000, 1000 * 2 ** retry++));
     };
   }
-  function disconnect() { clearInterval(beat); if (ws) { const s = ws; ws = null; try { s.close(); } catch {} } }
+  function disconnect() { clearInterval(beat); clearTimeout(retryT); if (ws) { const s = ws; ws = null; try { s.close(); } catch {} } }
 
-  // ---------- para ----------
-  function newRoom() {
-    const a = "abcdefghjkmnpqrstuvwxyz23456789", b = crypto.getRandomValues(new Uint8Array(20));
-    return [...b].map(x => a[x % a.length]).join("");
+  // ---------- wypad ----------
+  function close() {
+    disconnect(); clearTimeout(pushT);
+    trip = null; st = null; again = false;
+    status("off");
   }
-  async function join(room) {
-    st = { room, shadow: {}, ts: {}, last: null }; persist();
+  function open(id) {
+    if (trip === id) return sync();
+    if (trip) close();
+    trip = id; st = loadState(id); retry = 0;
     connect();
-    await sync();
+    return sync();
   }
-  function leave() { disconnect(); st = {}; persist(); status("off"); }
 
-  function init(h) {
-    hooks = h;
-    if (!st.room) { status("off"); return; }
-    connect(); sync();
-  }
-  addEventListener("online", () => { connect(); sync(); });
+  function init(h) { hooks = h; status("off"); }
+  addEventListener("online", () => { if (trip) { connect(); sync(); } });
   addEventListener("offline", () => status("offline"));
-  document.addEventListener("visibilitychange", () => { if (!document.hidden && st.room) { if (!ws) connect(); sync(); } });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && trip) { if (!ws) connect(); sync(); } });
   // zapas, gdyby kanał na żywo zgubił wiadomość
-  pollT = setInterval(() => { if (st.room && !document.hidden) sync(); }, 30000);
+  pollT = setInterval(() => { if (trip && !document.hidden) sync(); }, 30000);
+  if (pollT && pollT.unref) pollT.unref();
 
   window.WypadSync = {
-    init, schedule, sync, join, leave, newRoom,
-    get room() { return st.room || null; },
-    get last() { return st.last || null; },
+    init, open, close, schedule, sync,
+    get trip() { return trip; },
+    get last() { return st ? st.last || null : null; },
   };
 })();

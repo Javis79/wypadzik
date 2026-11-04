@@ -441,7 +441,7 @@
     e.target.value = "";
   });
   $("#reset").addEventListener("click", () => {
-    if (!confirm(WypadSync.room ? "Zastąpić wszystko przykładowymi danymi? Zmiana trafi też na drugi telefon." : "Zastąpić wszystko przykładowymi danymi?")) return;
+    if (!confirm("Zastąpić wszystko przykładowymi danymi?")) return;
     S = structuredClone(window.SAMPLE_DATA); currentDest = S.destinations[0]?.id; save(); renderAll();
   });
 
@@ -991,53 +991,11 @@
   let syncState = "off", syncAt = null;
   function renderSync() {
     const box = $("#pair"); if (!box) return;
-    const room = WypadSync.room, other = who === "K" ? "Z" : "K";
-    if (!room) {
-      box.innerHTML = `<p class="muted">Każde z Was głosuje na swoim telefonie, a apka sama łączy głosy, koszty i miejsca. Utwórz wspólny wyjazd i wyślij link ${PEOPLE[other] === "Zuzia" ? "Zuzi" : "Krystianowi"}.</p>
-        <button class="btn primary wide" data-pair="new">${ic("swap")}Połącz nasze telefony</button>`;
-      return;
-    }
-    const when = syncAt ? syncAt.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) : "";
-    const label = { ok: `Połączone · zsynchronizowane ${when}`, busy: "Synchronizuję…", offline: "Brak internetu, zmiany wyślą się później", error: "Nie udało się zsynchronizować, spróbuję ponownie" }[syncState] || "Połączone";
-    box.innerHTML = `<p class="sync-state ${syncState}">${ic(syncState === "ok" ? "check" : syncState === "error" ? "x" : "swap")}${esc(label)}</p>
-      <p class="muted">Link dla ${PEOPLE[other] === "Zuzia" ? "Zuzi" : "Krystiana"} (otwiera ten sam wyjazd i ustawia, kto głosuje):</p>
-      <input class="pair-link" readonly value="${esc(pairLink(room, other))}">
-      <button class="btn primary wide" data-pair="share">${ic("ext")}Wyślij link</button>
-      <button class="btn wide" data-pair="now">${ic("undo")}Synchronizuj teraz</button>
-      <button class="btn wide danger" data-pair="leave">Rozłącz ten telefon</button>`;
+    box.innerHTML = `<p class="muted">Synchronizacja włączy się po wybraniu wypadu.</p>`;
   }
-  const pairLink = (room, p) => `${location.origin}${location.pathname}#para=${room}&kto=${p}`;
-  $("#pair")?.addEventListener("click", async e => {
-    const b = e.target.closest("[data-pair]"); if (!b) return;
-    const a = b.dataset.pair, other = who === "K" ? "Z" : "K";
-    if (a === "new") {
-      if (!navigator.onLine) return toast("Potrzebny internet");
-      await WypadSync.join(WypadSync.newRoom()); renderSync();
-      toast("Wspólny wyjazd utworzony. Wyślij link drugiej osobie.", 3200);
-    }
-    if (a === "share") {
-      const url = pairLink(WypadSync.room, other);
-      if (navigator.share) { try { await navigator.share({ title: "Wypad we dwoje", text: `Głosuj ze mną, gdzie jedziemy:`, url }); } catch {} }
-      else { try { await navigator.clipboard.writeText(url); toast("Link skopiowany"); } catch { $(".pair-link")?.select(); } }
-    }
-    if (a === "now") WypadSync.sync();
-    if (a === "leave" && confirm("Rozłączyć ten telefon? Dane zostaną na nim, ale przestaną się synchronizować.")) { WypadSync.leave(); renderSync(); }
-  });
-  $("#pair")?.addEventListener("focusin", e => { if (e.target.classList.contains("pair-link")) e.target.select(); });
-  // otwarcie linku od drugiej osoby: dołącz do wyjazdu i ustaw, kto głosuje na tym telefonie
-  async function joinFromLink() {
-    const h = new URLSearchParams(location.hash.slice(1)), room = h.get("para"), p = h.get("kto");
-    if (!room) return;
-    window.history.replaceState(null, "", location.pathname + location.search);
-    if (room === WypadSync.room) return;
-    if (!/^[a-z0-9]{16,64}$/.test(room)) return toast("Ten link jest uszkodzony");
-    if (!confirm(`Dołączyć do wspólnego wyjazdu${p && PEOPLE[p] ? ` jako ${PEOPLE[p]}` : ""}? Twoje dotychczasowe głosy zostaną dołączone.`)) return;
-    if (p && PEOPLE[p]) setWho(p);
-    await WypadSync.join(room); renderSync();
-    toast(`Połączone. Głosujesz jako ${PEOPLE[who]}.`, 3000);
-  }
+  async function joinFromLink() {}
   function net() {
-    const n = $("#net"), bad = !navigator.onLine || (WypadSync.room && syncState === "error");
+    const n = $("#net"), bad = !navigator.onLine || (syncState === "error");
     n.textContent = !navigator.onLine ? "offline" : bad ? "bez synchr." : "";
     n.classList.toggle("off", bad);
   }
@@ -1050,7 +1008,7 @@
   let startTab = "swipe"; try { startTab = localStorage.getItem("wypad-tab") || "swipe"; } catch {}
   if (startTab === "table" && innerWidth < 760) startTab = "compare";
   show(startTab);
-  WypadSync.init({ snapshot, apply: applyRemote, onStatus: (st, x) => { syncState = st; if (x?.at) syncAt = x.at; renderSync(); net(); } });
+  WypadSync.init({ snapshot, apply: applyRemote, onGone: () => {}, onStatus: (st, x) => { syncState = st; if (x?.at) syncAt = x.at; renderSync(); net(); } });
   renderSync();
   joinFromLink();
   addEventListener("hashchange", joinFromLink);
