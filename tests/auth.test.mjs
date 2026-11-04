@@ -120,3 +120,48 @@ test("signOut czyści sesję, woła onChange i /logout", async () => {
   assert.deepEqual(plain(seen), [null]);
   assert.ok(urls.some(u => u.endsWith("/auth/v1/logout")));
 });
+
+test("signUp: hasło 7 znaków odrzucone (pole password), 8 przyjęte", async () => {
+  let n = 0;
+  const w = load(["auth.js"], { fetch: async () => { n++; return res(200, sess()); } });
+  await assert.rejects(w.WypadAuth.signUp({ login: "zuzia", name: "Z", password: "1234567" }),
+    e => e.field === "password" && /8 znaków/.test(e.message));
+  assert.equal(n, 0);
+  await w.WypadAuth.signUp({ login: "zuzia", name: "Z", password: "12345678" });
+  assert.equal(n, 1);
+  await assert.rejects(load(["auth.js"]).WypadAuth.signUp({ login: "z", name: "Z", password: "12345678" }), e => e.field === "login");
+});
+
+test("token() bez sesji rzuca not_signed_in", async () => {
+  const w = load(["auth.js"]);
+  await assert.rejects(w.WypadAuth.token(), e => e.code === "not_signed_in" && e.message === "not_signed_in");
+});
+
+test("signOut w trakcie odświeżania nie przywraca sesji", async () => {
+  const w0 = load([]);
+  w0.localStorage.setItem("wypad-auth", JSON.stringify(sess({ expires_at: now() + 5 })));
+  let release;
+  const gate = new Promise(r => { release = r; });
+  const w = load(["auth.js"], { localStorage: w0.localStorage, fetch: async (u) => {
+    if (u.includes("refresh_token")) { await gate; return res(200, sess({ access_token: "A2", expires_at: now() + 3600 })); }
+    return res(200, {});
+  } });
+  const p = w.WypadAuth.token();
+  const settled = p.then(v => ({ v }), e => ({ e }));
+  w.WypadAuth.signOut();
+  release();
+  const out = await settled;
+  assert.equal(out.e && out.e.code, "not_signed_in");
+  assert.equal(w.WypadAuth.user, null);
+  assert.equal(w.localStorage.getItem("wypad-auth"), null);
+});
+
+test("odświeżanie: 503 i 429 zostawiają sesję, 401 wylogowuje", async () => {
+  for (const [status, out] of [[503, true], [429, true], [401, false]]) {
+    const w0 = load([]);
+    w0.localStorage.setItem("wypad-auth", JSON.stringify(sess({ expires_at: now() + 5 })));
+    const w = load(["auth.js"], { localStorage: w0.localStorage, fetch: async () => res(status, { error_code: "x" }) });
+    await assert.rejects(w.WypadAuth.token());
+    assert.equal(!!w.WypadAuth.user, out, String(status));
+  }
+});

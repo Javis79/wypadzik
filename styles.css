@@ -493,15 +493,20 @@ html.signed-out body{padding-bottom:0}
 .lg-shell .wordmark span{font-size:28px}
 .lg-print{background:#fff;color:#1d1a22;border:2px solid #1d1a22;box-shadow:var(--shadow)}
 .lg-tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #1d1a22}
-.lg-tabs button{border:0;background:#e6dee4;color:#4f4854;padding:12px 8px;min-height:44px;font:700 15px/1 var(--f-ui);font-stretch:88%;cursor:pointer;border-radius:0}
+.lg-tabs button{border:0;background:#e6dee4;color:#4f4854;padding:12px;min-height:44px;font:700 15px/1 var(--f-ui);font-stretch:88%;cursor:pointer;border-radius:0}
 .lg-tabs button + button{border-left:2px solid #1d1a22}
 .lg-tabs button[aria-selected="true"]{background:#fff;color:#1d1a22;box-shadow:inset 0 -3px 0 var(--shell)}
-#lg-form{padding:16px;display:grid;gap:12px}
-#lg-form label{display:block;color:#1d1a22;font-weight:700;font-stretch:90%;font-size:14px}
-#lg-form label[hidden]{display:none}
-#lg-form input{background:#fff;color:#1d1a22;border-color:#1d1a22;font-weight:400;font-size:16px}
+#lg-form{padding:16px}
+#lg-form label{display:block;color:#1d1a22;font-weight:700;font-stretch:90%;font-size:14px;margin:0 0 4px}
+#lg-form [hidden]{display:none}
+#lg-form input{background:#fff;color:#1d1a22;border-color:#1d1a22;font-weight:400;font-size:16px;margin:0}
 #lg-form input::placeholder{color:#6a6270}
-.lg-err{margin:0;min-height:0;font-weight:700;color:#b3261e;font-size:14px}
-.lg-err:empty{display:none}
-#lg-form .btn.primary{background:#1d1a22;color:#fff}
-#lg-form .muted{margin:0;color:#6a6270}
+#lg-form input[aria-invalid="true"]{border-color:#b3261e;box-shadow:0 0 0 1px #b3261e}
+.lg-ferr,.lg-err{margin:4px 0 0;font-weight:700;color:#b3261e;font-size:14px;line-height:1.35}
+.lg-ferr:empty,.lg-err:empty{display:none}
+.lg-ferr{margin-bottom:0}
+#lg-form label,#lg-form .btn{margin-top:12px}
+#lg-form > label:first-child{margin-top:0}
+.lg-err{margin:12px 0 0;padding:8px 10px;border:2px solid #b3261e;background:#fdecea}
+#lg-form .btn.primary{background:#1d1a22;color:#fff;margin-top:12px}
+#lg-form .muted{margin:12px 0 0;color:#6a6270}

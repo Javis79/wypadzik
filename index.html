@@ -15,6 +15,7 @@
 <link rel="preload" href="fonts/shantell-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <link rel="stylesheet" href="styles.css">
+<script>try{if(!localStorage.getItem("wypad-auth"))document.documentElement.classList.add("signed-out")}catch(e){document.documentElement.classList.add("signed-out")}</script>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -69,15 +70,22 @@
         <button type="button" role="tab" id="lg-t-up" data-mode="up" aria-selected="false">Załóż konto</button>
       </div>
       <form id="lg-form" novalidate>
-        <label>Login
-          <input id="lg-login" name="login" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="20" placeholder="np. zuzia">
-        </label>
-        <label id="lg-name-row" hidden>Imię
+        <label for="lg-login">Login</label>
+        <input id="lg-login" name="login" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="20" placeholder="np. zuzia">
+        <p class="lg-ferr" id="lg-e-login" role="alert"></p>
+        <div id="lg-name-row" hidden>
+          <label for="lg-name">Imię</label>
           <input id="lg-name" name="name" autocomplete="given-name" maxlength="30" placeholder="jak ma się wyświetlać">
-        </label>
-        <label>Hasło
-          <input id="lg-pass" name="password" type="password" autocomplete="current-password" placeholder="co najmniej 6 znaków">
-        </label>
+          <p class="lg-ferr" id="lg-e-name" role="alert"></p>
+        </div>
+        <label for="lg-pass">Hasło</label>
+        <input id="lg-pass" name="password" type="password" autocomplete="current-password" placeholder="co najmniej 8 znaków">
+        <p class="lg-ferr" id="lg-e-password" role="alert"></p>
+        <div id="lg-pass2-row" hidden>
+          <label for="lg-pass2">Powtórz hasło</label>
+          <input id="lg-pass2" name="password2" type="password" autocomplete="new-password">
+          <p class="lg-ferr" id="lg-e-pass2" role="alert"></p>
+        </div>
         <p id="lg-err" class="lg-err" role="alert"></p>
         <button class="btn primary wide" id="lg-go" type="submit">Zaloguj</button>
         <p class="muted" id="lg-hint">Login: 3–20 znaków, małe litery, cyfry, _ lub .</p>

@@ -1059,25 +1059,43 @@
   {
     let mode = "in", busy = false;
     const f = $("#lg-form"), err = $("#lg-err"), go = $("#lg-go");
+    const FIELDS = { login: ["#lg-login", "#lg-e-login"], name: ["#lg-name", "#lg-e-name"], password: ["#lg-pass", "#lg-e-password"], pass2: ["#lg-pass2", "#lg-e-pass2"] };
+    const clearErr = k => {
+      const [i, e] = FIELDS[k].map(x => $(x));
+      e.textContent = ""; i.removeAttribute("aria-invalid"); i.removeAttribute("aria-describedby");
+    };
+    const clearAll = () => { Object.keys(FIELDS).forEach(clearErr); err.textContent = ""; };
+    const fieldErr = (k, msg) => {
+      const [i, e] = FIELDS[k].map(x => $(x));
+      e.textContent = msg; i.setAttribute("aria-invalid", "true"); i.setAttribute("aria-describedby", e.id); return i;
+    };
+    Object.keys(FIELDS).forEach(k => $(FIELDS[k][0]).addEventListener("input", () => { clearErr(k); err.textContent = ""; }));
+    const label = () => mode === "in" ? "Zaloguj" : "Załóż konto";
     const setMode = m => {
+      if (busy) return;
       mode = m;
       $("#lg-t-in").setAttribute("aria-selected", m === "in"); $("#lg-t-up").setAttribute("aria-selected", m === "up");
-      $("#lg-name-row").hidden = m === "in"; $("#lg-hint").hidden = m === "in";
+      $("#lg-name-row").hidden = $("#lg-pass2-row").hidden = m === "in";
+      $("#lg-hint").hidden = m === "in";
       $("#lg-pass").autocomplete = m === "in" ? "current-password" : "new-password";
-      go.textContent = m === "in" ? "Zaloguj" : "Załóż konto"; err.textContent = "";
+      go.textContent = label(); clearAll();
     };
     document.querySelectorAll("#login [data-mode]").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
     f.addEventListener("submit", async e => {
       e.preventDefault();
       if (busy) return;
       const v = { login: $("#lg-login").value, name: $("#lg-name").value, password: $("#lg-pass").value };
-      err.textContent = "";
+      clearAll();
+      if (mode === "up" && v.password !== $("#lg-pass2").value) { fieldErr("pass2", "Hasła się różnią").focus(); return; }
       busy = true; go.disabled = true; go.textContent = "Chwileczkę…";
       try {
         await (mode === "in" ? WypadAuth.signIn(v) : WypadAuth.signUp(v));
-        $("#lg-pass").value = "";
-      } catch (x) { err.textContent = x.message || "Coś poszło nie tak"; }
-      busy = false; go.disabled = false; go.textContent = mode === "in" ? "Zaloguj" : "Załóż konto";
+        $("#lg-pass").value = $("#lg-pass2").value = "";
+      } catch (x) {
+        const k = { login: "login", name: "name", password: "password" }[x.field];
+        if (k) fieldErr(k, x.message).focus(); else err.textContent = x.message || "Coś poszło nie tak";
+      }
+      busy = false; go.disabled = false; go.textContent = label();
     });
     const acct = () => { $("#acct-info").textContent = WypadAuth.user ? `Zalogowano jako ${WypadAuth.user.name || WypadAuth.user.login} (${WypadAuth.user.login}).` : ""; };
     $("#signout").addEventListener("click", () => { if (confirm("Wylogować z tego telefonu?")) WypadAuth.signOut(); });

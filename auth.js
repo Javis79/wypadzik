@@ -12,7 +12,7 @@
     exists: "Taki login już jest",
     creds: "Zły login albo hasło",
     offline: "Brak internetu: pierwsze logowanie wymaga sieci",
-    weak: "Hasło jest za słabe: wpisz co najmniej 6 znaków",
+    weak: "Hasło ma mieć co najmniej 8 znaków",
     login: "Login: 3–20 znaków, małe litery, cyfry, _ lub .",
     rate: "Za dużo prób, spróbuj za chwilę",
     confirm: "Konto założone, ale serwer wymaga potwierdzenia e-mail — daj znać Krystianowi",
@@ -57,7 +57,9 @@
     } catch { throw new Error(MSG.offline); }
     let j = null;
     try { j = await r.json(); } catch {}
-    if (!r.ok) { const e = new Error(explain(r.status, j || {})); e.code = (j && (j.error_code || j.code)) || String(r.status); e.status = r.status; throw e; }
+    if (!r.ok) { const e = new Error(explain(r.status, j || {})); e.code = (j && (j.error_code || j.code)) || String(r.status); e.status = r.status;
+      if (e.message === MSG.exists) e.field = "login"; else if (e.message === MSG.weak) e.field = "password";
+      throw e; }
     return j || {};
   }
 
@@ -72,10 +74,11 @@
     return MSG.generic;
   }
 
+  const fieldErr = (msg, field) => { const e = new Error(msg); e.field = field; return e; };
   function need(login, password) {
     const l = normalizeLogin(login);
-    if (!l) throw new Error(MSG.login);
-    if (!password || String(password).length < 6) throw new Error(MSG.weak);
+    if (!l) throw fieldErr(MSG.login, "login");
+    if (!password || String(password).length < 8) throw fieldErr(MSG.weak, "password");
     return l;
   }
 
@@ -107,22 +110,26 @@
 
   let refreshing = null;
   api.token = async () => {
-    if (!sess) throw new Error(MSG.creds);
+    if (!sess) { const e = new Error("not_signed_in"); e.code = "not_signed_in"; throw e; }
     if (sess.expires_at - Math.floor(Date.now() / 1000) >= 60) return sess.access_token;
-    if (!refreshing) {
-      refreshing = (async () => {
+    const from = sess;
+    if (!refreshing || refreshing.from !== from) {
+      const p = (async () => {
         try {
-          const r = await call("/auth/v1/token?grant_type=refresh_token", { refresh_token: sess.refresh_token });
+          const r = await call("/auth/v1/token?grant_type=refresh_token", { refresh_token: from.refresh_token });
+          if (sess !== from) return null;                 // w międzyczasie wylogowanie albo nowe logowanie
           setSession(r);
           return sess.access_token;
         } catch (e) {
-          // brak sieci to nie powód do wylogowania; odrzucony token już tak
-          if (e.status) api.signOut();
+          // tylko odrzucony token wylogowuje; 5xx, 429 i brak sieci zostawiają sesję
+          if (sess === from && (e.status === 400 || e.status === 401)) api.signOut();
           throw e;
-        } finally { refreshing = null; }
+        } finally { if (refreshing === h) refreshing = null; }
       })();
+      var h = refreshing = { from, p };   // finally wykona się dopiero po tym przypisaniu (pierwszy await w środku)
     }
-    return refreshing;
+    const out = await refreshing.p;
+    return out == null ? api.token() : out;
   };
 
   api.onChange = fn => { listeners.push(fn); return () => { const i = listeners.indexOf(fn); if (i >= 0) listeners.splice(i, 1); }; };
